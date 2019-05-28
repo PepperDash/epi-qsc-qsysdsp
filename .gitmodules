@@ -2,3 +2,7 @@
 	path = essentials
 	url = https://jgutenplan@bitbucket.org/Pepperdash_Products/essentials.git
 	branch = development
+[submodule "essentials-framework"]
+	path = essentials-framework
+	url = https://jgutenplan@bitbucket.org/Pepperdash_Products/essentials-framework.git
+	branch = development
