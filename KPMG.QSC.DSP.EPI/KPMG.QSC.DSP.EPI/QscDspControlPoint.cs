@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
+using PepperDash.Essentials.Devices.Common.DSP;
 
-namespace PepperDash.Essentials.Devices.Common.DSP
+namespace QSC.DSP.EPI
 {
 	public abstract class QscDspControlPoint : DspControlPoint
 	{

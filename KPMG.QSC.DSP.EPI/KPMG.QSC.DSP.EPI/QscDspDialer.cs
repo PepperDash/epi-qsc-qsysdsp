@@ -8,8 +8,9 @@ using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharp;
 using PepperDash.Essentials.Devices.Common.Codec;
 using Crestron.SimplSharpPro.CrestronThread;
+using PepperDash.Essentials.Devices;
 
-namespace PepperDash.Essentials.Devices.Common.DSP
+namespace QSC.DSP.EPI
 {
 	public class QscDspDialer : DspDialerBase, IHasDialer
 	{

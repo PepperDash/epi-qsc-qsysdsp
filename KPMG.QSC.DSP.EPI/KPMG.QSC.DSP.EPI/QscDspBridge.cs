@@ -7,7 +7,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Devices.Common;
-using PepperDash.Essentials.Devices.Common.DSP;
+using QSC.DSP.EPI;
 
 namespace PepperDash.Essentials.Bridges
 {
@@ -27,7 +27,7 @@ namespace PepperDash.Essentials.Bridges
 			DspDevice.CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline]);
 			foreach (var channel in DspDevice.LevelControlPoints)
 			{
-				//var QscChannel = channel.Value as PepperDash.Essentials.Devices.Common.DSP.QscDspLevelControl;
+				//var QscChannel = channel.Value as QSC.DSP.EPI.QscDspLevelControl;
 				Debug.Console(2, "QscChannel {0} connect", x);
 
 				var genericChannel = channel.Value as IBasicVolumeWithFeedback;
@@ -61,20 +61,20 @@ namespace PepperDash.Essentials.Bridges
 			}
 			foreach (var dialer in DspDevice.Dialers)
 			{
-				trilist.SetSigTrueAction(joinMap.Keypad0, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Num0));
-				trilist.SetSigTrueAction(joinMap.Keypad1, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Num1));
-				trilist.SetSigTrueAction(joinMap.Keypad2, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Num2));
-				trilist.SetSigTrueAction(joinMap.Keypad3, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Num3));
-				trilist.SetSigTrueAction(joinMap.Keypad4, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Num4));
-				trilist.SetSigTrueAction(joinMap.Keypad5, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Num5));
-				trilist.SetSigTrueAction(joinMap.Keypad6, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Num6));
-				trilist.SetSigTrueAction(joinMap.Keypad7, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Num7));
-				trilist.SetSigTrueAction(joinMap.Keypad8, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Num8));
-				trilist.SetSigTrueAction(joinMap.Keypad9, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Num9));
-				trilist.SetSigTrueAction(joinMap.KeypadStar, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Star));
-				trilist.SetSigTrueAction(joinMap.KeypadPound, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Pound));
-				trilist.SetSigTrueAction(joinMap.KeypadClear, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Clear));
-				trilist.SetSigTrueAction(joinMap.KeypadBackspace, () => dialer.Value.SendKeypad(PepperDash.Essentials.Devices.Common.DSP.QscDspDialer.eKeypadKeys.Backspace));
+				trilist.SetSigTrueAction(joinMap.Keypad0, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num0));
+				trilist.SetSigTrueAction(joinMap.Keypad1, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num1));
+				trilist.SetSigTrueAction(joinMap.Keypad2, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num2));
+				trilist.SetSigTrueAction(joinMap.Keypad3, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num3));
+				trilist.SetSigTrueAction(joinMap.Keypad4, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num4));
+				trilist.SetSigTrueAction(joinMap.Keypad5, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num5));
+				trilist.SetSigTrueAction(joinMap.Keypad6, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num6));
+				trilist.SetSigTrueAction(joinMap.Keypad7, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num7));
+				trilist.SetSigTrueAction(joinMap.Keypad8, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num8));
+				trilist.SetSigTrueAction(joinMap.Keypad9, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num9));
+				trilist.SetSigTrueAction(joinMap.KeypadStar, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Star));
+				trilist.SetSigTrueAction(joinMap.KeypadPound, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Pound));
+				trilist.SetSigTrueAction(joinMap.KeypadClear, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Clear));
+				trilist.SetSigTrueAction(joinMap.KeypadBackspace, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Backspace));
 
 				trilist.SetSigTrueAction(joinMap.Dial, () => dialer.Value.Dial());
 				trilist.SetSigTrueAction(joinMap.DoNotDisturbToggle, () => dialer.Value.DoNotDisturbToggle());

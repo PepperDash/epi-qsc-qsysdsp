@@ -6,12 +6,14 @@ using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Devices.Common.Codec;
+using PepperDash.Essentials.Devices.Common.DSP;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp.Reflection;
+using Newtonsoft.Json;
+using PepperDash.Essentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.DSP
+namespace QSC.DSP.EPI
 {
-
 	// QUESTIONS:
 	// 
 	// When subscribing, just use the Instance ID for Custom Name?
@@ -34,8 +36,6 @@ namespace PepperDash.Essentials.Devices.Common.DSP
 
         public bool isSubscribed;
 
-
-
         CrestronQueue CommandQueue;
 
         bool CommandQueueInProgress = false;
@@ -43,7 +43,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP
 
         public bool ShowHexResponse { get; set; }
 
-		public QscDsp(string key, string name, IBasicCommunication comm, QscDspPropertiesConfig props) :
+        public QscDsp(string key, string name, IBasicCommunication comm, QscDspPropertiesConfig props) :
             base(key, name)
         {
             CommandQueue = new CrestronQueue(100);

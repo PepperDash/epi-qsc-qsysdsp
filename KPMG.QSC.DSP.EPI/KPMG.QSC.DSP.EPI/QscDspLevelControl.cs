@@ -8,7 +8,7 @@ using PepperDash.Essentials.Core;
 using System.Text.RegularExpressions;
 
 
-namespace PepperDash.Essentials.Devices.Common.DSP
+namespace QSC.DSP.EPI
 {
 	public class QscDspLevelControl : QscDspControlPoint, IBasicVolumeWithFeedback, IKeyed
     {

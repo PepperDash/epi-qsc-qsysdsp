@@ -46,7 +46,19 @@
     <GenerateSerializationAssemblies>off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Essentials Devices Common, Version=1.3.7087.22505, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\essentials-framework\Essentials Devices Common\Essentials Devices Common\bin\Essentials Devices Common.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
+    <Reference Include="PepperDash_Core, Version=1.0.20.23727, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\essentials-framework\Essentials Core\PepperDashEssentialsBase\bin\PepperDash_Core.dll</HintPath>
+    </Reference>
+    <Reference Include="PepperDash_Essentials_Core, Version=1.4.2.21632, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\essentials-framework\Essentials Core\PepperDashEssentialsBase\bin\PepperDash_Essentials_Core.dll</HintPath>
+    </Reference>
     <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpCustomAttributesInterface.dll</HintPath>
@@ -56,6 +68,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="SimplSharpNewtonsoft, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpNewtonsoft.dll</HintPath>
     </Reference>
     <Reference Include="SimplSharpPro, Version=1.5.3.17, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -72,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QscDspEpi.cs" />
     <Compile Include="QscDsp.cs" />
     <Compile Include="QscDspBridge.cs" />
     <Compile Include="QscDspControlPoint.cs" />
