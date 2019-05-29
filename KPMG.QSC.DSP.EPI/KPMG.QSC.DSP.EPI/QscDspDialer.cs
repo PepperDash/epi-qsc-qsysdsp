@@ -12,7 +12,7 @@ using PepperDash.Essentials.Devices;
 
 namespace QSC.DSP.EPI
 {
-	public class QscDspDialer : DspDialerBase, IHasDialer
+	public class QscDspDialer : IHasDialer
 	{
 		public QscDialerConfig Tags;
 		public bool IsInCall { get; private set; }
@@ -39,7 +39,15 @@ namespace QSC.DSP.EPI
 			DoNotDisturbFeedback = new BoolFeedback(() => { return DoNotDisturbState; });
 		}
 
+        //interface requires this
 		public event EventHandler<CodecCallStatusItemChangeEventArgs> CallStatusChange;
+
+        void onCallStatusChange(CodecCallStatusItemChangeEventArgs args)
+        {
+            var handler = CallStatusChange;
+            if (handler != null)
+                CallStatusChange(this, args);
+        }
 	
 		public void Subscribe()
         {

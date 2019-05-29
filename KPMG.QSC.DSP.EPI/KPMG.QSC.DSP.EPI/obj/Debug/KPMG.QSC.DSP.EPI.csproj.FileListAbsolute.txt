@@ -1,1 +1,23 @@
 C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\ResolveAssemblyReference.cache
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\KPMG.QSC.DSP.EPI.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\KPMG.QSC.DSP.EPI.pdb
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Essentials Devices Common.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\PepperDash_Core.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\PepperDash_Essentials_Core.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\PepperDashEssentials.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\SimplSharpNewtonsoft.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\SimplSharpReflectionInterface.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.Lighting.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\SimplSharpSQLHelperInterface.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\PepperDash_Essentials_DM.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.Fusion.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.Shades.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.EthernetCommunications.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.DeviceSupport.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.UI.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\SimplSharpTimerEventInterface.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.Gateways.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.GeneralIO.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.DM.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\KPMG.QSC.DSP.EPI.dll
+C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\KPMG.QSC.DSP.EPI.pdb

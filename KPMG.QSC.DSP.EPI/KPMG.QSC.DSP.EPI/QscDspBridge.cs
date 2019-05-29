@@ -8,12 +8,13 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Devices.Common;
 using QSC.DSP.EPI;
+using PepperDash.Essentials.Bridges;
 
-namespace PepperDash.Essentials.Bridges
+namespace QSC.DSP.EPI
 {
 	public static class QscDspDeviceApiExtensions
 	{
-		public static void LinkToApi(this QscDsp DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
+		public static void LinkToApiExt(this QscDsp DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
 		{
 			var joinMap = JoinMapHelper.GetJoinMapForDevice(joinMapKey) as QscDspDeviceJoinMap;
 

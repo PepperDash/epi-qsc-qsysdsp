@@ -11,6 +11,8 @@ using System.Text.RegularExpressions;
 using Crestron.SimplSharp.Reflection;
 using Newtonsoft.Json;
 using PepperDash.Essentials.Core.Config;
+using PepperDash.Essentials.Bridges;
+using Crestron.SimplSharpPro.DeviceSupport;
 
 namespace QSC.DSP.EPI
 {
@@ -24,14 +26,14 @@ namespace QSC.DSP.EPI
 	// ! "publishToken":"name" "value":-77.0
 	// ! "myLevelName" -77
 
-	public class QscDsp : DspBase
+	public class QscDsp : DspBase , IBridge
     {
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
 		public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
 
         new public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
-		new public Dictionary<string, QscDspDialer> Dialers { get; set; }
+		public Dictionary<string, QscDspDialer> Dialers { get; set; }
 		public List<QscDspPresets> PresetList = new List<QscDspPresets>();
 
         public bool isSubscribed;
@@ -46,6 +48,7 @@ namespace QSC.DSP.EPI
         public QscDsp(string key, string name, IBasicCommunication comm, QscDspPropertiesConfig props) :
             base(key, name)
         {
+            Debug.Console(0, this, "Made it to device constructor");
             CommandQueue = new CrestronQueue(100);
 
             Communication = comm;
@@ -73,26 +76,31 @@ namespace QSC.DSP.EPI
 			{
 				CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000, "cgp 1\x0D\x0A");
 			}
-			
 
-            foreach (KeyValuePair<string, QscDspLevelControlBlockConfig> block in props.LevelControlBlocks)
+            if (props.LevelControlBlocks != null)
             {
-				this.LevelControlPoints.Add(block.Key, new QscDspLevelControl(block.Key, block.Value, this));
-				Debug.Console(2, this, "Added LevelControlPoint {0}", block.Key);
+                foreach (KeyValuePair<string, QscDspLevelControlBlockConfig> block in props.LevelControlBlocks)
+                {
+                    this.LevelControlPoints.Add(block.Key, new QscDspLevelControl(block.Key, block.Value, this));
+                    Debug.Console(2, this, "Added LevelControlPoint {0}", block.Key);
 
 
+                }
             }
-			foreach (KeyValuePair<string, QscDspPresets> preset in props.presets)
-			{
-				this.addPreset(preset.Value);
-				Debug.Console(2, this, "Added Preset {0} {1}", preset.Value.label, preset.Value.preset);
-			}
-			foreach (KeyValuePair<string, QscDialerConfig> dialerConfig in props.dialerControlBlocks)
-			{
-				Debug.Console(2, this, "Added Dialer {0}\n {1}", dialerConfig.Key, dialerConfig.Value);
-				this.Dialers.Add(dialerConfig.Key, new QscDspDialer(dialerConfig.Value, this));
-		
-			}
+            if (props.presets != null)
+            {
+                foreach (KeyValuePair<string, QscDspPresets> preset in props.presets)
+                {
+                    this.addPreset(preset.Value);
+                    Debug.Console(2, this, "Added Preset {0} {1}", preset.Value.label, preset.Value.preset);
+                }
+                foreach (KeyValuePair<string, QscDialerConfig> dialerConfig in props.dialerControlBlocks)
+                {
+                    Debug.Console(2, this, "Added Dialer {0}\n {1}", dialerConfig.Key, dialerConfig.Value);
+                    this.Dialers.Add(dialerConfig.Key, new QscDspDialer(dialerConfig.Value, this));
+
+                }
+            }
 
         }
 
@@ -324,5 +332,14 @@ namespace QSC.DSP.EPI
             public string AttributeCode { get; set; }
             public QscDspControlPoint ControlPoint { get; set; }
         }
+
+        #region IBridge Members
+
+        public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)
+        {
+            this.LinkToApiExt(trilist, joinStart, joinMapKey);
+        }
+
+        #endregion
     }
 }

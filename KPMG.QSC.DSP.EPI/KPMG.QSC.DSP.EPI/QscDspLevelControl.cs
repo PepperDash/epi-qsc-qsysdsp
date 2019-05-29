@@ -37,12 +37,12 @@ namespace QSC.DSP.EPI
         /// <summary>
         /// Minimum fader level
         /// </summary>
-        double MinLevel;
+        //double MinLevel;
 
         /// <summary>
         /// Maximum fader level
         /// </summary>
-        double MaxLevel;
+        //double MaxLevel;
 
         /// <summary>
         /// Checks if a valid subscription string has been recieved for all subscriptions

@@ -1,0 +1,86 @@
+{
+    "system": {},
+    "system_url": "http://portal-QA.devcloud.pepperdash.com/templates/0f50640b-bc89-42d5-998f-81d137d3fc98#/template_summary",
+    "template": {
+        "devices": [
+            {
+                "type": "pro3",
+                "name": "PRO3 w/o cards",
+                "group": "processor",
+                "supportedConfigModes": [
+                    "compliance",
+                    "essentials"
+                ],
+                "supportedSystemTypes": [
+                    "hudType",
+                    "presType",
+                    "vtcType",
+                    "custom"
+                ],
+                "supportsCompliance": true,
+                "properties": {
+                    "numberOfComPorts": 6,
+                    "numberOfIrPorts": 8,
+                    "numberOfRelays": 8,
+                    "numberOfDIOPorts": 8
+                },
+                "key": "processor",
+                "uid": 0
+            },
+            {
+                "key": "qscdsp",
+                "uid": 12332,
+                "name": "qscdsp",
+                "type": "qscdsp",
+                "group": "Plugin",
+                "properties": {
+                    "control": {
+                        "tcpSshProperties": {
+                            "username": "crestron",
+                            "autoReconnect": true,
+                            "AutoReconnectIntervalMs": 2000,
+                            "port": 23,
+                            "address": "",
+                            "Username": "",
+                            "password": ""
+                        },
+                        "method": "tcpIp"
+                    }
+                }
+            },
+            {
+                "key": "eiscDsp",
+                "uid": 4,
+                "name": "Bridge DspComms",
+                "group": "api",
+                "type": "eiscApi",
+                "properties": {
+                    "control": {
+                        "tcpSshProperties": {
+                            "address": "127.0.0.2",
+                            "port": 0
+                        },
+                        "ipid": "FD",
+                        "method": "ipidTcp"
+                    },
+                    "devices": [
+                        {
+                            "deviceKey": "qscdsp",
+                            "joinStart": 1
+                        }
+                    ]
+                }
+            }
+        ],
+        "info": {
+            "comment": "",
+            "lastModifiedDate": "2017-03-06T23:14:40.290Z",
+            "lastUid": 8,
+            "processorType": "Pro3",
+            "requiredControlSofwareVersion": "",
+            "systemType": "huddle"
+        },
+        "rooms": [],
+        "tieLines": []
+    }
+}
