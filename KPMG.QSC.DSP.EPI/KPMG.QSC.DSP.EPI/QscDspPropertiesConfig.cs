@@ -28,17 +28,6 @@ namespace QSC.DSP.EPI
 		public Dictionary<string, QscDspPresets> presets { get; set; } 
        // public Dictionary<string, BiampTesiraForteDialerControlBlockConfig> DialerControlBlocks {get; set;}
 	}
-	public interface IQscDspBasicLevel : IBasicVolumeWithFeedback
-	{
-		/// <summary>
-		/// In BiAmp: Instance Tag, QSC: Named Control, Polycom: 
-		/// </summary>
-		string LevelInstanceTag { get; set; }
-		string MuteInstanceTag { get; set; }
-		bool HasMute { get; }
-		bool HasLevel { get; }
-		bool AutomaticUnmuteOnVolumeUp { get; }
-	}
     public class QscDspLevelControlBlockConfig
     {
         public bool Disabled { get; set; }

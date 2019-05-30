@@ -96,9 +96,6 @@ namespace QSC.DSP.EPI
 				dialer.Value.OffHookFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Dial]);
 				dialer.Value.DialStringFeedback.LinkInputSig(trilist.StringInput[joinMap.DialStringCmd]);
 			}
-
-			
-
 		}
 	}
 	public class QscDspDeviceJoinMap : JoinMapBase

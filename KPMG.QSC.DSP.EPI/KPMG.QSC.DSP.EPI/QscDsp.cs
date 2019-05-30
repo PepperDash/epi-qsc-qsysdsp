@@ -83,8 +83,6 @@ namespace QSC.DSP.EPI
                 {
                     this.LevelControlPoints.Add(block.Key, new QscDspLevelControl(block.Key, block.Value, this));
                     Debug.Console(2, this, "Added LevelControlPoint {0}", block.Key);
-
-
                 }
             }
             if (props.presets != null)
