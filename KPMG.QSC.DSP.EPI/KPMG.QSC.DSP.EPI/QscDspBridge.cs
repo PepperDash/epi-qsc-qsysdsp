@@ -36,6 +36,7 @@ namespace QSC.DSP.EPI
 				{
 					trilist.StringInput[joinMap.ChannelName + x].StringValue = channel.Value.LevelCustomName;
 					trilist.UShortInput[joinMap.ChannelType + x].UShortValue = (ushort)channel.Value.Type;
+					trilist.BooleanInput[joinMap.ChannelVisible + x].BoolValue = true;
 
 					genericChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.ChannelMuteToggle + x]);
 					genericChannel.VolumeLevelFeedback.LinkInputSig(trilist.UShortInput[joinMap.ChannelVolume + x]);
@@ -48,18 +49,25 @@ namespace QSC.DSP.EPI
 					trilist.SetBoolSigAction(joinMap.ChannelVolumeDown + x, b => genericChannel.VolumeDown(b));
 
 					trilist.SetUShortSigAction(joinMap.ChannelVolume + x, u => genericChannel.SetVolume(u));
+
+					
 					
 				}
 				x++;
 			}
+
+
+			//Presets 
 			x = 1;
-			trilist.SetStringSigAction(joinMap.PresetStringCmd, s => DspDevice.RunPreset(s));
+			trilist.SetStringSigAction(joinMap.Presets, s => DspDevice.RunPreset(s));
 			foreach (var preset in DspDevice.PresetList)
 			{
 				trilist.StringInput[joinMap.Presets + x].StringValue = preset.label;
 				trilist.SetSigTrueAction(joinMap.Presets + x, () => DspDevice.RunPresetNumber(x));
 				x++;
 			}
+
+			// VoIP Dialer
 			foreach (var dialer in DspDevice.Dialers)
 			{
 				trilist.SetSigTrueAction(joinMap.Keypad0, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num0));
@@ -101,7 +109,6 @@ namespace QSC.DSP.EPI
 	public class QscDspDeviceJoinMap : JoinMapBase
 	{
 		public uint IsOnline { get; set; }
-		public uint PresetStringCmd { get; set; }
 		public uint ChannelMuteToggle { get; set; }
 		public uint ChannelMuteOn { get; set; }
 		public uint ChannelMuteOff { get; set; }
@@ -133,9 +140,7 @@ namespace QSC.DSP.EPI
 		public uint AutoAnswerToggle { get; set; }
 		public uint AutoAnswerOn { get; set; }
 		public uint AutoAnswerOff { get; set; }
-
-		public uint CallPreset { get; set; }
-		public uint PresetFeedback { get; set; }
+		public uint ChannelVisible { get; set; }
 
 		public QscDspDeviceJoinMap()
 		{
@@ -148,11 +153,12 @@ namespace QSC.DSP.EPI
 			ChannelVolumeUp = 1000;
 			ChannelVolumeDown = 1200; 
 			ChannelType = 400;
-			Presets = 100; 
+			Presets = 100;
+			ChannelVisible = 200;
 
 			// SIngleJoins
 			IsOnline = 1;
-			PresetStringCmd = 2000;
+			Presets = 100;
 			DialStringCmd = 3100;
 			Keypad0 = 3110;
 			Keypad1 = 3111; 
@@ -191,9 +197,9 @@ namespace QSC.DSP.EPI
 			ChannelVolumeDown = ChannelVolumeDown + joinOffset;
 			ChannelType = ChannelType + joinOffset;
 			Presets = Presets + joinOffset;
+			ChannelVisible = ChannelVisible + joinOffset;
 
 			IsOnline = IsOnline + joinOffset; 
-			PresetStringCmd = PresetStringCmd + joinOffset;
 			DialStringCmd = DialStringCmd + joinOffset;
 			Keypad0 = Keypad0 + joinOffset;
 			Keypad1 = Keypad1 + joinOffset;

@@ -21,3 +21,19 @@ C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.S
 C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.DM.dll
 C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\KPMG.QSC.DSP.EPI.dll
 C:\P\Git\kpmg.qsc.dsp.epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\KPMG.QSC.DSP.EPI.pdb
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\KPMG.QSC.DSP.EPI.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\KPMG.QSC.DSP.EPI.pdb
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\KPMG.QSC.DSP.EPI.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\KPMG.QSC.DSP.EPI.pdb
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.Lighting.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\SimplSharpSQLHelperInterface.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.Fusion.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.Shades.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.EthernetCommunications.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.DeviceSupport.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.UI.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\SimplSharpTimerEventInterface.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.Gateways.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.GeneralIO.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\Crestron.SimplSharpPro.DM.dll

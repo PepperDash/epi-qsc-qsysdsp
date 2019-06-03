@@ -1,7 +1,5 @@
-﻿MainAssembly=KPMG.QSC.DSP.EPI.dll:b7a3321b5ab3dd7737c114ecc2b24867
+﻿MainAssembly=KPMG.QSC.DSP.EPI.dll:a26872df26ec6f9122d6ac621ff969dc
 MainAssemblyMinFirmwareVersion=1.009.0029
-MainAssemblyResource=SimplSharpData.dat:820b61c48c8a2cace82957eed4cc377c
-MainAssemblyResource=SimplSharpData.dat.der:bf862965c00f3e6ec535e4e00e82d30c
 MainAssemblyResource=SimplSharpData.dat:820b61c48c8a2cace82957eed4cc377c
 MainAssemblyResource=SimplSharpData.dat.der:bf862965c00f3e6ec535e4e00e82d30c
 ü
