@@ -23,6 +23,9 @@ namespace QSC.DSP.EPI
 		/// Valid types are level and mute.
         /// Need to include the index values somehow
 		/// </summary>
+		/// 
+
+		public string Prefix { get; set; }
 		public Dictionary<string, QscDspLevelControlBlockConfig> LevelControlBlocks { get; set; }
 		public Dictionary<string, QscDialerConfig> dialerControlBlocks { get; set; }
 		public Dictionary<string, QscDspPresets> presets { get; set; } 

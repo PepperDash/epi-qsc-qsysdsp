@@ -23,11 +23,11 @@ namespace QSC.DSP.EPI
         public static QscDsp BuildDevice(DeviceConfig dc)
         {
             Debug.Console(2, "QscDsp config is null: {0}", dc == null);
-            var config = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
-            Debug.Console(2, "QscDsp properties config is null: {0}", config == null);
+            //var config = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
+            //Debug.Console(2, "QscDsp properties config is null: {0}", config == null);
             var comm = CommFactory.CreateCommForDevice(dc);
             Debug.Console(2, "QscDsp comm is null: {0}", comm == null);
-            var newMe = new QscDsp(dc.Key, dc.Name, comm, config);         
+            var newMe = new QscDsp(dc.Key, dc.Name, comm, dc);         
 
             return newMe;
         }

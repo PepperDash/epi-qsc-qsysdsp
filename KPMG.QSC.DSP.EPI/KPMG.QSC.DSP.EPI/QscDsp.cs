@@ -5,6 +5,7 @@ using System.Text;
 using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
+using PepperDash.Essentials.Core.Devices;
 using PepperDash.Essentials.Devices.Common.Codec;
 using PepperDash.Essentials.Devices.Common.DSP;
 using System.Text.RegularExpressions;
@@ -26,17 +27,19 @@ namespace QSC.DSP.EPI
 	// ! "publishToken":"name" "value":-77.0
 	// ! "myLevelName" -77
 
-	public class QscDsp : DspBase , IBridge
+	public class QscDsp : ReconfigurableDevice , IBridge
     {
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
 		public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
 
-        new public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
+        public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
 		public Dictionary<string, QscDspDialer> Dialers { get; set; }
 		public List<QscDspPresets> PresetList = new List<QscDspPresets>();
 
-        public bool isSubscribed;
+		DeviceConfig _Dc;
+
+        // public bool isSubscribed;
 
         CrestronQueue CommandQueue;
 
@@ -45,12 +48,12 @@ namespace QSC.DSP.EPI
 
         public bool ShowHexResponse { get; set; }
 
-        public QscDsp(string key, string name, IBasicCommunication comm, QscDspPropertiesConfig props) :
-            base(key, name)
+        public QscDsp(string key, string name, IBasicCommunication comm, DeviceConfig dc) : base(dc)
         {
+			_Dc = dc;
+			QscDspPropertiesConfig props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
             Debug.Console(0, this, "Made it to device constructor");
             CommandQueue = new CrestronQueue(100);
-
             Communication = comm;
             var socket = comm as ISocketStatus;
             if (socket != null)
@@ -65,9 +68,6 @@ namespace QSC.DSP.EPI
             PortGather = new CommunicationGather(Communication, "\x0a");
             PortGather.LineReceived += this.Port_LineReceived;
 
-            LevelControlPoints = new Dictionary<string, QscDspLevelControl>();
-			Dialers = new Dictionary<string, QscDspDialer>();
-
 			if (props.CommunicationMonitorProperties != null)
 			{
 				CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, props.CommunicationMonitorProperties);
@@ -77,29 +77,11 @@ namespace QSC.DSP.EPI
 				CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000, "cgp 1\x0D\x0A");
 			}
 
-            if (props.LevelControlBlocks != null)
-            {
-                foreach (KeyValuePair<string, QscDspLevelControlBlockConfig> block in props.LevelControlBlocks)
-                {
-                    this.LevelControlPoints.Add(block.Key, new QscDspLevelControl(block.Key, block.Value, this));
-                    Debug.Console(2, this, "Added LevelControlPoint {0}", block.Key);
-                }
-            }
-            if (props.presets != null)
-            {
-                foreach (KeyValuePair<string, QscDspPresets> preset in props.presets)
-                {
-                    this.addPreset(preset.Value);
-                    Debug.Console(2, this, "Added Preset {0} {1}", preset.Value.label, preset.Value.preset);
-                }
-                foreach (KeyValuePair<string, QscDialerConfig> dialerConfig in props.dialerControlBlocks)
-                {
-                    Debug.Console(2, this, "Added Dialer {0}\n {1}", dialerConfig.Key, dialerConfig.Value);
-                    this.Dialers.Add(dialerConfig.Key, new QscDspDialer(dialerConfig.Value, this));
 
-                }
-            }
-
+			LevelControlPoints = new Dictionary<string, QscDspLevelControl>();
+			Dialers = new Dictionary<string, QscDspDialer>();
+			
+			CreateDspObjects();
         }
 
         public override bool CustomActivate()
@@ -113,7 +95,6 @@ namespace QSC.DSP.EPI
             CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             return true;
         }
-
         void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             Debug.Console(2, this, "Socket Status Change: {0}", e.Client.ClientStatus.ToString());
@@ -130,6 +111,97 @@ namespace QSC.DSP.EPI
             }
         }
 
+		public void CreateDspObjects()
+		{
+			
+			QscDspPropertiesConfig props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(_Dc.Properties.ToString());
+
+			LevelControlPoints.Clear();
+			PresetList.Clear();
+			Dialers.Clear(); 
+
+			// Chaeak for prefix
+			string prefix = "";
+			if (props.Prefix != null) {prefix = props.Prefix;}
+
+			if (props.LevelControlBlocks != null)
+			{
+				foreach (KeyValuePair<string, QscDspLevelControlBlockConfig> block in props.LevelControlBlocks)
+				{
+						string key = string.Format("{0}{1}", prefix, block.Key);
+						var value = block.Value;
+						value.LevelInstanceTag = string.Format("{0}{1}", prefix, value.LevelInstanceTag);
+						value.MuteInstanceTag = string.Format("{0}{1}", prefix, value.MuteInstanceTag);
+
+						this.LevelControlPoints.Add(key, new QscDspLevelControl(key, value, this));
+						Debug.Console(2, this, "Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key, value.LevelInstanceTag, value.MuteInstanceTag);
+				}
+			}
+			if (props.presets != null)
+			{
+				foreach (KeyValuePair<string, QscDspPresets> preset in props.presets)
+				{
+					var value = preset.Value;
+					value.preset = string.Format("{0}{1}", prefix, value.preset);
+					this.addPreset(value);
+					Debug.Console(2, this, "Added Preset {0} {1}", value.label, value.preset);
+				}
+			}
+			foreach (KeyValuePair<string, QscDialerConfig> dialerConfig in props.dialerControlBlocks)
+			{
+				var value = dialerConfig.Value;
+				var key = dialerConfig.Key;
+				if (prefix.Length > 0)
+				{
+					key = string.Format("{0}{1}", prefix, key);
+					PropertyInfo[] properties		= value.GetType().GetCType().GetProperties();
+					value.autoAnswerTag				= string.Format("{0}{1}", prefix, value.autoAnswerTag);
+					value.callStatusTag				= string.Format("{0}{1}", prefix, value.callStatusTag);
+					value.connectTag				= string.Format("{0}{1}", prefix, value.connectTag);
+					value.dialStringTag				= string.Format("{0}{1}", prefix, value.dialStringTag);
+					value.disconnectTag				= string.Format("{0}{1}", prefix, value.disconnectTag);
+					value.doNotDisturbTag			= string.Format("{0}{1}", prefix, value.doNotDisturbTag);
+					value.hookStatusTag				= string.Format("{0}{1}", prefix, value.hookStatusTag);
+					value.incomingCallRingerTag		= string.Format("{0}{1}", prefix, value.incomingCallRingerTag);
+					value.keypad0Tag				= string.Format("{0}{1}", prefix, value.keypad0Tag);
+					value.keypad1Tag				= string.Format("{0}{1}", prefix, value.keypad1Tag);
+					value.keypad2Tag				= string.Format("{0}{1}", prefix, value.keypad2Tag);
+					value.keypad3Tag				= string.Format("{0}{1}", prefix, value.keypad3Tag);
+					value.keypad4Tag				= string.Format("{0}{1}", prefix, value.keypad4Tag);
+					value.keypad5Tag				= string.Format("{0}{1}", prefix, value.keypad5Tag);
+					value.keypad6Tag				= string.Format("{0}{1}", prefix, value.keypad6Tag);
+					value.keypad7Tag				= string.Format("{0}{1}", prefix, value.keypad7Tag);
+					value.keypad8Tag				= string.Format("{0}{1}", prefix, value.keypad8Tag);
+					value.keypad9Tag				= string.Format("{0}{1}", prefix, value.keypad9Tag);
+					value.keypadBackspaceTag		= string.Format("{0}{1}", prefix, value.keypadBackspaceTag);
+					value.keypadClearTag			= string.Format("{0}{1}", prefix, value.keypadClearTag);
+					value.keypadPoundTag			= string.Format("{0}{1}", prefix, value.keypadPoundTag);
+					value.keypadStarTag				= string.Format("{0}{1}", prefix, value.keypadStarTag);
+
+
+					
+				}
+				this.Dialers.Add(key, new QscDspDialer(value, this));
+				Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
+
+			}
+			SubscribeToAttributes();
+		}
+		protected override void CustomSetConfig(DeviceConfig config)
+		{
+
+
+			ConfigWriter.UpdateDeviceConfig(config);
+
+
+		}
+		public void SetPrefix(string prefix)
+		{
+			_Dc.Properties["prefix"] = prefix;
+			CustomSetConfig(_Dc);
+			CreateDspObjects();
+
+		}
         /// <summary>
         /// Initiates the subscription process to the DSP
         /// </summary>
@@ -318,7 +390,7 @@ namespace QSC.DSP.EPI
         /// Sends a command to execute a preset
         /// </summary>
         /// <param name="name">Preset Name</param>
-        public override void RunPreset(string name)
+        public void RunPreset(string name)
         {
             SendLine(string.Format("ssl {0}", name));
 			SendLine("cgp 1");
