@@ -97,9 +97,9 @@
   <ItemGroup>
     <Compile Include="IQscDspBasicLevel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QscDspBridgeEisc.cs" />
     <Compile Include="QscDsp.cs" />
     <Compile Include="QscDspBridge.cs" />
+    <Compile Include="QscDspCamera.cs" />
     <Compile Include="QscDspControlPoint.cs" />
     <Compile Include="QscDspDialer.cs" />
     <Compile Include="QscDspLevelControl.cs" />

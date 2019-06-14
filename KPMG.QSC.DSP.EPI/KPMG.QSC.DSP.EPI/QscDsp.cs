@@ -17,6 +17,8 @@ using Crestron.SimplSharpPro.DeviceSupport;
 
 namespace QSC.DSP.EPI
 {
+
+
 	// QUESTIONS:
 	// 
 	// When subscribing, just use the Instance ID for Custom Name?
@@ -29,6 +31,24 @@ namespace QSC.DSP.EPI
 
 	public class QscDsp : ReconfigurableDevice , IBridge
     {
+
+
+		public static void LoadPlugin()
+		{
+			DeviceFactory.AddFactoryForType("qscdsp", QscDsp.BuildDevice);
+		}
+
+		public static QscDsp BuildDevice(DeviceConfig dc)
+		{
+			Debug.Console(2, "QscDsp config is null: {0}", dc == null);
+			var comm = CommFactory.CreateCommForDevice(dc);
+			Debug.Console(2, "QscDsp comm is null: {0}", comm == null);
+			var newMe = new QscDsp(dc.Key, dc.Name, comm, dc);
+
+			return newMe;
+		}
+
+
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
 		public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
@@ -44,10 +64,7 @@ namespace QSC.DSP.EPI
         CrestronQueue CommandQueue;
 
         bool CommandQueueInProgress = false;
-
-
         public bool ShowHexResponse { get; set; }
-
         public QscDsp(string key, string name, IBasicCommunication comm, DeviceConfig dc) : base(dc)
         {
 			_Dc = dc;
@@ -83,7 +100,6 @@ namespace QSC.DSP.EPI
 			
 			CreateDspObjects();
         }
-
         public override bool CustomActivate()
         {
             Communication.Connect();
@@ -189,11 +205,7 @@ namespace QSC.DSP.EPI
 		}
 		protected override void CustomSetConfig(DeviceConfig config)
 		{
-
-
 			ConfigWriter.UpdateDeviceConfig(config);
-
-
 		}
 		public void SetPrefix(string prefix)
 		{
@@ -207,8 +219,10 @@ namespace QSC.DSP.EPI
         /// </summary>
         void SubscribeToAttributes()
         {
+			// Change Group destroy
 			SendLine("cgd 1");
- 
+
+			// Change Group create
             SendLine("cgc 1");
 			
             foreach (KeyValuePair<string, QscDspLevelControl> level in LevelControlPoints)
@@ -225,19 +239,10 @@ namespace QSC.DSP.EPI
 			{
 
 				CommunicationMonitor.Start();
-				//CommunicationMonitor = null;
 			}
-			else
-			{
-				
-			}
-			//CommunicationMonitor.Message = "cgp 1\x0D\x0A";
 			CommunicationMonitor.StatusChange += (o, a) => { Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status); };
-			//CommunicationMonitor.Start();
             if (!CommandQueueInProgress)
                 SendNextQueuedCommand();
-
-           // ResetSubscriptionTimer();
         }
 
 

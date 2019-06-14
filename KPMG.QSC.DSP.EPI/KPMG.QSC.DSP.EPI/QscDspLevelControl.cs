@@ -94,7 +94,7 @@ namespace QSC.DSP.EPI
         /// </summary>
         public void Initialize(string key, QscDspLevelControlBlockConfig config)
         {
-            Key = string.Format("{0}--{1}", Parent.Key, key);
+            Key = string.Format("{0}-{1}", Parent.Key, key);
 			Enabled = true;
             DeviceManager.AddDevice(this);
 			if (config.IsMic)

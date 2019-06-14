@@ -77,4 +77,17 @@ namespace QSC.DSP.EPI
 		public string label { get; set; }
 		public string preset { get; set; } 
 	}
+
+	public class QscDspCameraConfig
+	{
+		public string panLeftTag { get; set; }
+		public string panRightTag { get; set; }
+		public string tiltUpTag { get; set; }
+		public string tileDownTag { get; set; }
+		public string zoomInTag { get; set; }
+		public string zoomOutTag { get; set; }
+		public string presetBankTag { get; set; }
+
+		
+	}
 }
