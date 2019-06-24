@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Bridges;
 using Crestron.SimplSharpPro.DeviceSupport;
+using Crestron.SimplSharpPro.Diagnostics;
 
 namespace QSC.DSP.EPI
 {
@@ -207,12 +208,40 @@ namespace QSC.DSP.EPI
 		{
 			ConfigWriter.UpdateDeviceConfig(config);
 		}
+		public void SetIpAddress(string hostname)
+		{
+			try
+			{
+				Debug.Console(2, this, "Changing IPAddress: {0}", hostname);
+				Communication.Disconnect();
+				
+				(Communication as GenericTcpIpClient).Hostname = hostname;
+
+				_Dc.Properties["control"]["tcpSshProperties"]["address"] = hostname;
+				CustomSetConfig(_Dc);
+				Communication.Connect();
+			}
+			catch (Exception e)
+			{
+				if (Debug.Level == 2)
+					Debug.Console(2, this, "Error SetIpAddress: '{0}'", e);
+			}
+		}
 		public void SetPrefix(string prefix)
 		{
-			_Dc.Properties["prefix"] = prefix;
-			CustomSetConfig(_Dc);
-			CreateDspObjects();
+			if (_Dc.Properties["prefix"].ToString() != prefix)
+			{
+				_Dc.Properties["prefix"] = prefix;
+				CustomSetConfig(_Dc);
+				// CreateDspObjects();
+				Debug.ConsoleWithLog(0, this, "The Dsp Prefix has changed to {0} the program will automaticcly restart in 60 seconds", prefix);
+				string notUsed = ""; 
+				CTimer restart = new CTimer((object notused) =>
+				{
+					CrestronConsole.SendControlSystemCommand(string.Format("progres -p:{0}", Global.ControlSystem.ProgramNumber), ref notUsed);
+				}, 60000);
 
+			}
 		}
         /// <summary>
         /// Initiates the subscription process to the DSP

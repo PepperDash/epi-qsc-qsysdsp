@@ -23,6 +23,7 @@ namespace QSC.DSP.EPI
 			_Dsp = dsp;
 			DeviceManager.AddDevice(this);
 		}
+		/*
 		public void PanLeft();
 		public void PanRight();
 		public void TiltDown();
@@ -32,12 +33,13 @@ namespace QSC.DSP.EPI
 		public void Stop();
 		public void RecallPreset ();
 		public void StorePreset();
+		
 		public void MoveCamera(eCameraPtzControls button)
 		{
 			string tag = null;
 			switch (button)
 			{
-				case eCameraPtzControls.Stop: tag = _Config. break;
+				// case eCameraPtzControls.Stop: tag = _Config. break;
 				case eKeypadKeys.Num1: keypadTag = Tags.keypad1Tag; break;
 				case eKeypadKeys.Num2: keypadTag = Tags.keypad2Tag; break;
 				case eKeypadKeys.Num3: keypadTag = Tags.keypad3Tag; break;
@@ -59,6 +61,8 @@ namespace QSC.DSP.EPI
 				PollKeypad();
 			}
 		}
+		 * */
+
 	}
 	enum eCameraPtzControls
 	{

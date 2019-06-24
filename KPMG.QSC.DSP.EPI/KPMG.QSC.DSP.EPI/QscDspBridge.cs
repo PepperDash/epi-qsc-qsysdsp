@@ -27,6 +27,8 @@ namespace QSC.DSP.EPI
 			var comm = DspDevice as ICommunicationMonitor;
 			DspDevice.CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline]);
 			trilist.SetStringSigAction(joinMap.Prefix, (s) => { DspDevice.SetPrefix(s);});
+			trilist.SetStringSigAction(joinMap.Address, (s) => { DspDevice.SetIpAddress(s); });
+
 			foreach (var channel in DspDevice.LevelControlPoints)
 			{
 				//var QscChannel = channel.Value as QSC.DSP.EPI.QscDspLevelControl;
@@ -111,6 +113,7 @@ namespace QSC.DSP.EPI
 	public class QscDspDeviceJoinMap : JoinMapBase
 	{
 		public uint IsOnline { get; set; }
+		public uint Address { get; set; }
 		public uint Prefix { get; set; }
 		public uint ChannelMuteToggle { get; set; }
 		public uint ChannelMuteOn { get; set; }
@@ -161,7 +164,8 @@ namespace QSC.DSP.EPI
 
 			// SIngleJoins
 			IsOnline = 1;
-			Prefix = 1;
+			Prefix = 2;
+			Address = 1;
 			Presets = 100;
 			DialStringCmd = 3100;
 			Keypad0 = 3110;
@@ -192,6 +196,7 @@ namespace QSC.DSP.EPI
 		public override void OffsetJoinNumbers(uint joinStart)
 		{
 			var joinOffset = joinStart - 1;
+			Address = Address + joinOffset;
 			Prefix = Prefix + joinOffset;
 			ChannelName = ChannelName + joinOffset; 
 			ChannelMuteToggle = ChannelMuteToggle + joinOffset;
