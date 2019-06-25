@@ -137,7 +137,7 @@ namespace QSC.DSP.EPI
 			PresetList.Clear();
 			Dialers.Clear(); 
 
-			// Chaeak for prefix
+			// Check for prefix
 			string prefix = "";
 			if (props.Prefix != null) {prefix = props.Prefix;}
 
@@ -234,7 +234,7 @@ namespace QSC.DSP.EPI
 				_Dc.Properties["prefix"] = prefix;
 				CustomSetConfig(_Dc);
 				// CreateDspObjects();
-				Debug.ConsoleWithLog(0, this, "The Dsp Prefix has changed to {0} the program will automaticcly restart in 60 seconds", prefix);
+				Debug.ConsoleWithLog(0, this, "The Dsp Prefix has changed to {0} the program will automaticly restart in 60 seconds", prefix);
 				string notUsed = ""; 
 				CTimer restart = new CTimer((object notused) =>
 				{
@@ -301,13 +301,14 @@ namespace QSC.DSP.EPI
                 {
 					if (changedInstance == controlPoint.Value.LevelInstanceTag)
                     {
-						controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[4]);
+						controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[4], changeMessage[3]);
 						foundItFlag = true;
                         return;
                     }
+
 					else if (changedInstance == controlPoint.Value.MuteInstanceTag)
 					{
-						controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""));
+						controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""), null);
 						foundItFlag = true;
 						return;
 					}

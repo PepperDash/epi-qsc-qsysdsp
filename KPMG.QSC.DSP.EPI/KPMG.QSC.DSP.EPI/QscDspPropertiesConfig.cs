@@ -40,6 +40,7 @@ namespace QSC.DSP.EPI
         public bool HasMute { get; set; }
         public bool HasLevel { get; set; }
 		public bool IsMic { get; set; }
+		public bool UseAbsoluteValue { get; set; }
     }
 
 	public class QscDialerConfig

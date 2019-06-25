@@ -20,6 +20,7 @@ namespace QSC.DSP.EPI
         public IntFeedback VolumeLevelFeedback { get; private set; }
 
         public bool Enabled { get; set; }
+		public bool UseAbsoluteValue { get; set; }
 		public ePdtLevelTypes Type;
 		CTimer VolumeUpRepeatTimer;
 		CTimer VolumeDownRepeatTimer;
@@ -119,6 +120,7 @@ namespace QSC.DSP.EPI
 			LevelCustomName = config.Label;
             HasMute = config.HasMute;
             HasLevel = config.HasLevel;
+			UseAbsoluteValue = config.UseAbsoluteValue;
         }
 
         public void Subscribe()
@@ -152,7 +154,7 @@ namespace QSC.DSP.EPI
         /// </summary>
         /// <param name="customName"></param>
         /// <param name="value"></param>
-        public void ParseSubscriptionMessage(string customName, string value)
+        public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
         {
 
             // Check for valid subscription response
@@ -173,7 +175,7 @@ namespace QSC.DSP.EPI
 
                 MuteFeedback.FireUpdate();
             }
-            else if (customName == LevelInstanceTag)
+            else if (customName == LevelInstanceTag && !UseAbsoluteValue)
             {
 
 
@@ -185,6 +187,15 @@ namespace QSC.DSP.EPI
 
                 VolumeLevelFeedback.FireUpdate();
             }
+			else if (customName == LevelInstanceTag && UseAbsoluteValue)
+			{
+
+				_VolumeLevel = ushort.Parse(absoluteValue);
+				Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", customName, _VolumeLevel);
+				LevelIsSubscribed = true;
+
+				VolumeLevelFeedback.FireUpdate();
+			}
             
         }
 
@@ -217,9 +228,16 @@ namespace QSC.DSP.EPI
 			{
 				MuteOff();
 			}
-			double newLevel = Scale(level);
-			Debug.Console(1, this, "newVolume: {0}", newLevel);
-			SendFullCommand("csp", this.LevelInstanceTag, string.Format("{0}", newLevel));          
+			if (!UseAbsoluteValue)
+			{
+				double newLevel = Scale(level);
+				Debug.Console(1, this, "newVolume: {0}", newLevel);
+				SendFullCommand("csp", this.LevelInstanceTag, string.Format("{0}", newLevel));
+			}
+			else
+			{
+				SendFullCommand("csv", this.LevelInstanceTag, string.Format("{0}", level));
+			}
         }
 
         /// <summary>
