@@ -28,7 +28,8 @@ namespace QSC.DSP.EPI
 		public string Prefix { get; set; }
 		public Dictionary<string, QscDspLevelControlBlockConfig> LevelControlBlocks { get; set; }
 		public Dictionary<string, QscDialerConfig> dialerControlBlocks { get; set; }
-		public Dictionary<string, QscDspPresets> presets { get; set; } 
+		public Dictionary<string, QscDspPresets> presets { get; set; }
+		public Dictionary<string, QscDspCameraConfig> CameraControlBlocks { get; set; }
        // public Dictionary<string, BiampTesiraForteDialerControlBlockConfig> DialerControlBlocks {get; set;}
 	}
     public class QscDspLevelControlBlockConfig
@@ -75,19 +76,41 @@ namespace QSC.DSP.EPI
 
 	public class QscDspPresets
 	{
-		public string label { get; set; }
-		public string preset { get; set; } 
+		private string _label;
+		public string label
+		{
+			get
+			{
+				return this._label; 
+				
+			}
+			set
+			{
+				this._label = value;
+				LabelFeedback.FireUpdate();
+			}
+		}
+		public string preset { get; set; }
+		public string Bank { get; set; }
+		public int number { get; set; }
+		public StringFeedback LabelFeedback;
+		public QscDspPresets()
+		{
+			LabelFeedback = new StringFeedback( () => {return label;});
+
+		}
 	}
 
 	public class QscDspCameraConfig
 	{
-		public string panLeftTag { get; set; }
-		public string panRightTag { get; set; }
-		public string tiltUpTag { get; set; }
-		public string tileDownTag { get; set; }
-		public string zoomInTag { get; set; }
-		public string zoomOutTag { get; set; }
-		public string presetBankTag { get; set; }
+		public string PanLeftTag { get; set; }
+		public string PanRightTag { get; set; }
+		public string TiltUpTag { get; set; }
+		public string TiltDownTag { get; set; }
+		public string ZoomInTag { get; set; }
+		public string ZoomOutTag { get; set; }
+		public string PresetBankTag { get; set; }
+		public Dictionary<string, QscDspPresets> Presets { get; set; }
 
 		
 	}

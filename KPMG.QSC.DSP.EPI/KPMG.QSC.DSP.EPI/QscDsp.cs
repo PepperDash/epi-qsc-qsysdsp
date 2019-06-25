@@ -15,7 +15,6 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Bridges;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.Diagnostics;
-
 namespace QSC.DSP.EPI
 {
 
@@ -56,6 +55,7 @@ namespace QSC.DSP.EPI
 
         public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
 		public Dictionary<string, QscDspDialer> Dialers { get; set; }
+		public Dictionary<string, QscDspCamera> Cameras { get; set; }
 		public List<QscDspPresets> PresetList = new List<QscDspPresets>();
 
 		DeviceConfig _Dc;
@@ -98,7 +98,7 @@ namespace QSC.DSP.EPI
 
 			LevelControlPoints = new Dictionary<string, QscDspLevelControl>();
 			Dialers = new Dictionary<string, QscDspDialer>();
-			
+			Cameras = new Dictionary<string, QscDspCamera>();
 			CreateDspObjects();
         }
         public override bool CustomActivate()
@@ -135,7 +135,8 @@ namespace QSC.DSP.EPI
 
 			LevelControlPoints.Clear();
 			PresetList.Clear();
-			Dialers.Clear(); 
+			Dialers.Clear();
+			Cameras.Clear(); 
 
 			// Check for prefix
 			string prefix = "";
@@ -164,46 +165,75 @@ namespace QSC.DSP.EPI
 					Debug.Console(2, this, "Added Preset {0} {1}", value.label, value.preset);
 				}
 			}
-			foreach (KeyValuePair<string, QscDialerConfig> dialerConfig in props.dialerControlBlocks)
+			if (props.CameraControlBlocks != null)
 			{
-				var value = dialerConfig.Value;
-				var key = dialerConfig.Key;
-				if (prefix.Length > 0)
+				foreach (KeyValuePair<string, QscDspCameraConfig> camera in props.CameraControlBlocks)
 				{
-					key = string.Format("{0}{1}", prefix, key);
-					PropertyInfo[] properties		= value.GetType().GetCType().GetProperties();
-					value.autoAnswerTag				= string.Format("{0}{1}", prefix, value.autoAnswerTag);
-					value.callStatusTag				= string.Format("{0}{1}", prefix, value.callStatusTag);
-					value.connectTag				= string.Format("{0}{1}", prefix, value.connectTag);
-					value.dialStringTag				= string.Format("{0}{1}", prefix, value.dialStringTag);
-					value.disconnectTag				= string.Format("{0}{1}", prefix, value.disconnectTag);
-					value.doNotDisturbTag			= string.Format("{0}{1}", prefix, value.doNotDisturbTag);
-					value.hookStatusTag				= string.Format("{0}{1}", prefix, value.hookStatusTag);
-					value.incomingCallRingerTag		= string.Format("{0}{1}", prefix, value.incomingCallRingerTag);
-					value.keypad0Tag				= string.Format("{0}{1}", prefix, value.keypad0Tag);
-					value.keypad1Tag				= string.Format("{0}{1}", prefix, value.keypad1Tag);
-					value.keypad2Tag				= string.Format("{0}{1}", prefix, value.keypad2Tag);
-					value.keypad3Tag				= string.Format("{0}{1}", prefix, value.keypad3Tag);
-					value.keypad4Tag				= string.Format("{0}{1}", prefix, value.keypad4Tag);
-					value.keypad5Tag				= string.Format("{0}{1}", prefix, value.keypad5Tag);
-					value.keypad6Tag				= string.Format("{0}{1}", prefix, value.keypad6Tag);
-					value.keypad7Tag				= string.Format("{0}{1}", prefix, value.keypad7Tag);
-					value.keypad8Tag				= string.Format("{0}{1}", prefix, value.keypad8Tag);
-					value.keypad9Tag				= string.Format("{0}{1}", prefix, value.keypad9Tag);
-					value.keypadBackspaceTag		= string.Format("{0}{1}", prefix, value.keypadBackspaceTag);
-					value.keypadClearTag			= string.Format("{0}{1}", prefix, value.keypadClearTag);
-					value.keypadPoundTag			= string.Format("{0}{1}", prefix, value.keypadPoundTag);
-					value.keypadStarTag				= string.Format("{0}{1}", prefix, value.keypadStarTag);
+					var value = camera.Value;
+					var key = camera.Key;
+					if (prefix.Length > 0)
+					{
+						value.PanLeftTag = string.Format("{0}{1}", prefix, value.PanLeftTag);
+						value.PanRightTag = string.Format("{0}{1}", prefix, value.PanRightTag);
+						value.TiltUpTag = string.Format("{0}{1}", prefix, value.TiltUpTag);
+						value.TiltDownTag = string.Format("{0}{1}", prefix, value.TiltDownTag);
+						value.ZoomInTag = string.Format("{0}{1}", prefix, value.ZoomInTag);
+						value.ZoomOutTag = string.Format("{0}{1}", prefix, value.ZoomOutTag);
+						value.PresetBankTag = string.Format("{0}{1}", prefix, value.PresetBankTag);
+						foreach (var preset in value.Presets)
+						{
+							value.Presets[preset.Key].Bank = string.Format("{0}{1}", prefix, value.Presets[preset.Key].Bank);
+						}
 
+					}
+					Cameras.Add(key, new QscDspCamera(this, key, key, value));
+					Debug.Console(2, this, "Added Camera {0}\n {1}", key, value);
 
-					
 				}
-				this.Dialers.Add(key, new QscDspDialer(value, this));
-				Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
+			}
+			if (props.dialerControlBlocks != null)
+			{
+				foreach (KeyValuePair<string, QscDialerConfig> dialerConfig in props.dialerControlBlocks)
+				{
+					var value = dialerConfig.Value;
+					var key = dialerConfig.Key;
+					if (prefix.Length > 0)
+					{
+						key = string.Format("{0}{1}", prefix, key);
+						value.autoAnswerTag = string.Format("{0}{1}", prefix, value.autoAnswerTag);
+						value.callStatusTag = string.Format("{0}{1}", prefix, value.callStatusTag);
+						value.connectTag = string.Format("{0}{1}", prefix, value.connectTag);
+						value.dialStringTag = string.Format("{0}{1}", prefix, value.dialStringTag);
+						value.disconnectTag = string.Format("{0}{1}", prefix, value.disconnectTag);
+						value.doNotDisturbTag = string.Format("{0}{1}", prefix, value.doNotDisturbTag);
+						value.hookStatusTag = string.Format("{0}{1}", prefix, value.hookStatusTag);
+						value.incomingCallRingerTag = string.Format("{0}{1}", prefix, value.incomingCallRingerTag);
+						value.keypad0Tag = string.Format("{0}{1}", prefix, value.keypad0Tag);
+						value.keypad1Tag = string.Format("{0}{1}", prefix, value.keypad1Tag);
+						value.keypad2Tag = string.Format("{0}{1}", prefix, value.keypad2Tag);
+						value.keypad3Tag = string.Format("{0}{1}", prefix, value.keypad3Tag);
+						value.keypad4Tag = string.Format("{0}{1}", prefix, value.keypad4Tag);
+						value.keypad5Tag = string.Format("{0}{1}", prefix, value.keypad5Tag);
+						value.keypad6Tag = string.Format("{0}{1}", prefix, value.keypad6Tag);
+						value.keypad7Tag = string.Format("{0}{1}", prefix, value.keypad7Tag);
+						value.keypad8Tag = string.Format("{0}{1}", prefix, value.keypad8Tag);
+						value.keypad9Tag = string.Format("{0}{1}", prefix, value.keypad9Tag);
+						value.keypadBackspaceTag = string.Format("{0}{1}", prefix, value.keypadBackspaceTag);
+						value.keypadClearTag = string.Format("{0}{1}", prefix, value.keypadClearTag);
+						value.keypadPoundTag = string.Format("{0}{1}", prefix, value.keypadPoundTag);
+						value.keypadStarTag = string.Format("{0}{1}", prefix, value.keypadStarTag);
 
+
+
+					}
+					this.Dialers.Add(key, new QscDspDialer(value, this));
+					Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
+
+				}
 			}
 			SubscribeToAttributes();
 		}
+
 		protected override void CustomSetConfig(DeviceConfig config)
 		{
 			ConfigWriter.UpdateDeviceConfig(config);
@@ -242,6 +272,10 @@ namespace QSC.DSP.EPI
 				}, 60000);
 
 			}
+		}
+		public void WriteConfig()
+		{
+			CustomSetConfig(_Dc);
 		}
         /// <summary>
         /// Initiates the subscription process to the DSP

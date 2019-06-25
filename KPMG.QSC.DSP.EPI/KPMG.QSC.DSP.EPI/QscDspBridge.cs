@@ -7,8 +7,8 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Devices.Common;
-using QSC.DSP.EPI;
 using PepperDash.Essentials.Bridges;
+using QSC.DSP.EPI;
 
 namespace QSC.DSP.EPI
 {
@@ -52,7 +52,7 @@ namespace QSC.DSP.EPI
 					trilist.SetBoolSigAction(joinMap.ChannelVolumeDown + x, b => genericChannel.VolumeDown(b));
 
 					trilist.SetUShortSigAction(joinMap.ChannelVolume + x, u => genericChannel.SetVolume(u));
-
+						
 					
 					
 				}
