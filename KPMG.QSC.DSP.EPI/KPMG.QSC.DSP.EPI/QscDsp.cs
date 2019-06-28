@@ -242,14 +242,17 @@ namespace QSC.DSP.EPI
 		{
 			try
 			{
-				Debug.Console(2, this, "Changing IPAddress: {0}", hostname);
-				Communication.Disconnect();
-				
-				(Communication as GenericTcpIpClient).Hostname = hostname;
+				if (hostname.Length > 2 & _Dc.Properties["control"]["tcpSshProperties"]["address"].ToString() != hostname)
+				{
+					Debug.Console(2, this, "Changing IPAddress: {0}", hostname);
+					Communication.Disconnect();
 
-				_Dc.Properties["control"]["tcpSshProperties"]["address"] = hostname;
-				CustomSetConfig(_Dc);
-				Communication.Connect();
+					(Communication as GenericTcpIpClient).Hostname = hostname;
+
+					_Dc.Properties["control"]["tcpSshProperties"]["address"] = hostname;
+					CustomSetConfig(_Dc);
+					Communication.Connect();
+				}
 			}
 			catch (Exception e)
 			{
