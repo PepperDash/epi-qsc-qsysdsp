@@ -188,6 +188,7 @@ namespace QSC.DSP.EPI
 		public void SendKeypad(eKeypadKeys button)
 		{
 			string keypadTag = null;
+			// Debug.Console(2, "DIaler {0} SendKeypad {1}", this.ke);
 			switch (button)
 			{
 				case eKeypadKeys.Num0: keypadTag = Tags.keypad0Tag; break;

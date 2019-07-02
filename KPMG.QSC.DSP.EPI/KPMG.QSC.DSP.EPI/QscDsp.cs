@@ -197,35 +197,29 @@ namespace QSC.DSP.EPI
 				{
 					var value = dialerConfig.Value;
 					var key = dialerConfig.Key;
-					if (prefix.Length > 0)
-					{
-						key = string.Format("{0}{1}", prefix, key);
-						value.autoAnswerTag = string.Format("{0}{1}", prefix, value.autoAnswerTag);
-						value.callStatusTag = string.Format("{0}{1}", prefix, value.callStatusTag);
-						value.connectTag = string.Format("{0}{1}", prefix, value.connectTag);
-						value.dialStringTag = string.Format("{0}{1}", prefix, value.dialStringTag);
-						value.disconnectTag = string.Format("{0}{1}", prefix, value.disconnectTag);
-						value.doNotDisturbTag = string.Format("{0}{1}", prefix, value.doNotDisturbTag);
-						value.hookStatusTag = string.Format("{0}{1}", prefix, value.hookStatusTag);
-						value.incomingCallRingerTag = string.Format("{0}{1}", prefix, value.incomingCallRingerTag);
-						value.keypad0Tag = string.Format("{0}{1}", prefix, value.keypad0Tag);
-						value.keypad1Tag = string.Format("{0}{1}", prefix, value.keypad1Tag);
-						value.keypad2Tag = string.Format("{0}{1}", prefix, value.keypad2Tag);
-						value.keypad3Tag = string.Format("{0}{1}", prefix, value.keypad3Tag);
-						value.keypad4Tag = string.Format("{0}{1}", prefix, value.keypad4Tag);
-						value.keypad5Tag = string.Format("{0}{1}", prefix, value.keypad5Tag);
-						value.keypad6Tag = string.Format("{0}{1}", prefix, value.keypad6Tag);
-						value.keypad7Tag = string.Format("{0}{1}", prefix, value.keypad7Tag);
-						value.keypad8Tag = string.Format("{0}{1}", prefix, value.keypad8Tag);
-						value.keypad9Tag = string.Format("{0}{1}", prefix, value.keypad9Tag);
-						value.keypadBackspaceTag = string.Format("{0}{1}", prefix, value.keypadBackspaceTag);
-						value.keypadClearTag = string.Format("{0}{1}", prefix, value.keypadClearTag);
-						value.keypadPoundTag = string.Format("{0}{1}", prefix, value.keypadPoundTag);
-						value.keypadStarTag = string.Format("{0}{1}", prefix, value.keypadStarTag);
-
-
-
-					}
+					key = string.Format("{0}{1}", prefix, key);
+					value.autoAnswerTag = string.Format("{0}{1}", prefix, value.autoAnswerTag);
+					value.callStatusTag = string.Format("{0}{1}", prefix, value.callStatusTag);
+					value.connectTag = string.Format("{0}{1}", prefix, value.connectTag);
+					value.dialStringTag = string.Format("{0}{1}", prefix, value.dialStringTag);
+					value.disconnectTag = string.Format("{0}{1}", prefix, value.disconnectTag);
+					value.doNotDisturbTag = string.Format("{0}{1}", prefix, value.doNotDisturbTag);
+					value.hookStatusTag = string.Format("{0}{1}", prefix, value.hookStatusTag);
+					value.incomingCallRingerTag = string.Format("{0}{1}", prefix, value.incomingCallRingerTag);
+					value.keypad0Tag = string.Format("{0}{1}", prefix, value.keypad0Tag);
+					value.keypad1Tag = string.Format("{0}{1}", prefix, value.keypad1Tag);
+					value.keypad2Tag = string.Format("{0}{1}", prefix, value.keypad2Tag);
+					value.keypad3Tag = string.Format("{0}{1}", prefix, value.keypad3Tag);
+					value.keypad4Tag = string.Format("{0}{1}", prefix, value.keypad4Tag);
+					value.keypad5Tag = string.Format("{0}{1}", prefix, value.keypad5Tag);
+					value.keypad6Tag = string.Format("{0}{1}", prefix, value.keypad6Tag);
+					value.keypad7Tag = string.Format("{0}{1}", prefix, value.keypad7Tag);
+					value.keypad8Tag = string.Format("{0}{1}", prefix, value.keypad8Tag);
+					value.keypad9Tag = string.Format("{0}{1}", prefix, value.keypad9Tag);
+					value.keypadBackspaceTag = string.Format("{0}{1}", prefix, value.keypadBackspaceTag);
+					value.keypadClearTag = string.Format("{0}{1}", prefix, value.keypadClearTag);
+					value.keypadPoundTag = string.Format("{0}{1}", prefix, value.keypadPoundTag);
+					value.keypadStarTag = string.Format("{0}{1}", prefix, value.keypadStarTag);
 					this.Dialers.Add(key, new QscDspDialer(value, this));
 					Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
 
@@ -262,7 +256,7 @@ namespace QSC.DSP.EPI
 		}
 		public void SetPrefix(string prefix)
 		{
-			if (_Dc.Properties["prefix"].ToString() != prefix)
+			if (_Dc.Properties["prefix"].ToString() != prefix && prefix.Length > 0)
 			{
 				_Dc.Properties["prefix"] = prefix;
 				CustomSetConfig(_Dc);

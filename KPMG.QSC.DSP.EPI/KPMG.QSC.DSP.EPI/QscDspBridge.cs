@@ -71,41 +71,46 @@ namespace QSC.DSP.EPI
 			}
 
 			// VoIP Dialer
-			foreach (var dialer in DspDevice.Dialers)
+			uint lineOffset = 0;
+			foreach (var line in DspDevice.Dialers)
 			{
-				trilist.SetSigTrueAction(joinMap.Keypad0, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num0));
-				trilist.SetSigTrueAction(joinMap.Keypad1, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num1));
-				trilist.SetSigTrueAction(joinMap.Keypad2, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num2));
-				trilist.SetSigTrueAction(joinMap.Keypad3, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num3));
-				trilist.SetSigTrueAction(joinMap.Keypad4, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num4));
-				trilist.SetSigTrueAction(joinMap.Keypad5, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num5));
-				trilist.SetSigTrueAction(joinMap.Keypad6, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num6));
-				trilist.SetSigTrueAction(joinMap.Keypad7, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num7));
-				trilist.SetSigTrueAction(joinMap.Keypad8, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num8));
-				trilist.SetSigTrueAction(joinMap.Keypad9, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num9));
-				trilist.SetSigTrueAction(joinMap.KeypadStar, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Star));
-				trilist.SetSigTrueAction(joinMap.KeypadPound, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Pound));
-				trilist.SetSigTrueAction(joinMap.KeypadClear, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Clear));
-				trilist.SetSigTrueAction(joinMap.KeypadBackspace, () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Backspace));
+				var dialer = line;
+				var dialerLineOffset = lineOffset;
+				Debug.Console(2, "AddingDialerBRidge {0} {1} Offset", dialer.Key, dialerLineOffset);
+				trilist.SetSigTrueAction((joinMap.Keypad0 + dialerLineOffset), () => DspDevice.Dialers[dialer.Key].SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num0));
+				trilist.SetSigTrueAction((joinMap.Keypad1 + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num1));
+				trilist.SetSigTrueAction((joinMap.Keypad2 + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num2));
+				trilist.SetSigTrueAction((joinMap.Keypad3 + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num3));
+				trilist.SetSigTrueAction((joinMap.Keypad4 + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num4));
+				trilist.SetSigTrueAction((joinMap.Keypad5 + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num5));
+				trilist.SetSigTrueAction((joinMap.Keypad6 + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num6));
+				trilist.SetSigTrueAction((joinMap.Keypad7 + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num7));
+				trilist.SetSigTrueAction((joinMap.Keypad8 + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num8));
+				trilist.SetSigTrueAction((joinMap.Keypad9 + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Num9));
+				trilist.SetSigTrueAction((joinMap.KeypadStar + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Star));
+				trilist.SetSigTrueAction((joinMap.KeypadPound + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Pound));
+				trilist.SetSigTrueAction((joinMap.KeypadClear + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Clear));
+				trilist.SetSigTrueAction((joinMap.KeypadBackspace + dialerLineOffset), () => dialer.Value.SendKeypad(QSC.DSP.EPI.QscDspDialer.eKeypadKeys.Backspace));
 
-				trilist.SetSigTrueAction(joinMap.Dial, () => dialer.Value.Dial());
-				trilist.SetSigTrueAction(joinMap.DoNotDisturbToggle, () => dialer.Value.DoNotDisturbToggle());
-				trilist.SetSigTrueAction(joinMap.DoNotDisturbOn, () => dialer.Value.DoNotDisturbOn());
-				trilist.SetSigTrueAction(joinMap.DoNotDisturbOff, () => dialer.Value.DoNotDisturbOff());
-				trilist.SetSigTrueAction(joinMap.AutoAnswerToggle, () => dialer.Value.AutoAnswerToggle());
-				trilist.SetSigTrueAction(joinMap.AutoAnswerOn, () => dialer.Value.AutoAnswerOn());
-				trilist.SetSigTrueAction(joinMap.AutoAnswerOff, () => dialer.Value.AutoAnswerOff());
+				trilist.SetSigTrueAction(joinMap.Dial + dialerLineOffset, () => dialer.Value.Dial());
+				trilist.SetSigTrueAction(joinMap.DoNotDisturbToggle + dialerLineOffset, () => dialer.Value.DoNotDisturbToggle());
+				trilist.SetSigTrueAction(joinMap.DoNotDisturbOn + dialerLineOffset, () => dialer.Value.DoNotDisturbOn());
+				trilist.SetSigTrueAction(joinMap.DoNotDisturbOff + dialerLineOffset, () => dialer.Value.DoNotDisturbOff());
+				trilist.SetSigTrueAction(joinMap.AutoAnswerToggle + dialerLineOffset, () => dialer.Value.AutoAnswerToggle());
+				trilist.SetSigTrueAction(joinMap.AutoAnswerOn + dialerLineOffset, () => dialer.Value.AutoAnswerOn());
+				trilist.SetSigTrueAction(joinMap.AutoAnswerOff + dialerLineOffset, () => dialer.Value.AutoAnswerOff());
 
-				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbToggle]);
-				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbOn]);
-				dialer.Value.DoNotDisturbFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.DoNotDisturbOff]);
+				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbToggle + dialerLineOffset]);
+				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbOn + dialerLineOffset]);
+				dialer.Value.DoNotDisturbFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.DoNotDisturbOff + dialerLineOffset]);
 
-				dialer.Value.AutoAnswerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoAnswerToggle]);
-				dialer.Value.AutoAnswerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoAnswerOn]);
-				dialer.Value.AutoAnswerFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.AutoAnswerOff]);
+				dialer.Value.AutoAnswerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoAnswerToggle + dialerLineOffset]);
+				dialer.Value.AutoAnswerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoAnswerOn + dialerLineOffset]);
+				dialer.Value.AutoAnswerFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.AutoAnswerOff + dialerLineOffset]);
 
-				dialer.Value.OffHookFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Dial]);
-				dialer.Value.DialStringFeedback.LinkInputSig(trilist.StringInput[joinMap.DialStringCmd]);
+				dialer.Value.OffHookFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Dial + dialerLineOffset]);
+				dialer.Value.DialStringFeedback.LinkInputSig(trilist.StringInput[joinMap.DialStringCmd + dialerLineOffset]);
+				lineOffset = lineOffset + 50;
 			}
 
 		}
