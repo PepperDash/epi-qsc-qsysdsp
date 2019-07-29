@@ -69,8 +69,8 @@ namespace QSC.DSP.EPI
 			Debug.Console(2, this, "Recall Camera Preset {0}", presetNumber);
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
-				var preset = Config.Presets.ElementAt(presetNumber - 1).Value;
-				var cmdToSend = string.Format("ssl {0} {1} 0", preset.Bank, preset.number - 1);
+				var preset = Config.Presets.ElementAt(presetNumber).Value;
+				var cmdToSend = string.Format("ssl {0} {1} 0", preset.Bank, preset.number);
 				_Dsp.SendLine(cmdToSend);
 			}
 		}
@@ -78,8 +78,8 @@ namespace QSC.DSP.EPI
 		{
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
-				var preset = Config.Presets.ElementAt(presetNumber - 1).Value;
-				var cmdToSend = string.Format("sss {0} {1}", preset.Bank, preset.number - 1);
+				var preset = Config.Presets.ElementAt(presetNumber).Value;
+				var cmdToSend = string.Format("sss {0} {1}", preset.Bank, preset.number);
 				_Dsp.SendLine(cmdToSend);
 			}
 		}

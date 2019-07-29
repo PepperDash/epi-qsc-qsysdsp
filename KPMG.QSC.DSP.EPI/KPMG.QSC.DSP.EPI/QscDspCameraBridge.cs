@@ -60,17 +60,17 @@ namespace QSC.DSP.EPI
 				else { camera.MoveCamera(eCameraPtzControls.Stop); }
 
 			});
-			ushort x = 1;
+			ushort x = 0;
 			foreach (var preset in camera.Config.Presets)
 			{
 				var temp = x;
-				trilist.SetSigTrueAction(joinMap.PresetRecallStart + x, () => camera.RecallPreset(temp));
-				trilist.SetSigTrueAction(joinMap.PresetStoreStart + x, () => camera.SavePreset(temp));
-				trilist.SetStringSigAction(joinMap.PresetNamesStart + temp, (s) =>
+				trilist.SetSigTrueAction(joinMap.PresetRecallStart + temp + 1 , () => camera.RecallPreset(temp));
+				trilist.SetSigTrueAction(joinMap.PresetStoreStart + temp + 1 , () => camera.SavePreset(temp));
+				trilist.SetStringSigAction(joinMap.PresetNamesStart + temp + 1, (s) =>
 				{
 					camera.WritePresetName(s, temp);
 				});
-				preset.Value.LabelFeedback.LinkInputSig(trilist.StringInput[joinMap.PresetNamesStart + temp]);
+				preset.Value.LabelFeedback.LinkInputSig(trilist.StringInput[joinMap.PresetNamesStart + temp + 1]);
 
 				x++;
 			}
