@@ -63,6 +63,16 @@ namespace QSC.DSP.EPI
 				
 			}
 		}
+		public void PrivacyOn()
+		{
+			var cmdToSend = string.Format("csv {0} 1", Config.Privacy);
+			_Dsp.SendLine(cmdToSend);
+		}
+		public void PrivacyOff()
+		{
+			var cmdToSend = string.Format("csv {0} 0", Config.Privacy);
+			_Dsp.SendLine(cmdToSend);
+		}
 
 		public void RecallPreset(ushort presetNumber)
 		{

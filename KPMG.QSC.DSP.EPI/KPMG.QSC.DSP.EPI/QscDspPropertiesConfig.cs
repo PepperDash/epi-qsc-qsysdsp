@@ -110,6 +110,7 @@ namespace QSC.DSP.EPI
 		public string ZoomInTag { get; set; }
 		public string ZoomOutTag { get; set; }
 		public string PresetBankTag { get; set; }
+		public string Privacy { get; set; }
 		public Dictionary<string, QscDspPresets> Presets { get; set; }
 
 		

@@ -61,12 +61,13 @@ namespace QSC.DSP.EPI
 
 
 			//Presets 
-			x = 1;
+			x = 0;
 			trilist.SetStringSigAction(joinMap.Presets, s => DspDevice.RunPreset(s));
 			foreach (var preset in DspDevice.PresetList)
 			{
-				trilist.StringInput[joinMap.Presets + x].StringValue = preset.label;
-				trilist.SetSigTrueAction(joinMap.Presets + x, () => DspDevice.RunPresetNumber(x));
+				var temp = x;
+				trilist.StringInput[joinMap.Presets + temp + 1].StringValue = preset.label;
+				trilist.SetSigTrueAction(joinMap.Presets + temp + 1, () => DspDevice.RunPresetNumber(temp));
 				x++;
 			}
 

@@ -180,6 +180,7 @@ namespace QSC.DSP.EPI
 						value.ZoomInTag = string.Format("{0}{1}", prefix, value.ZoomInTag);
 						value.ZoomOutTag = string.Format("{0}{1}", prefix, value.ZoomOutTag);
 						value.PresetBankTag = string.Format("{0}{1}", prefix, value.PresetBankTag);
+						value.Privacy = string.Format("{0}{1}", prefix, value.Privacy);
 						foreach (var preset in value.Presets)
 						{
 							value.Presets[preset.Key].Bank = string.Format("{0}{1}", prefix, value.Presets[preset.Key].Bank);

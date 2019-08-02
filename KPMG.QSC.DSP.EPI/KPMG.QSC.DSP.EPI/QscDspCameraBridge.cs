@@ -74,6 +74,8 @@ namespace QSC.DSP.EPI
 
 				x++;
 			}
+			trilist.SetSigTrueAction(joinMap.PrivacyOn, () => camera.PrivacyOn());
+			trilist.SetSigTrueAction(joinMap.PrivacyOff, () => camera.PrivacyOff());
 
 		}
 	}
@@ -89,6 +91,8 @@ namespace QSC.DSP.EPI
 		public uint PresetRecallStart { get; set; }
 		public uint PresetStoreStart { get; set; }
 		public uint PresetNamesStart { get; set; }
+		public uint PrivacyOn { get; set; }
+		public uint PrivacyOff { get; set; }
 
 
 
@@ -104,6 +108,9 @@ namespace QSC.DSP.EPI
 			PresetRecallStart = 10;
 			PresetStoreStart = 30;
 			PresetNamesStart = 1;
+			PrivacyOn = 48;
+			PrivacyOff = 49;
+
 		}
 
 		public override void OffsetJoinNumbers(uint joinStart)
@@ -118,6 +125,9 @@ namespace QSC.DSP.EPI
 			ZoomOut = ZoomOut + joinOffset;
 			PresetRecallStart = PresetRecallStart + joinOffset;
 			PresetStoreStart = PresetStoreStart + joinOffset;
+			PrivacyOn = PrivacyOn + joinOffset;
+			PrivacyOff = PrivacyOff + joinOffset;
+			
 
 		}
 	}
