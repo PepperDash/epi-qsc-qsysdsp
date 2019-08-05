@@ -1,4 +1,0 @@
-[submodule "essentials"]
-	path = essentials
-	url = https://bitbucket.org/Pepperdash_Products/essentials.git
-	branch = development
