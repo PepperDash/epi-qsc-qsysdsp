@@ -112,6 +112,7 @@ namespace QSC.DSP.EPI
 		public string PresetBankTag { get; set; }
 		public string Privacy { get; set; }
 		public Dictionary<string, QscDspPresets> Presets { get; set; }
+		public string OnlineStatus { get; set; } 
 
 		
 	}

@@ -12,7 +12,7 @@ using QSC.DSP.EPI;
 
 namespace QSC.DSP.EPI
 {
-	public static class QscDspDeviceApiExtensions
+	public static class QscDspDeviceApiExtensions 
 	{
 		public static void LinkToApiExt(this QscDsp DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
 		{

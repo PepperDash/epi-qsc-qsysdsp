@@ -181,6 +181,7 @@ namespace QSC.DSP.EPI
 						value.ZoomOutTag = string.Format("{0}{1}", prefix, value.ZoomOutTag);
 						value.PresetBankTag = string.Format("{0}{1}", prefix, value.PresetBankTag);
 						value.Privacy = string.Format("{0}{1}", prefix, value.Privacy);
+						value.OnlineStatus = string.Format("{0}{1}", prefix, value.OnlineStatus);
 						foreach (var preset in value.Presets)
 						{
 							value.Presets[preset.Key].Bank = string.Format("{0}{1}", prefix, value.Presets[preset.Key].Bank);
@@ -296,6 +297,10 @@ namespace QSC.DSP.EPI
 				dialer.Value.Subscribe();
 			}
 
+			foreach (var camera in Cameras)
+			{
+				camera.Value.Subscribe();
+			}
 			if (CommunicationMonitor != null)
 			{
 
@@ -321,57 +326,74 @@ namespace QSC.DSP.EPI
                 if (args.Text.IndexOf("sr ") > -1)
                 {
                 }
-                else if (args.Text.IndexOf("cv") > -1)
-                {
-                    
-				var changeMessage = args.Text.Split(null);
-
-				string changedInstance = changeMessage[1].Replace("\"", "");
-				Debug.Console(1, this, "cv parse Instance: {0}", changedInstance);
-				bool foundItFlag = false;
-                foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
-                {
-					if (changedInstance == controlPoint.Value.LevelInstanceTag)
-                    {
-						controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[4], changeMessage[3]);
-						foundItFlag = true;
-                        return;
-                    }
-
-					else if (changedInstance == controlPoint.Value.MuteInstanceTag)
-					{
-						controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""), null);
-						foundItFlag = true;
-						return;
-					}
-
-                }
-				if (!foundItFlag)
+				else if (args.Text.IndexOf("cv") > -1)
 				{
-					foreach (var dialer in Dialers)
+
+					var changeMessage = args.Text.Split(null);
+
+					string changedInstance = changeMessage[1].Replace("\"", "");
+					Debug.Console(1, this, "cv parse Instance: {0}", changedInstance);
+					bool foundItFlag = false;
+					foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
 					{
-						PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
-						//GetPropertyValues(Tags);
-						foreach (var prop in properties)
+						if (changedInstance == controlPoint.Value.LevelInstanceTag)
 						{
-							var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
-							if (changedInstance == propValue)
+							controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[4], changeMessage[3]);
+							foundItFlag = true;
+							return;
+						}
+
+						else if (changedInstance == controlPoint.Value.MuteInstanceTag)
+						{
+							controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""), null);
+							foundItFlag = true;
+							return;
+						}
+
+					}
+					if (!foundItFlag)
+					{
+						foreach (var dialer in Dialers)
+						{
+							PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
+							//GetPropertyValues(Tags);
+							foreach (var prop in properties)
 							{
-								dialer.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""));
-								foundItFlag = true;
+								var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
+								if (changedInstance == propValue)
+								{
+									dialer.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""));
+									foundItFlag = true;
+									return;
+								}
+							}
+							if (foundItFlag)
+							{
 								return;
 							}
+						}
+					}
+					if (!foundItFlag)
+					{
+						foreach (var camera in Cameras)
+						{
+							if (changedInstance == camera.Value.Config.OnlineStatus)
+
+								camera.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""), null);
+
+							foundItFlag = true;
+							return;
+
 						}
 						if (foundItFlag)
 						{
 							return;
 						}
-					}
-				}
-                   
-                }
 
-                
+
+					}
+
+				}
             }
             catch (Exception e)
             {

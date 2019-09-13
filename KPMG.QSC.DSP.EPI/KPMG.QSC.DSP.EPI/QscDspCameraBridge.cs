@@ -24,6 +24,8 @@ namespace QSC.DSP.EPI
 
 			joinMap.OffsetJoinNumbers(joinStart);
 			Debug.Console(1, camera, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+
+			camera.OnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Online]);
 			trilist.SetBoolSigAction(joinMap.Up, (b) =>
 				{
 					if (b) { camera.MoveCamera(eCameraPtzControls.TiltUp); }
@@ -88,6 +90,7 @@ namespace QSC.DSP.EPI
 		public uint Right { get; set; }
 		public uint ZoomIn { get; set; }
 		public uint ZoomOut { get; set; }
+		public uint Online { get; set; }
 		public uint PresetRecallStart { get; set; }
 		public uint PresetStoreStart { get; set; }
 		public uint PresetNamesStart { get; set; }
@@ -105,6 +108,7 @@ namespace QSC.DSP.EPI
 			Right = 4;
 			ZoomIn = 5;
 			ZoomOut = 6;
+			Online = 9;
 			PresetRecallStart = 10;
 			PresetStoreStart = 30;
 			PresetNamesStart = 1;
@@ -127,7 +131,7 @@ namespace QSC.DSP.EPI
 			PresetStoreStart = PresetStoreStart + joinOffset;
 			PrivacyOn = PrivacyOn + joinOffset;
 			PrivacyOff = PrivacyOff + joinOffset;
-			
+			Online = Online + joinOffset;
 
 		}
 	}

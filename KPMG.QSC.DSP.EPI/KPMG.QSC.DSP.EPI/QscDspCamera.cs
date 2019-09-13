@@ -23,13 +23,27 @@ namespace QSC.DSP.EPI
 		QscDsp _Dsp;
 		public QscDspCameraConfig Config{ get; private set;} 
 		string LastCmd;
-		
+		private bool _Online;
+		public bool Online
+		{
+			set
+			{
+				this._Online = value;
+				OnlineFeedback.FireUpdate();
+			}
+			get
+			{
+				return this._Online;
+			}
+		}
+		public BoolFeedback OnlineFeedback;
+
 		public QscDspCamera(QscDsp dsp, string key, string name, QscDspCameraConfig dc)
 			: base(key, name)
 		{
 			_Dsp = dsp;
 			Config = dc;
-
+			OnlineFeedback = new BoolFeedback(() => { return Online; } );
 			DeviceManager.AddDevice(this);
 			
 		}
@@ -104,7 +118,41 @@ namespace QSC.DSP.EPI
 			}
 				
 		}
+		public void Subscribe()
+		{
+			try
+			{
+				// Do subscriptions and blah blah
+				if (Config.OnlineStatus != null)
+				{
+					var cmd = string.Format("cga {0} {1}", 1, Config.OnlineStatus);
+					_Dsp.SendLine(cmd);
+				}
+				
+			}
+			catch (Exception e)
+			{
 
+				Debug.Console(2, "QscDspCamera Subscription Error: '{0}'\n", e);
+			}
+		}
+		public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
+		{
+
+			// Check for valid subscription response
+			Debug.Console(1, this, "CameraOnline {0} Response: '{1}'", customName, value);
+
+				if (value == "true")
+				{
+					Online = true;
+
+				}
+				else if (value == "false")
+				{
+					Online = false;
+				}
+
+		}
 		#region IBridge Members
 
 		public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)
