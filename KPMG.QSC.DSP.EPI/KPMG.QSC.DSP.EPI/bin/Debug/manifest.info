@@ -1,4 +1,4 @@
-﻿MainAssembly=KPMG.QSC.DSP.EPI.dll:ca71a3bc80da8ede968de8563fab94c5
+﻿MainAssembly=KPMG.QSC.DSP.EPI.dll:3ce5eb0a8908afb09f72f2c60832a073
 MainAssemblyMinFirmwareVersion=1.009.0029
 MainAssemblyResource=SimplSharpData.dat:820b61c48c8a2cace82957eed4cc377c
 MainAssemblyResource=SimplSharpData.dat.der:bf862965c00f3e6ec535e4e00e82d30c
@@ -45,17 +45,17 @@ DependencySource=Essentials Devices Common.dll:4d1d0a89c49b00976e07e267666de28a
 DependencyPath=KPMG.QSC.DSP.EPI.cplz:Essentials Devices Common.dll
 DependencyMainAssembly=Essentials Devices Common.dll:4d1d0a89c49b00976e07e267666de28a
 ü
-DependencySource=PepperDashEssentials.dll:10e09b1b803bdb9bce4e8385931e93f4
+DependencySource=PepperDashEssentials.dll:8828388aafc191d9b159755e6d3c18ff
 DependencyPath=KPMG.QSC.DSP.EPI.cplz:PepperDashEssentials.dll
-DependencyMainAssembly=PepperDashEssentials.dll:10e09b1b803bdb9bce4e8385931e93f4
+DependencyMainAssembly=PepperDashEssentials.dll:8828388aafc191d9b159755e6d3c18ff
 ü
 DependencySource=PepperDash_Core.dll:39e3e2aa4075b59827bd08c3bd68664c
 DependencyPath=KPMG.QSC.DSP.EPI.cplz:PepperDash_Core.dll
 DependencyMainAssembly=PepperDash_Core.dll:39e3e2aa4075b59827bd08c3bd68664c
 ü
-DependencySource=PepperDash_Essentials_Core.dll:d9d767825eded5e7142396c92f61f741
+DependencySource=PepperDash_Essentials_Core.dll:dbd50a4430b72f11a58edbb22f48b8fb
 DependencyPath=KPMG.QSC.DSP.EPI.cplz:PepperDash_Essentials_Core.dll
-DependencyMainAssembly=PepperDash_Essentials_Core.dll:d9d767825eded5e7142396c92f61f741
+DependencyMainAssembly=PepperDash_Essentials_Core.dll:dbd50a4430b72f11a58edbb22f48b8fb
 ü
 DependencySource=PepperDash_Essentials_DM.dll:49b7e582cb3d9c53071773d0dc7876dd
 DependencyPath=KPMG.QSC.DSP.EPI.cplz:PepperDash_Essentials_DM.dll

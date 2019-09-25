@@ -9,6 +9,7 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Devices.Common;
 using PepperDash.Essentials.Bridges;
 using QSC.DSP.EPI;
+using Newtonsoft.Json;
 
 namespace QSC.DSP.EPI
 {
@@ -16,10 +17,14 @@ namespace QSC.DSP.EPI
 	{
 		public static void LinkToApiExt(this QscDsp DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
 		{
-			var joinMap = JoinMapHelper.GetJoinMapForDevice(joinMapKey) as QscDspDeviceJoinMap;
 
-			if (joinMap == null)
-				joinMap = new QscDspDeviceJoinMap();
+
+			QscDspDeviceJoinMap joinMap = new QscDspDeviceJoinMap();
+
+			var JoinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey);
+
+			if (!string.IsNullOrEmpty(JoinMapSerialized))
+				joinMap = JsonConvert.DeserializeObject<QscDspDeviceJoinMap>(JoinMapSerialized);
 
 			joinMap.OffsetJoinNumbers(joinStart);
 			Debug.Console(1, DspDevice, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));

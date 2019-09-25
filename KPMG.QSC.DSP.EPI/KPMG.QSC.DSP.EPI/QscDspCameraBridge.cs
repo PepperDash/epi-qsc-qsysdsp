@@ -9,6 +9,8 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Devices.Common;
 using PepperDash.Essentials.Bridges;
+using Newtonsoft.Json;
+
 using QSC.DSP.EPI;
 
 namespace QSC.DSP.EPI
@@ -17,10 +19,17 @@ namespace QSC.DSP.EPI
 	{
 		public static void LinkToApiExt(this QscDspCamera camera, BasicTriList trilist, uint joinStart, string joinMapKey)
 		{
-			var joinMap = JoinMapHelper.GetJoinMapForDevice(joinMapKey) as QscDspCameraDeviceJoinMap;
+			QscDspCameraDeviceJoinMap joinMap = new QscDspCameraDeviceJoinMap();
 
+			var JoinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey); //as QscDspCameraDeviceJoinMap;
+
+			if (!string.IsNullOrEmpty(JoinMapSerialized))
+				joinMap = JsonConvert.DeserializeObject<QscDspCameraDeviceJoinMap>(JoinMapSerialized);
+
+			/*
 			if (joinMap == null)
 				joinMap = new QscDspCameraDeviceJoinMap();
+			*/
 
 			joinMap.OffsetJoinNumbers(joinStart);
 			Debug.Console(1, camera, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
