@@ -120,7 +120,7 @@ namespace QSC.DSP.EPI
 			Online = 9;
 			PresetRecallStart = 10;
 			PresetStoreStart = 30;
-			PresetNamesStart = 1;
+			PresetNamesStart = 2;
 			PrivacyOn = 48;
 			PrivacyOff = 49;
 
