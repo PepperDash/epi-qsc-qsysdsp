@@ -73,3 +73,5 @@ C:\Users\JTA\Documents\Stash Folder\KPMG\SLN103-AVNoc\SLN103-AVNoc.Plugins\Qsc.D
 C:\Users\JTA\Documents\Stash Folder\KPMG\SLN103-AVNoc\SLN103-AVNoc.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\ResolveAssemblyReference.cache
 C:\Users\JTA\Documents\Stash Folder\KPMG\SLN103-AVNoc\SLN103-AVNoc.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\KPMG.QSC.DSP.EPI.dll
 C:\Users\JTA\Documents\Stash Folder\KPMG\SLN103-AVNoc\SLN103-AVNoc.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\obj\Debug\KPMG.QSC.DSP.EPI.pdb
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\PepperDash_Essentials_Core.dll
+C:\Users\JTA\Documents\Stash Folder\KPMG\SLN101-TypeC\SLN101-TypeC.Plugins\Qsc.Dsp.Epi\KPMG.QSC.DSP.EPI\KPMG.QSC.DSP.EPI\bin\Debug\PepperDashEssentials.dll
