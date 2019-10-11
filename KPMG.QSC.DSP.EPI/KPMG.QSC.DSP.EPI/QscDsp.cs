@@ -31,8 +31,6 @@ namespace QSC.DSP.EPI
 
 	public class QscDsp : ReconfigurableDevice , IBridge
     {
-
-
 		public static void LoadPlugin()
 		{
 			DeviceFactory.AddFactoryForType("qscdsp", QscDsp.BuildDevice);
@@ -60,17 +58,19 @@ namespace QSC.DSP.EPI
 
 		DeviceConfig _Dc;
 
-        // public bool isSubscribed;
-
         CrestronQueue CommandQueue;
 
         bool CommandQueueInProgress = false;
+        bool SubscriptionCheckInProgress = false;
+        uint PollCounter = 1;
+        bool ValidTagFound = false;
         public bool ShowHexResponse { get; set; }
         public QscDsp(string key, string name, IBasicCommunication comm, DeviceConfig dc) : base(dc)
         {
 			_Dc = dc;
 			QscDspPropertiesConfig props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
             Debug.Console(0, this, "Made it to device constructor");
+
             CommandQueue = new CrestronQueue(100);
             Communication = comm;
             var socket = comm as ISocketStatus;
@@ -92,7 +92,7 @@ namespace QSC.DSP.EPI
 			}
 			else
 			{
-				CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000, "cgp 1\x0D\x0A");
+                CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000, CustomPoll);
 			}
 
 
@@ -105,8 +105,7 @@ namespace QSC.DSP.EPI
         {
             Communication.Connect();
 			CommunicationMonitor.StatusChange += (o, a) => { Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status); };
-			CommunicationMonitor.Start();
-			
+			CommunicationMonitor.Start();			
 
             CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
@@ -281,6 +280,7 @@ namespace QSC.DSP.EPI
         /// </summary>
         void SubscribeToAttributes()
         {
+            ValidTagFound = false;
 			// Change Group destroy
 			SendLine("cgd 1");
 
@@ -303,15 +303,55 @@ namespace QSC.DSP.EPI
 			}
 			if (CommunicationMonitor != null)
 			{
-
 				CommunicationMonitor.Start();
 			}
-			CommunicationMonitor.StatusChange += (o, a) => { Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status); };
+
             if (!CommandQueueInProgress)
                 SendNextQueuedCommand();
         }
 
+        /// <summary>
+        /// Polls the QSC with a custom method to check subscriptions periodically
+        /// </summary>
+        void CustomPoll()
+        {
+            if (PollCounter < 15)
+            {
+                PollCounter++;
+                SendLine("cgp 1");
+            }
+            else
+            {
+                PollCounter = 1;
+                CheckSubscriptions();
+            }
+        }
 
+        /// <summary>
+        /// Builds a custom change group at group 2 for health polling
+        /// </summary>
+        void AddHealthPoll(string healthInstance)
+        {
+            Debug.Console(1, this, "Adding first instance to health polling");
+            SendLine("cgd 2");
+            SendLine("cgc 2");
+            SendLine(string.Format("cga 2 {0}", healthInstance));
+            ValidTagFound = true;
+        }
+
+        /// <summary>
+        /// Checks subscriptions in change group 1 on the DSP and resubscribes if needed
+        /// </summary>
+        void CheckSubscriptions()
+        {
+            SubscriptionCheckInProgress = true;
+
+            // Change Group invalidate - tells DSP to update all values on next change group poll
+            SendLine("cgi 2");
+
+            // Change Group poll
+            SendLine("cgp 2");
+        }
 
         /// <summary>
         /// Handles a response message from the DSP
@@ -323,12 +363,28 @@ namespace QSC.DSP.EPI
             Debug.Console(2, this, "RX: '{0}'", args.Text);
             try
             {
-                if (args.Text.IndexOf("sr ") > -1)
+                if (SubscriptionCheckInProgress == true)
+                {
+                    Debug.Console(1, this, "Checking subscription");
+                    if (args.Text.Contains("cgpa"))
+                    {
+                        //Got cgpa without any data prior, health subscription must be lost
+                        Debug.ConsoleWithLog(1, this, "QSC subscriptions lost, rebuilding now");
+                        ValidTagFound = false;
+                        SubscribeToAttributes();
+                    }
+                    else
+                    {
+                        //Subscriptions still present
+                        Debug.Console(1, this, "Subscription found");
+                    }
+                    SubscriptionCheckInProgress = false;
+                }
+                else if (args.Text.IndexOf("sr ") > -1)
                 {
                 }
 				else if (args.Text.IndexOf("cv") > -1)
 				{
-
 					var changeMessage = args.Text.Split(null);
 
 					string changedInstance = changeMessage[1].Replace("\"", "");
@@ -338,6 +394,7 @@ namespace QSC.DSP.EPI
 					{
 						if (changedInstance == controlPoint.Value.LevelInstanceTag)
 						{
+                            if (ValidTagFound == false) { AddHealthPoll(changedInstance); }
 							controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[4], changeMessage[3]);
 							foundItFlag = true;
 							return;
@@ -345,6 +402,7 @@ namespace QSC.DSP.EPI
 
 						else if (changedInstance == controlPoint.Value.MuteInstanceTag)
 						{
+                            if (ValidTagFound == false) { AddHealthPoll(changedInstance); }
 							controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""), null);
 							foundItFlag = true;
 							return;
@@ -362,6 +420,7 @@ namespace QSC.DSP.EPI
 								var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
 								if (changedInstance == propValue)
 								{
+                                    if (ValidTagFound == false) { AddHealthPoll(changedInstance); }
 									dialer.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""));
 									foundItFlag = true;
 									return;
@@ -389,8 +448,6 @@ namespace QSC.DSP.EPI
 						{
 							return;
 						}
-
-
 					}
 
 				}

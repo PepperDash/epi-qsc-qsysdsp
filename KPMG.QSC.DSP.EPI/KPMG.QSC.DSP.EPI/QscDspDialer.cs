@@ -62,7 +62,6 @@ namespace QSC.DSP.EPI
 				foreach (var prop in properties)
 				{
 					//var val = prop.GetValue(obj, null);
-
 					
 					Debug.Console(2, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, prop.PropertyType.FullName);
 					if (prop.Name.Contains("Tag") && !prop.Name.Contains("keypad"))
@@ -71,13 +70,10 @@ namespace QSC.DSP.EPI
 						Debug.Console(2, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, propValue);
 						SendSubscriptionCommand(propValue, "1");
 					}
-
-
 				}
 			}
 			catch (Exception e)
-			{
-				
+			{				
 					Debug.Console(2, "QscDspDialer Subscription Error: '{0}'\n", e);
 			}
 			 
@@ -87,7 +83,6 @@ namespace QSC.DSP.EPI
         }
 		public void ParseSubscriptionMessage(string customName, string value)
 		{
-
 			// Check for valid subscription response
 			Debug.Console(1, "QscDialerTag {0} Response: '{1}'", customName, value);
 			if (customName == Tags.dialStringTag)

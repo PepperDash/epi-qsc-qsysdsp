@@ -199,7 +199,6 @@ namespace QSC.DSP.EPI
             
         }
 
-
         /// <summary>
         /// Turns the mute off
         /// </summary>
