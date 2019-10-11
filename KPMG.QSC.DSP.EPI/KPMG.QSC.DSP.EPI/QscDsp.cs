@@ -61,9 +61,7 @@ namespace QSC.DSP.EPI
         CrestronQueue CommandQueue;
 
         bool CommandQueueInProgress = false;
-        bool SubscriptionCheckInProgress = false;
-        uint PollCounter = 1;
-        bool ValidTagFound = false;
+        uint HeartbeatTracker = 0;
         public bool ShowHexResponse { get; set; }
         public QscDsp(string key, string name, IBasicCommunication comm, DeviceConfig dc) : base(dc)
         {
@@ -86,17 +84,10 @@ namespace QSC.DSP.EPI
             PortGather = new CommunicationGather(Communication, "\x0a");
             PortGather.LineReceived += this.Port_LineReceived;
 
-			if (props.CommunicationMonitorProperties != null)
-			{
-				CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, props.CommunicationMonitorProperties);
-			}
-			else
-			{
-                CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000, CustomPoll);
-			}
+            // Custom monitoring, will check the heartbeat tracker count every 20s and reset. Heartbeat sbould be coming in every 20s if subscriptions are valid
+            CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000, CheckSubscriptions);
 
-
-			LevelControlPoints = new Dictionary<string, QscDspLevelControl>();
+            LevelControlPoints = new Dictionary<string, QscDspLevelControl>();
 			Dialers = new Dictionary<string, QscDspDialer>();
 			Cameras = new Dictionary<string, QscDspCamera>();
 			CreateDspObjects();
@@ -104,8 +95,7 @@ namespace QSC.DSP.EPI
         public override bool CustomActivate()
         {
             Communication.Connect();
-			CommunicationMonitor.StatusChange += (o, a) => { Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status); };
-			CommunicationMonitor.Start();			
+			CommunicationMonitor.StatusChange += (o, a) => { Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status); };		
 
             CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
@@ -275,17 +265,48 @@ namespace QSC.DSP.EPI
 		{
 			CustomSetConfig(_Dc);
 		}
+
+        /// <summary>
+        /// Checks the subscription health, should be called by comm monitor only. If no heartbeat has been detected recently, will resubscribe and log error.
+        /// </summary>
+        void CheckSubscriptions()
+        {
+            HeartbeatTracker++;
+            SendLine("cgp 2");
+            CrestronEnvironment.Sleep(1000);
+
+            if (HeartbeatTracker > 0)
+            {
+                Debug.Console(1, this, "Heartbeat missed, count {0}", HeartbeatTracker);
+                if (HeartbeatTracker % 5 == 0)
+                {
+                    Debug.Console(1, this, "Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
+                    if (HeartbeatTracker == 5)
+                        Debug.LogError(Debug.ErrorLogLevel.Warning, "Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
+                    SubscribeToAttributes();
+                }
+            }
+            else
+            {
+                Debug.Console(1, this, "Heartbeat okay");
+            }
+        }
+
         /// <summary>
         /// Initiates the subscription process to the DSP
         /// </summary>
         void SubscribeToAttributes()
         {
-            ValidTagFound = false;
 			// Change Group destroy
 			SendLine("cgd 1");
+            SendLine("cgd 2");
 
 			// Change Group create
             SendLine("cgc 1");
+            SendLine("cgc 2");
+
+            // Change group subscribe to feedback with no ack (updates every 1000 ms)
+            SendLine("cgsna 1 1000");
 			
             foreach (KeyValuePair<string, QscDspLevelControl> level in LevelControlPoints)
             {
@@ -301,6 +322,7 @@ namespace QSC.DSP.EPI
 			{
 				camera.Value.Subscribe();
 			}
+
 			if (CommunicationMonitor != null)
 			{
 				CommunicationMonitor.Start();
@@ -308,49 +330,6 @@ namespace QSC.DSP.EPI
 
             if (!CommandQueueInProgress)
                 SendNextQueuedCommand();
-        }
-
-        /// <summary>
-        /// Polls the QSC with a custom method to check subscriptions periodically
-        /// </summary>
-        void CustomPoll()
-        {
-            if (PollCounter < 15)
-            {
-                PollCounter++;
-                SendLine("cgp 1");
-            }
-            else
-            {
-                PollCounter = 1;
-                CheckSubscriptions();
-            }
-        }
-
-        /// <summary>
-        /// Builds a custom change group at group 2 for health polling
-        /// </summary>
-        void AddHealthPoll(string healthInstance)
-        {
-            Debug.Console(1, this, "Adding first instance to health polling");
-            SendLine("cgd 2");
-            SendLine("cgc 2");
-            SendLine(string.Format("cga 2 {0}", healthInstance));
-            ValidTagFound = true;
-        }
-
-        /// <summary>
-        /// Checks subscriptions in change group 1 on the DSP and resubscribes if needed
-        /// </summary>
-        void CheckSubscriptions()
-        {
-            SubscriptionCheckInProgress = true;
-
-            // Change Group invalidate - tells DSP to update all values on next change group poll
-            SendLine("cgi 2");
-
-            // Change Group poll
-            SendLine("cgp 2");
         }
 
         /// <summary>
@@ -363,24 +342,12 @@ namespace QSC.DSP.EPI
             Debug.Console(2, this, "RX: '{0}'", args.Text);
             try
             {
-                if (SubscriptionCheckInProgress == true)
+                if (args.Text.EndsWith("cgpa\r"))
                 {
-                    Debug.Console(1, this, "Checking subscription");
-                    if (args.Text.Contains("cgpa"))
-                    {
-                        //Got cgpa without any data prior, health subscription must be lost
-                        Debug.ConsoleWithLog(1, this, "QSC subscriptions lost, rebuilding now");
-                        ValidTagFound = false;
-                        SubscribeToAttributes();
-                    }
-                    else
-                    {
-                        //Subscriptions still present
-                        Debug.Console(1, this, "Subscription found");
-                    }
-                    SubscriptionCheckInProgress = false;
-                }
-                else if (args.Text.IndexOf("sr ") > -1)
+                    Debug.Console(1, this, "Found poll response");
+                    HeartbeatTracker = 0;
+                }                
+                if (args.Text.IndexOf("sr ") > -1)
                 {
                 }
 				else if (args.Text.IndexOf("cv") > -1)
@@ -394,7 +361,6 @@ namespace QSC.DSP.EPI
 					{
 						if (changedInstance == controlPoint.Value.LevelInstanceTag)
 						{
-                            if (ValidTagFound == false) { AddHealthPoll(changedInstance); }
 							controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[4], changeMessage[3]);
 							foundItFlag = true;
 							return;
@@ -402,7 +368,6 @@ namespace QSC.DSP.EPI
 
 						else if (changedInstance == controlPoint.Value.MuteInstanceTag)
 						{
-                            if (ValidTagFound == false) { AddHealthPoll(changedInstance); }
 							controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""), null);
 							foundItFlag = true;
 							return;
@@ -420,7 +385,6 @@ namespace QSC.DSP.EPI
 								var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
 								if (changedInstance == propValue)
 								{
-                                    if (ValidTagFound == false) { AddHealthPoll(changedInstance); }
 									dialer.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""));
 									foundItFlag = true;
 									return;
