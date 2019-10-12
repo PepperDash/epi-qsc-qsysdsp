@@ -385,7 +385,14 @@ namespace QSC.DSP.EPI
 								var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
 								if (changedInstance == propValue)
 								{
-									dialer.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""));
+									if (changeMessage[2].Contains("Dialing") || changeMessage[2].Contains("Connected"))
+									{
+										dialer.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", "") + " " + changeMessage[4].Replace("\"", ""));
+									}
+									else
+									{
+										dialer.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""));
+									}
 									foundItFlag = true;
 									return;
 								}

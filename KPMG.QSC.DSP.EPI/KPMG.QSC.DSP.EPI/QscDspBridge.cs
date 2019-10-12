@@ -10,6 +10,7 @@ using PepperDash.Essentials.Devices.Common;
 using PepperDash.Essentials.Bridges;
 using QSC.DSP.EPI;
 using Newtonsoft.Json;
+using Crestron.SimplSharp.Reflection;
 
 namespace QSC.DSP.EPI
 {
@@ -113,8 +114,11 @@ namespace QSC.DSP.EPI
 				dialer.Value.AutoAnswerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoAnswerToggle + dialerLineOffset]);
 				dialer.Value.AutoAnswerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoAnswerOn + dialerLineOffset]);
 				dialer.Value.AutoAnswerFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.AutoAnswerOff + dialerLineOffset]);
+				dialer.Value.CallerIDNumberFB.LinkInputSig(trilist.StringInput[joinMap.CallerIDNumberFB + dialerLineOffset]);
 
 				dialer.Value.OffHookFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Dial + dialerLineOffset]);
+				dialer.Value.OffHookFeedback.LinkInputSig(trilist.BooleanInput[joinMap.OffHook + dialerLineOffset]);
+				dialer.Value.OffHookFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.OnHook + dialerLineOffset]);
 				dialer.Value.DialStringFeedback.LinkInputSig(trilist.StringInput[joinMap.DialStringCmd + dialerLineOffset]);
 				lineOffset = lineOffset + 50;
 			}
@@ -157,7 +161,10 @@ namespace QSC.DSP.EPI
 		public uint AutoAnswerToggle { get; set; }
 		public uint AutoAnswerOn { get; set; }
 		public uint AutoAnswerOff { get; set; }
+		public uint OffHook { get; set; }
+		public uint OnHook { get; set; }
 		public uint ChannelVisible { get; set; }
+		public uint CallerIDNumberFB { get; set; }
 
 		public QscDspDeviceJoinMap()
 		{
@@ -200,6 +207,10 @@ namespace QSC.DSP.EPI
 			AutoAnswerOn = 3125;
 			AutoAnswerOff = 3126; 
 			Dial = 3124;
+			OffHook = 3130;
+			OnHook = 3129;
+			CallerIDNumberFB = 3104;
+				
 
 
 		}
@@ -207,42 +218,11 @@ namespace QSC.DSP.EPI
 		public override void OffsetJoinNumbers(uint joinStart)
 		{
 			var joinOffset = joinStart - 1;
-			Address = Address + joinOffset;
-			Prefix = Prefix + joinOffset;
-			ChannelName = ChannelName + joinOffset; 
-			ChannelMuteToggle = ChannelMuteToggle + joinOffset;
-			ChannelMuteOn = ChannelMuteOn + joinOffset;
-			ChannelMuteOff = ChannelMuteOff + joinOffset;
-			ChannelVolume = ChannelVolume + joinOffset;
-			ChannelVolumeUp = ChannelVolumeUp + joinOffset;
-			ChannelVolumeDown = ChannelVolumeDown + joinOffset;
-			ChannelType = ChannelType + joinOffset;
-			Presets = Presets + joinOffset;
-			ChannelVisible = ChannelVisible + joinOffset;
-
-			IsOnline = IsOnline + joinOffset; 
-			DialStringCmd = DialStringCmd + joinOffset;
-			Keypad0 = Keypad0 + joinOffset;
-			Keypad1 = Keypad1 + joinOffset;
-			Keypad2 = Keypad2 + joinOffset;
-			Keypad3 = Keypad3 + joinOffset;
-			Keypad4 = Keypad4 + joinOffset;
-			Keypad5 = Keypad5 + joinOffset;
-			Keypad6 = Keypad6 + joinOffset; 
-			Keypad7 = Keypad7 + joinOffset; 
-			Keypad8 = Keypad8 + joinOffset; 
-			Keypad9 = Keypad9 + joinOffset; 
-			KeypadStar = KeypadStar + joinOffset;
-			KeypadPound = KeypadPound + joinOffset;
-			KeypadClear = KeypadClear + joinOffset;
-			KeypadBackspace = KeypadBackspace + joinOffset;
-			DoNotDisturbToggle = DoNotDisturbToggle + joinOffset;
-			DoNotDisturbOn = DoNotDisturbOn + joinOffset;
-			DoNotDisturbOff = DoNotDisturbOff + joinOffset;
-			AutoAnswerToggle = AutoAnswerToggle + joinOffset;
-			AutoAnswerOn = AutoAnswerOn + joinOffset;
-			AutoAnswerOff = AutoAnswerOff + joinOffset;
-			Dial = Dial + joinOffset;
+			var properties = this.GetType().GetCType().GetProperties().Where(o => o.PropertyType == typeof(uint)).ToList();
+			foreach (var property in properties)
+			{
+				property.SetValue(this, (uint)property.GetValue(this, null) + joinOffset, null);
+			}
 		}
 	}
 

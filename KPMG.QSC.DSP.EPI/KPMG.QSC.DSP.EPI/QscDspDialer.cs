@@ -21,11 +21,26 @@ namespace QSC.DSP.EPI
 		public bool OffHook { get; private set; }
 		public bool AutoAnswerState { get; private set; }
 		public bool DoNotDisturbState { get; private set; }
+		
+		private string _CallerIDNumber {get; set;}
+		public string CallerIDNumber
+		{
+			get
+			{
+				return _CallerIDNumber;
+			}
+			set
+			{
+				_CallerIDNumber = value;
+				CallerIDNumberFB.FireUpdate();
+			}
+		}
 
 		public BoolFeedback OffHookFeedback;
 		public BoolFeedback AutoAnswerFeedback;
 		public BoolFeedback DoNotDisturbFeedback;
 		public StringFeedback DialStringFeedback;
+		public StringFeedback CallerIDNumberFB;
 
 		// Add requirements for Dialer functionality
 
@@ -37,6 +52,7 @@ namespace QSC.DSP.EPI
 			OffHookFeedback = new BoolFeedback(() => { return OffHook; });
 			AutoAnswerFeedback = new BoolFeedback(() => { return AutoAnswerState; });
 			DoNotDisturbFeedback = new BoolFeedback(() => { return DoNotDisturbState; });
+			CallerIDNumberFB = new StringFeedback(() => { return CallerIDNumber; });
 		}
 
         //interface requires this
@@ -105,9 +121,15 @@ namespace QSC.DSP.EPI
 			}
 			else if (customName == Tags.callStatusTag)
 			{
-				if (value == "Dialing")
+				if (value.Contains("Dialing") || value.Contains("Connected"))
 				{
 					this.OffHook = true;
+					var splitString = value.Split(' ');
+
+					if (splitString.Count() >= 2)
+					{
+						CallerIDNumber = splitString[1];
+					}
 				}
 				else if (value == "Disconnected")
 				{
