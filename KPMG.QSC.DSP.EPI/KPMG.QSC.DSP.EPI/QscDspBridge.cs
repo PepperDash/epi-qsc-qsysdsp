@@ -106,6 +106,7 @@ namespace QSC.DSP.EPI
 				trilist.SetSigTrueAction(joinMap.AutoAnswerToggle + dialerLineOffset, () => dialer.Value.AutoAnswerToggle());
 				trilist.SetSigTrueAction(joinMap.AutoAnswerOn + dialerLineOffset, () => dialer.Value.AutoAnswerOn());
 				trilist.SetSigTrueAction(joinMap.AutoAnswerOff + dialerLineOffset, () => dialer.Value.AutoAnswerOff());
+				trilist.SetSigTrueAction(joinMap.EndCall + dialerLineOffset, () => dialer.Value.EndAllCalls());
 
 				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbToggle + dialerLineOffset]);
 				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbOn + dialerLineOffset]);
@@ -165,6 +166,7 @@ namespace QSC.DSP.EPI
 		public uint OnHook { get; set; }
 		public uint ChannelVisible { get; set; }
 		public uint CallerIDNumberFB { get; set; }
+		public uint EndCall { get; set; }
 
 		public QscDspDeviceJoinMap()
 		{
@@ -186,6 +188,7 @@ namespace QSC.DSP.EPI
 			Address = 1;
 			Presets = 100;
 			DialStringCmd = 3100;
+			EndCall = 3107;
 			Keypad0 = 3110;
 			Keypad1 = 3111; 
 			Keypad2 = 3112;

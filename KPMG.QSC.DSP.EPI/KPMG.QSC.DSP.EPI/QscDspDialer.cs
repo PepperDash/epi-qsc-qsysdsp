@@ -134,6 +134,16 @@ namespace QSC.DSP.EPI
 				else if (value == "Disconnected")
 				{
 					this.OffHook = false;
+					CallerIDNumber = "";
+					if (Tags.ClearOnHangup)
+					{
+						this.SendKeypad(eKeypadKeys.Clear);
+					}
+				}
+				else if (value == "Idle")
+				{
+					this.OffHook = false;
+					CallerIDNumber = "";
 					if (Tags.ClearOnHangup)
 					{
 						this.SendKeypad(eKeypadKeys.Clear);
@@ -257,9 +267,11 @@ namespace QSC.DSP.EPI
 		}
 		public void EndCall(CodecActiveCallItem activeCall)
 		{
+			Parent.SendLine(string.Format("ct {0}", Tags.disconnectTag));
 		}
 		public void EndAllCalls()
 		{
+			Parent.SendLine(string.Format("ct {0}", Tags.disconnectTag));
 		}
 		public void AcceptCall(CodecActiveCallItem item)
 		{
