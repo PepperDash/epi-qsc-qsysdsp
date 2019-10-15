@@ -109,7 +109,7 @@ namespace QSC.DSP.EPI
 		}
 		public void WritePresetName(string newLabel, ushort presetNumber)
 		{
-			if (Config.Presets.ElementAt(presetNumber - 1).Value != null)
+			if (Config.Presets.ElementAt(presetNumber - 1).Value != null && newLabel.Length > 0 && Config.Presets.ElementAt(presetNumber - 1).Value != newLabel)
 			{
 				Config.Presets.ElementAt(presetNumber - 1).Value.label = newLabel;
 				_Dsp.Config.Properties["CameraControlBlocks"][Key]["Presets"][Config.Presets.ElementAt(presetNumber - 1).Key]["label"] = newLabel;
