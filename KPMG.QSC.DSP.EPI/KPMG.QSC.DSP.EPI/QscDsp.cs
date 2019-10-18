@@ -407,13 +407,13 @@ namespace QSC.DSP.EPI
 					{
 						foreach (var camera in Cameras)
 						{
+                            Debug.Console(1, this, "DSP Camera Status Compare: {0} ==? {1}", changedInstance, camera.Value.Config.OnlineStatus);
 							if (changedInstance == camera.Value.Config.OnlineStatus)
-
+                            {
 								camera.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""), null);
-
-							foundItFlag = true;
-							return;
-
+                                foundItFlag = true;
+							    return;
+                            }
 						}
 						if (foundItFlag)
 						{
