@@ -57,7 +57,7 @@ namespace QSC.DSP.EPI
 					trilist.SetBoolSigAction(joinMap.ChannelVolumeUp + x, b => genericChannel.VolumeUp(b));
 					trilist.SetBoolSigAction(joinMap.ChannelVolumeDown + x, b => genericChannel.VolumeDown(b));
 
-					trilist.SetUShortSigAction(joinMap.ChannelVolume + x, u => genericChannel.SetVolume(u));
+					trilist.SetUShortSigAction(joinMap.ChannelVolume + x, u => { if (u > 0) { genericChannel.SetVolume(u); } }); 
 						
 					
 					
