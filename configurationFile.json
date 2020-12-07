@@ -1,0 +1,85 @@
+{
+    "system": {},
+    "system_url": "http://portal-QA.devcloud.pepperdash.com/templates/0f50640b-bc89-42d5-998f-81d137d3fc98#/template_summary",
+    "template": {
+        "devices": [
+            {
+                "type": "rmc3",
+                "name": "rmc3",
+                "group": "processor",
+                "supportedConfigModes": [
+                    "compliance",
+                    "essentials"
+                ],
+                "supportedSystemTypes": [
+                    "hudType",
+                    "presType",
+                    "vtcType",
+                    "custom"
+                ],
+                "supportsCompliance": true,
+                "properties": {
+                    "numberOfComPorts": 6,
+                    "numberOfIrPorts": 8,
+                    "numberOfRelays": 8,
+                    "numberOfDIOPorts": 8
+                },
+                "key": "processor",
+                "uid": 0
+            },
+            {
+                "key": "dsp-1",
+                "uid": 1,
+                "name": "QSC Q-Sys DSP Essentials Plugin",
+                "type": "qscdsp",
+                "group": "plugin",
+                "properties": {
+                    "control": {
+                        "method": "tcpIp",
+                        "tcpSshProperties": {
+                            "address": "",
+                            "port": 23,
+                            "username": "crestron",
+                            "password": "",
+                            "autoReconnect": true,
+                            "autoReconnectIntervalMs": 5000
+                        }
+                    }
+                }
+            },
+            {
+                "key": "dsp-1-bridge",
+                "uid": 4,
+                "name": "QSC Q-Sys DSP Essentials Plugin Bridge",
+                "group": "api",
+                "type": "eiscApi",
+                "properties": {
+                    "control": {
+                        "tcpSshProperties": {
+                            "address": "127.0.0.2",
+                            "port": 0
+                        },
+                        "ipid": "1A",
+                        "method": "ipidTcp"
+                    },
+                    "devices": [
+                        {
+                            "deviceKey": "dsp-1",
+                            "joinStart": 1
+                        }
+                    ]
+                }
+            }
+        ],
+        "info": {
+            "comment": "",
+            "lastModifiedDate": "2017-03-06T23:14:40.290Z",
+            "lastUid": 8,
+            "processorType": "rmc3",
+            "requiredControlSofwareVersion": "",
+            "systemType": "huddle"
+        },
+        "rooms": [],
+        "tieLines": []
+    }
+}
