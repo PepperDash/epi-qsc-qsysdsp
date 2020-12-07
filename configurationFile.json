@@ -4,8 +4,8 @@
     "template": {
         "devices": [
             {
-                "type": "pro3",
-                "name": "PRO3 w/o cards",
+                "type": "rmc3",
+                "name": "rmc3",
                 "group": "processor",
                 "supportedConfigModes": [
                     "compliance",
@@ -28,30 +28,29 @@
                 "uid": 0
             },
             {
-                "key": "qscdsp",
-                "uid": 12332,
-                "name": "qscdsp",
+                "key": "dsp-1",
+                "uid": 1,
+                "name": "QSC Q-Sys DSP Essentials Plugin",
                 "type": "qscdsp",
-                "group": "Plugin",
+                "group": "plugin",
                 "properties": {
                     "control": {
+                        "method": "tcpIp",
                         "tcpSshProperties": {
-                            "username": "crestron",
-                            "autoReconnect": true,
-                            "AutoReconnectIntervalMs": 2000,
-                            "port": 23,
                             "address": "",
-                            "Username": "",
-                            "password": ""
-                        },
-                        "method": "tcpIp"
+                            "port": 23,
+                            "username": "crestron",
+                            "password": "",
+                            "autoReconnect": true,
+                            "autoReconnectIntervalMs": 5000
+                        }
                     }
                 }
             },
             {
-                "key": "eiscDsp",
+                "key": "dsp-1-bridge",
                 "uid": 4,
-                "name": "Bridge DspComms",
+                "name": "QSC Q-Sys DSP Essentials Plugin Bridge",
                 "group": "api",
                 "type": "eiscApi",
                 "properties": {
@@ -60,12 +59,12 @@
                             "address": "127.0.0.2",
                             "port": 0
                         },
-                        "ipid": "FD",
+                        "ipid": "1A",
                         "method": "ipidTcp"
                     },
                     "devices": [
                         {
-                            "deviceKey": "qscdsp",
+                            "deviceKey": "dsp-1",
                             "joinStart": 1
                         }
                     ]
@@ -76,7 +75,7 @@
             "comment": "",
             "lastModifiedDate": "2017-03-06T23:14:40.290Z",
             "lastUid": 8,
-            "processorType": "Pro3",
+            "processorType": "rmc3",
             "requiredControlSofwareVersion": "",
             "systemType": "huddle"
         },
