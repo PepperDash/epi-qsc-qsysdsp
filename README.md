@@ -4,6 +4,19 @@
 
 Provided under MIT license
 
+## Notes
+
+This is a direct port from BB Cloud repo, which has since been archived.  The following updates were made in the port:
+1. Removed customer reference from all filenames
+2. Changed named space from CUSTOMER_REF.QSC.DSP to QscQsysDsp
+2. Added .github actions
+3. Added .nuspec file
+
+Link to archived BB Cloud repo:
+https://bitbucket.org/Pepperdash_Products/archive-kpmg.qsc.dsp.epi/src/master/
+
+Please refer to QSC Q-Sys plugin developer for questions and issues or use the "Issues" tab above.
+
 ## Device Specific Information
 
 Update the below readme as needed to support documentation of the plugin
