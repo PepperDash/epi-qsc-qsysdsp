@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
@@ -40,7 +41,7 @@ namespace QscQsysDsp
 	}
 
 	public class QscDialerConfig
-	{
+	{		
 		public string incomingCallRingerTag { get; set; }
 		public string dialStringTag { get; set; }
 		public string disconnectTag { get; set; }

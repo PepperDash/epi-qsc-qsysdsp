@@ -4,6 +4,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Bridges;
 using PepperDash.Essentials.Core;
+using QscQsysDspPlugin;
 
 namespace QscQsysDsp
 {

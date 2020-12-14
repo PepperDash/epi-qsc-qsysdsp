@@ -1,4 +1,5 @@
 ﻿using PepperDash.Essentials.Devices.Common.DSP;
+using QscQsysDspPlugin;
 
 namespace QscQsysDsp
 {

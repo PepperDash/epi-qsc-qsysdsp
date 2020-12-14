@@ -5,6 +5,7 @@ using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Devices.Common.Codec;
+using QscQsysDspPlugin;
 
 namespace QscQsysDsp
 {
@@ -32,6 +33,19 @@ namespace QscQsysDsp
 			}
 		}
 
+		private bool _IncomingCall { get; set; }
+
+		public bool IncomingCall
+		{
+			get { return _IncomingCall; }
+			set
+			{
+				_IncomingCall = value;
+				IncomingCallFeedback.FireUpdate();
+			}
+		}
+
+		public BoolFeedback IncomingCallFeedback;
 		public BoolFeedback OffHookFeedback;
 		public BoolFeedback AutoAnswerFeedback;
 		public BoolFeedback DoNotDisturbFeedback;
@@ -44,6 +58,7 @@ namespace QscQsysDsp
 		{
 			Tags = Config;
 			Parent = parent;
+			IncomingCallFeedback = new BoolFeedback(() => { return IncomingCall; });
 			DialStringFeedback = new StringFeedback(() => { return DialString; });
 			OffHookFeedback = new BoolFeedback(() => { return OffHook; });
 			AutoAnswerFeedback = new BoolFeedback(() => { return AutoAnswerState; });
@@ -74,7 +89,6 @@ namespace QscQsysDsp
 				foreach (var prop in properties)
 				{
 					//var val = prop.GetValue(obj, null);
-
 					Debug.Console(2, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, prop.PropertyType.FullName);
 					if (prop.Name.Contains("Tag") && !prop.Name.Contains("keypad"))
 					{
@@ -93,6 +107,7 @@ namespace QscQsysDsp
 			// SendSubscriptionCommand(, "1");
 			// SendSubscriptionCommand(config. , "mute", 500);
 		}
+		
 		public void ParseSubscriptionMessage(string customName, string value)
 		{
 			// Check for valid subscription response
@@ -117,7 +132,17 @@ namespace QscQsysDsp
 			}
 			else if (customName == Tags.callStatusTag)
 			{
-				if (value.Contains("Dialing") || value.Contains("Connected"))
+				// TODO [ ] Add incoming call/ringing to parse subscription message
+				if (value.Contains("Ringing"))
+				{
+					this.OffHook = true;
+					var splitString = value.Split(' ');
+					if (splitString.Count() >= 2)
+					{
+						CallerIDNumber = splitString[1];
+					}
+				}
+				else if (value.Contains("Dialing") || value.Contains("Connected"))
 				{
 					this.OffHook = true;
 					var splitString = value.Split(' ');

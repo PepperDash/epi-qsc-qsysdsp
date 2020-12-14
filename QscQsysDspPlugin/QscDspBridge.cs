@@ -4,6 +4,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
+using QscQsysDspPlugin;
 
 namespace QscQsysDsp
 {
@@ -75,8 +76,10 @@ namespace QscQsysDsp
 			foreach (var line in DspDevice.Dialers)
 			{
 				var dialer = line;
+
 				var dialerLineOffset = lineOffset;
 				Debug.Console(2, "AddingDialerBRidge {0} {1} Offset", dialer.Key, dialerLineOffset);
+
 				trilist.SetSigTrueAction((joinMap.Keypad0 + dialerLineOffset), () => DspDevice.Dialers[dialer.Key].SendKeypad(QscDspDialer.eKeypadKeys.Num0));
 				trilist.SetSigTrueAction((joinMap.Keypad1 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num1));
 				trilist.SetSigTrueAction((joinMap.Keypad2 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num2));
@@ -116,6 +119,8 @@ namespace QscQsysDsp
 				dialer.Value.OffHookFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.OnHook + dialerLineOffset]);
 				dialer.Value.DialStringFeedback.LinkInputSig(trilist.StringInput[joinMap.DialStringCmd + dialerLineOffset]);
 
+				dialer.Value.IncomingCallFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IncomingCall + dialerLineOffset]);
+
 				lineOffset = lineOffset + 50;
 			}
 
@@ -136,6 +141,7 @@ namespace QscQsysDsp
 		public uint ChannelVolumeDown { get; set; }
 		public uint Presets { get; set; }
 		public uint DialStringCmd { get; set; }
+		public uint IncomingCall { get; set; }
 		public uint Keypad0 { get; set; }
 		public uint Keypad1 { get; set; }
 		public uint Keypad2 { get; set; }
@@ -183,6 +189,7 @@ namespace QscQsysDsp
 			Address = 1;
 			Presets = 100;
 			DialStringCmd = 3100;
+			IncomingCall = 3100;
 			EndCall = 3107;
 			Keypad0 = 3110;
 			Keypad1 = 3111;

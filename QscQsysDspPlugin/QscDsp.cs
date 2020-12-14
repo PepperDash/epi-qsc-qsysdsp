@@ -9,28 +9,39 @@ using PepperDash.Essentials.Bridges;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
+using QscQsysDsp;
 
-namespace QscQsysDsp
+namespace QscQsysDspPlugin
 {
 
 
-	// QUESTIONS:
-	// 
-	// When subscribing, just use the Instance ID for Custom Name?
-
-	// Verbose on subscriptions?
-
-	// Example subscription feedback responses
-	// ! "publishToken":"name" "value":-77.0
-	// ! "myLevelName" -77
-
+	/// <summary>
+	/// DSP Device 
+	/// </summary>
+	/// <remarks>
+	/// Questions:
+	/// 1. When subscribing, jsut use the Instance ID for custom name?
+	/// 2. Verbose on subscription?
+	/// 
+	/// - Example subscription feedback responses:
+	/// ! "publishToken":"name" "value":-77.0
+	/// ! "myLevelName" -77
+	/// </remarks>
 	public class QscDsp : ReconfigurableDevice, IBridge
 	{
+		/// <summary>
+		/// Loads plugin using the factory
+		/// </summary>
 		public static void LoadPlugin()
 		{
 			DeviceFactory.AddFactoryForType("qscdsp", QscDsp.BuildDevice);
 		}
 
+		/// <summary>
+		/// Builds the device using the configuration object
+		/// </summary>
+		/// <param name="dc">DeviceConfig</param>
+		/// <returns>Device instance</returns>
 		public static QscDsp BuildDevice(DeviceConfig dc)
 		{
 			Debug.Console(2, "QscDsp config is null: {0}", dc == null);
@@ -41,9 +52,19 @@ namespace QscQsysDsp
 			return newMe;
 		}
 
-
+		/// <summary>
+		/// Communication object
+		/// </summary>
 		public IBasicCommunication Communication { get; private set; }
+
+		/// <summary>
+		/// Gather object
+		/// </summary>
 		public CommunicationGather PortGather { get; private set; }
+
+		/// <summary>
+		/// Communication monitor object
+		/// </summary>
 		public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
 
 		public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
