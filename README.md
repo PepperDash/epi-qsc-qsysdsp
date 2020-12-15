@@ -56,6 +56,8 @@ Update the configuration object as needed for the plugin being developed.
 			"properties": {
 				"control": {
 					"method": "tcpIp",
+					"endOfLineString": "\n",
+					"deviceReadyResponsePattern": "",
 					"tcpSshProperties": {
 						"address": "172.22.0.101",
 						"port": 1702,
@@ -64,10 +66,218 @@ Update the configuration object as needed for the plugin being developed.
 						"autoReconnect": true,
 						"autoReconnectIntervalMs": 5000
 					}
-				}
+				},
+				"prefix": "",
+				"levelControlBlocks": {},
+				"presets": {},
+				"sourceControlBlocks": {},
+				"dialerControlBlock": {},
+				"cameraControlBlocks": {}
 			}
 		}		
 	]
+}
+```
+
+### Plugin Level Control Configuration Object
+
+```json
+"properties": {
+	"levelControlBlocks": {
+		"fader-1": {
+			"label": "Room",
+			"levelInstanceTag": "ROOM_VOL",
+			"muteInstanceTag": "ROOM_MUTE",
+			"disabled": false,
+			"hasLevel": true,
+			"hasMute": true,
+			"isMic": false
+		},
+		"fader-2": {
+			"label": "Program",
+			"levelInstanceTag": "PGM_VOL",
+			"muteInstanceTag": "PGM_MUTE",
+			"disabled": false,
+			"hasLevel": true,
+			"hasMute": true,
+			"isMic": false
+		},
+		"fader-3": {
+			"label": "Speech",
+			"levelInstanceTag": "SPEECH_VOL",
+			"muteInstanceTag": "SPEECH_MUTE",
+			"disabled": false,
+			"hasLevel": true,
+			"hasMute": true,
+			"isMic": false
+		},
+		"fader-4": {
+			"label": "Phone Call",
+			"levelInstanceTag": "AC_RX_VOL",
+			"muteInstanceTag": "AC_RX_MUTE",
+			"disabled": false,
+			"hasLevel": true,
+			"hasMute": true,
+			"isMic": false
+		},
+		"fader-5": {
+			"label": "Video Call",
+			"levelInstanceTag": "VC_RX_VOL",
+			"muteInstanceTag": "VC_RX_MUTE",
+			"disabled": false,
+			"hasLevel": true,
+			"hasMute": true,
+			"isMic": false
+		},
+		"fader-6": {
+			"label": "Privacy",
+			"levelInstanceTag": "PRIVACY_VOL",
+			"muteInstanceTag": "PRIVACY_MUTE",
+			"disabled": false,
+			"hasLevel": false,
+			"hasMute": true,
+			"isMic": true
+		},
+		"fader-7": {
+			"label": "Wireless Mics",
+			"levelInstanceTag": "WLESS_VOL",
+			"muteInstanceTag": "WLESS_MUTE",
+			"disabled": false,
+			"hasLevel": true,
+			"hasMute": true,
+			"isMic": true
+		},
+		"fader-8": {
+			"label": "Fader 8",
+			"disabled": true
+		},
+		"fader-9": {
+			"label": "Fader 9",
+			"disabled": true
+		},
+		"fader-10": {
+			"label": "Fader 10",
+			"disabled": true
+		},
+		"sourceControl-1": {
+			"label": "Room A Audio",
+			"levelInstanceTag": "SOURCE_SELECT",
+			"disabled": false,
+			"hasLevel": true,
+			"hasMute": false,
+			"isMiic": false
+		}
+	}
+}
+```
+
+
+### Plugin Preset Configuration Object
+
+```json
+"properties": {
+	"presets": {
+		"preset-1": {
+			"label": "System On",
+			"preset": "PRESETS 1 0"
+		},
+		"preset-2": {
+			"label": "System Off",
+			"preset": "PRESETS 2 0"
+		},
+		"preset-3": {
+			"label": "Default Levels",
+			"preset": "PRESETS 3 0"
+		}
+	}
+}
+```
+
+### Plugin Source COntrol Blocks
+
+```json
+"properties": {
+	"sourceControlBlocks": {
+		"sourceControl-1": {
+			"label": "MainSourceSelector",
+			"instanceTag": "NAMED_CONTROL"
+		}
+	}
+}
+```
+
+### Plugin Dialer Control Blocks
+
+```json
+"properties": {
+	"dialerControlBlocks": {
+		"dialer-1": {
+			"ClearOnHangup": true,
+			"incomingCallRingerTag": "VOIP_RINGTRIG",
+			"dialStringTag": "VOIP_DIALSTRING",
+			"disconnectTag": "VOIP_DISCONNECT",
+			"connectTag": "VOIP_CONNECT",
+			"callStatusTag": "VOIP_STATUS",
+			"hookStatusTag": "VOIP_OFFHOOK",
+			"doNotDisturbTag": "VOIP_DND",
+			"autoAnswerTag": "VOIP_AUTO_ANSWER",
+			"keypadBackspaceTag": "VOIP_DIALSTRING_DEL",
+			"keypadClearTag": "VOIP_DIALSTRING_CLEAR",
+			"keypad1Tag": "VOIP_DTMF_1",
+			"keypad2Tag": "VOIP_DTMF_2",
+			"keypad3Tag": "VOIP_DTMF_3",
+			"keypad4Tag": "VOIP_DTMF_4",
+			"keypad5Tag": "VOIP_DTMF_5",
+			"keypad6Tag": "VOIP_DTMF_6",
+			"keypad7Tag": "VOIP_DTMF_7",
+			"keypad8Tag": "VOIP_DTMF_8",
+			"keypad9Tag": "VOIP_DTMF_9",
+			"keypad0Tag": "VOIP_DTMF_0",
+			"keypadStarTag": "VOIP_DTMF_*",
+			"keypadPoundTag": "VOIP_DTMF_#"
+		}
+	}
+}
+```
+
+### Plugin Camera Control Blocks
+
+```json
+"properties": {
+	"cameraControlBlocks": {
+		"camera-1": {
+			"panLeftTag": "CAM01_LEFT",
+			"panRightTag": "CAM01_RIGHT",
+			"tiltUpTag": "CAM01_UP",
+			"tiltDownTag": "CAM01_DOWN",
+			"zoomInTag": "CAM01_ZOOMIN",
+			"zoomOutTag": "CAM01_ZOOMOUT",
+			"privacy": "CAM01_PRIVACY",
+			"onlineStatus": "CAM01_STATUS",
+			"presets": {
+				"preset01": {
+					"label": "Default",
+					"bank": "CAM01_PRESETS",
+					"number": 1
+				},
+				"preset02": {
+					"label": "Tight",
+					"bank": "CAM01_PRESETS",
+					"number": 2
+				},
+				"preset03": {
+					"label": "Wide",
+					"bank": "CAM01_PRESETS",
+					"number": 3
+				},
+				"preset04": {
+					"label": "User",
+					"bank": "CAM01_PRESETS",
+					"number": 4
+				}
+			}
+		}
+	}
 }
 ```
 
@@ -115,6 +325,7 @@ The selection below documents the digital, analog, and serial joins used by the 
 |                                       | 3   |                  |
 |                                       | 4   |                  |
 |                                       | 5   |                  |
+
 #### Analogs
 | an_o (Input/Triggers) | I/O | an_i (Feedback) |
 |-----------------------|-----|-----------------|

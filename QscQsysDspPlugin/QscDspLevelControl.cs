@@ -3,13 +3,12 @@ using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
-
-namespace QscQsysDsp
+namespace QscQsysDspPlugin
 {
 	public class QscDspLevelControl : QscDspControlPoint, IBasicVolumeWithFeedback, IKeyed
 	{
-		bool _IsMuted;
-		ushort _VolumeLevel;
+		bool _isMuted;
+		ushort _volumeLevel;
 
 		public BoolFeedback MuteFeedback { get; private set; }
 
@@ -18,8 +17,8 @@ namespace QscQsysDsp
 		public bool Enabled { get; set; }
 		public bool UseAbsoluteValue { get; set; }
 		public ePdtLevelTypes Type;
-		CTimer VolumeUpRepeatTimer;
-		CTimer VolumeDownRepeatTimer;
+		CTimer _volumeUpRepeatTimer;
+		CTimer _volumeDownRepeatTimer;
 
 		/// <summary>
 		/// Used for to identify level subscription values
@@ -48,14 +47,17 @@ namespace QscQsysDsp
 		{
 			get
 			{
-				bool isSubscribed = false;
+				//bool isSubscribed = false;
 
-				if (HasMute && MuteIsSubscribed)
-					isSubscribed = true;
+				//if (HasMute && MuteIsSubscribed)
+				//    isSubscribed = true;
 
-				if (HasLevel && LevelIsSubscribed)
-					isSubscribed = true;
+				//if (HasLevel && LevelIsSubscribed)
+				//    isSubscribed = true;
 
+				//return isSubscribed;
+
+				var isSubscribed = HasMute && _muteIsSubscribed || HasLevel && _levelIsSubscribed;
 				return isSubscribed;
 			}
 		}
@@ -63,12 +65,10 @@ namespace QscQsysDsp
 		public bool AutomaticUnmuteOnVolumeUp { get; private set; }
 
 		public bool HasMute { get; private set; }
-
 		public bool HasLevel { get; private set; }
 
-		bool MuteIsSubscribed;
-
-		bool LevelIsSubscribed;
+		bool _muteIsSubscribed;
+		bool _levelIsSubscribed;
 
 		//public TesiraForteLevelControl(string label, string id, int index1, int index2, bool hasMute, bool hasLevel, BiampTesiraForteDsp parent)
 		//    : base(id, index1, index2, parent)
@@ -76,53 +76,53 @@ namespace QscQsysDsp
 		//    Initialize(label, hasMute, hasLevel);
 		//}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="key">instance key</param>
+		/// <param name="config">level control block configuration object</param>
+		/// <param name="parent">dsp parent isntance</param>
 		public QscDspLevelControl(string key, QscDspLevelControlBlockConfig config, QscDsp parent)
 			: base(config.LevelInstanceTag, config.MuteInstanceTag, parent)
 		{
-			if (!config.Disabled)
-			{
-				Initialize(key, config);
-			}
+			if (config.Disabled) return;
+			Initialize(key, config);
 		}
-
 
 		/// <summary>
 		/// Initializes this attribute based on config values and generates subscriptions commands and adds commands to the parent's queue.
 		/// </summary>
+		/// <param name="key">instance key</param>
+		/// <param name="config">level control block configuration object</param>
 		public void Initialize(string key, QscDspLevelControlBlockConfig config)
 		{
 			Key = string.Format("{0}-{1}", Parent.Key, key);
 			Enabled = true;
 			DeviceManager.AddDevice(this);
-			if (config.IsMic)
-			{
-				Type = ePdtLevelTypes.microphone;
-			}
-			else
-			{
-				Type = ePdtLevelTypes.speaker;
-			}
+			Type = config.IsMic ? ePdtLevelTypes.Microphone : ePdtLevelTypes.Speaker;
 
 			Debug.Console(2, this, "Adding LevelControl '{0}'", Key);
 
 			this.IsSubscribed = false;
 
-			MuteFeedback = new BoolFeedback(() => _IsMuted);
+			MuteFeedback = new BoolFeedback(() => _isMuted);
 
-			VolumeLevelFeedback = new IntFeedback(() => _VolumeLevel);
+			VolumeLevelFeedback = new IntFeedback(() => _volumeLevel);
 
-			VolumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
-			VolumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
+			_volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
+			_volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
 			LevelCustomName = config.Label;
 			HasMute = config.HasMute;
 			HasLevel = config.HasLevel;
 			UseAbsoluteValue = config.UseAbsoluteValue;
 		}
 
+		/// <summary>
+		/// Subscribes this level control object as configured
+		/// </summary>
 		public void Subscribe()
 		{
 			// Do subscriptions and blah blah
-
 			// Subscribe to mute
 			if (this.HasMute)
 			{
@@ -137,9 +137,7 @@ namespace QscQsysDsp
 
 				SendSubscriptionCommand(this.LevelInstanceTag, "1");
 				// SendSubscriptionCommand(this.con, "level", 250);
-
 				//SendFullCommand("get", "minLevel", null);
-
 				//SendFullCommand("get", "maxLevel", null);
 			}
 		}
@@ -150,49 +148,46 @@ namespace QscQsysDsp
 		/// </summary>
 		/// <param name="customName"></param>
 		/// <param name="value"></param>
+		/// <param name="absoluteValue"></param>
 		public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
 		{
-
 			// Check for valid subscription response
 			Debug.Console(1, this, "Level {0} Response: '{1}'", customName, value);
 			if (customName == MuteInstanceTag)
 			{
 				if (value == "muted")
 				{
-					_IsMuted = true;
-					MuteIsSubscribed = true;
+					_isMuted = true;
+					_muteIsSubscribed = true;
 
 				}
 				else if (value == "unmuted")
 				{
-					_IsMuted = false;
-					MuteIsSubscribed = true;
+					_isMuted = false;
+					_muteIsSubscribed = true;
 				}
 
 				MuteFeedback.FireUpdate();
 			}
 			else if (customName == LevelInstanceTag && !UseAbsoluteValue)
 			{
-
-
 				var _value = Double.Parse(value);
 
-				_VolumeLevel = (ushort)(_value * 65535);
-				Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", customName, _VolumeLevel);
-				LevelIsSubscribed = true;
+				_volumeLevel = (ushort)(_value * 65535);
+				Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", customName, _volumeLevel);
+				_levelIsSubscribed = true;
 
 				VolumeLevelFeedback.FireUpdate();
 			}
 			else if (customName == LevelInstanceTag && UseAbsoluteValue)
 			{
 
-				_VolumeLevel = ushort.Parse(absoluteValue);
-				Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", customName, _VolumeLevel);
-				LevelIsSubscribed = true;
+				_volumeLevel = ushort.Parse(absoluteValue);
+				Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", customName, _volumeLevel);
+				_levelIsSubscribed = true;
 
 				VolumeLevelFeedback.FireUpdate();
 			}
-
 		}
 
 		/// <summary>
@@ -219,13 +214,13 @@ namespace QscQsysDsp
 		{
 			Debug.Console(1, this, "volume: {0}", level);
 			// Unmute volume if new level is higher than existing
-			if (AutomaticUnmuteOnVolumeUp && _IsMuted)
+			if (AutomaticUnmuteOnVolumeUp && _isMuted)
 			{
 				MuteOff();
 			}
 			if (!UseAbsoluteValue)
 			{
-				double newLevel = Scale(level);
+				var newLevel = Scale(level);
 				Debug.Console(1, this, "newVolume: {0}", newLevel);
 				SendFullCommand("csp", this.LevelInstanceTag, string.Format("{0}", newLevel));
 			}
@@ -240,41 +235,41 @@ namespace QscQsysDsp
 		/// </summary>
 		public void MuteToggle()
 		{
-
-			if (_IsMuted)
-			{
-				SendFullCommand("csv", this.MuteInstanceTag, "0");
-			}
-			else
-			{
-				SendFullCommand("csv", this.MuteInstanceTag, "1");
-			}
-
+			SendFullCommand("csv", this.MuteInstanceTag, _isMuted ? "0" : "1");
 		}
 
+		/// <summary>
+		/// Increments volume level
+		/// </summary>
+		/// <param name="callbackObject"></param>
 		public void VolumeUpRepeat(object callbackObject)
 		{
 			this.VolumeUp(true);
 		}
+
+		/// <summary>
+		/// Decrements volume level
+		/// </summary>
+		/// <param name="callbackObject"></param>
 		public void VolumeDownRepeat(object callbackObject)
 		{
 			this.VolumeDown(true);
 		}
 
+		/// <summary>
+		/// Decrements volume level
+		/// </summary>
+		/// <param name="press"></param>
 		public void VolumeDown(bool press)
 		{
-
-
 			if (press)
 			{
-				VolumeDownRepeatTimer.Reset(100);
+				_volumeDownRepeatTimer.Reset(100);
 				SendFullCommand("css ", this.LevelInstanceTag, "--");
-
-
 			}
 			else
 			{
-				VolumeDownRepeatTimer.Stop();
+				_volumeDownRepeatTimer.Stop();
 				// VolumeDownRepeatTimer.Dispose();
 			}
 		}
@@ -282,23 +277,26 @@ namespace QscQsysDsp
 		/// <summary>
 		/// Increments volume level
 		/// </summary>
-		/// <param name="pressRelease"></param>
+		/// <param name="press"></param>
 		public void VolumeUp(bool press)
 		{
 			if (press)
 			{
-				VolumeUpRepeatTimer.Reset(100);
+				_volumeUpRepeatTimer.Reset(100);
 				SendFullCommand("css ", this.LevelInstanceTag, "++");
 
-				if (AutomaticUnmuteOnVolumeUp)
-					if (!_IsMuted)
-						MuteOff();
+				if (AutomaticUnmuteOnVolumeUp && !_isMuted) MuteOff();
 			}
 			else
 			{
-				VolumeUpRepeatTimer.Stop();
+				_volumeUpRepeatTimer.Stop();
 			}
 		}
+		
+		/// <summary>
+		/// Scales the input provided
+		/// </summary>
+		/// <param name="input"></param>
 		/// <returns></returns>
 		double Scale(double input)
 		{
@@ -311,10 +309,13 @@ namespace QscQsysDsp
 			return output;
 		}
 	}
+
+	/// <summary>
+	/// Level type enum
+	/// </summary>
 	public enum ePdtLevelTypes
 	{
-		speaker = 0,
-		microphone = 1
+		Speaker = 0,
+		Microphone = 1
 	}
-
 }

@@ -1,6 +1,6 @@
 ﻿using PepperDash.Essentials.Core;
 
-namespace QscQsysDsp
+namespace QscQsysDspPlugin
 {
 	/// <summary>
 	/// DSP Basic Level Interface

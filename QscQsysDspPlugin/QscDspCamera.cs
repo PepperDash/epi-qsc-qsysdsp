@@ -5,8 +5,11 @@ using PepperDash.Core;
 using PepperDash.Essentials.Bridges;
 using PepperDash.Essentials.Core;
 
-namespace QscQsysDsp
+namespace QscQsysDspPlugin
 {
+	/// <summary>
+	/// QSC DSP Camera class
+	/// </summary>
 	public class QscDspCamera : Device, IBridge
 	{
 		QscDsp _Dsp;
@@ -27,6 +30,13 @@ namespace QscQsysDsp
 		}
 		public BoolFeedback OnlineFeedback;
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="dsp">QscDsp</param>
+		/// <param name="key">string</param>
+		/// <param name="name">string</param>
+		/// <param name="dc">QscDspCameraConfig</param>
 		public QscDspCamera(QscDsp dsp, string key, string name, QscDspCameraConfig dc)
 			: base(key, name)
 		{
@@ -37,6 +47,10 @@ namespace QscQsysDsp
 
 		}
 
+		/// <summary>
+		/// Moves a camera 
+		/// </summary>
+		/// <param name="button">eCameraPtzControls</param>
 		public void MoveCamera(eCameraPtzControls button)
 		{
 			string tag = null;
@@ -66,47 +80,74 @@ namespace QscQsysDsp
 
 			}
 		}
+
+		/// <summary>
+		/// Camera privacy on
+		/// </summary>
 		public void PrivacyOn()
 		{
 			var cmdToSend = string.Format("csv {0} 1", Config.Privacy);
 			_Dsp.SendLine(cmdToSend);
 		}
+
+		/// <summary>
+		/// Camera privacy off
+		/// </summary>
 		public void PrivacyOff()
 		{
 			var cmdToSend = string.Format("csv {0} 0", Config.Privacy);
 			_Dsp.SendLine(cmdToSend);
 		}
 
+		/// <summary>
+		/// Recalls a preset with the provided number
+		/// </summary>
+		/// <param name="presetNumber">ushort</param>
 		public void RecallPreset(ushort presetNumber)
 		{
 			Debug.Console(2, this, "Recall Camera Preset {0}", presetNumber);
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
-				var cmdToSend = string.Format("ssl {0} {1} 0", preset.Bank, preset.number);
+				var cmdToSend = string.Format("ssl {0} {1} 0", preset.Bank, preset.Number);
 				_Dsp.SendLine(cmdToSend);
 			}
 		}
+
+		/// <summary>
+		/// Saves a preset with the provided number
+		/// </summary>
+		/// <param name="presetNumber">ushort</param>
 		public void SavePreset(ushort presetNumber)
 		{
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
-				var cmdToSend = string.Format("sss {0} {1}", preset.Bank, preset.number);
+				var cmdToSend = string.Format("sss {0} {1}", preset.Bank, preset.Number);
 				_Dsp.SendLine(cmdToSend);
 			}
 		}
+
+		/// <summary>
+		/// Writes the preset name
+		/// </summary>
+		/// <param name="newLabel">string</param>
+		/// <param name="presetNumber">ushort</param>
 		public void WritePresetName(string newLabel, ushort presetNumber)
 		{
-			if (Config.Presets.ElementAt(presetNumber - 1).Value != null && newLabel.Length > 0 && Config.Presets.ElementAt(presetNumber - 1).Value.label != newLabel)
+			if (Config.Presets.ElementAt(presetNumber - 1).Value != null && newLabel.Length > 0 && Config.Presets.ElementAt(presetNumber - 1).Value.Label != newLabel)
 			{
-				Config.Presets.ElementAt(presetNumber - 1).Value.label = newLabel;
+				Config.Presets.ElementAt(presetNumber - 1).Value.Label = newLabel;
 				_Dsp.Config.Properties["CameraControlBlocks"][Key]["Presets"][Config.Presets.ElementAt(presetNumber - 1).Key]["label"] = newLabel;
 
 				_Dsp.WriteConfig();
 			}
 
 		}
+
+		/// <summary>
+		/// Adds the command to the change group
+		/// </summary>
 		public void Subscribe()
 		{
 			try
@@ -117,14 +158,19 @@ namespace QscQsysDsp
 					var cmd = string.Format("cga {0} {1}", 1, Config.OnlineStatus);
 					_Dsp.SendLine(cmd);
 				}
-
 			}
 			catch (Exception e)
 			{
-
 				Debug.Console(2, "QscDspCamera Subscription Error: '{0}'\n", e);
 			}
 		}
+
+		/// <summary>
+		/// Parses the change group subscription message
+		/// </summary>
+		/// <param name="customName"></param>
+		/// <param name="value"></param>
+		/// <param name="absoluteValue"></param>
 		public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
 		{
 
@@ -142,17 +188,26 @@ namespace QscQsysDsp
 			}
 
 		}
+
 		#region IBridge Members
 
+		/// <summary>
+		/// Link to API
+		/// </summary>
+		/// <param name="trilist"></param>
+		/// <param name="joinStart"></param>
+		/// <param name="joinMapKey"></param>
 		public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)
 		{
 			this.LinkToApiExt(trilist, joinStart, joinMapKey);
 		}
 
 		#endregion
-
-
 	}
+
+	/// <summary>
+	/// Camera PTZ controls enum
+	/// </summary>
 	public enum eCameraPtzControls
 	{
 		Stop,
@@ -163,6 +218,4 @@ namespace QscQsysDsp
 		ZoomIn,
 		ZoomOut
 	}
-
-
 }
