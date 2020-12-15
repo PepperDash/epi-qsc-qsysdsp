@@ -4,28 +4,32 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
-using QscQsysDspPlugin;
 
-namespace QscQsysDsp
+namespace QscQsysDspPlugin
 {
+	/// <summary>
+	/// QSC DSP api extensions
+	/// </summary>
 	public static class QscDspDeviceApiExtensions
 	{
 		public static void LinkToApiExt(this QscDsp DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
 		{
+			var joinMap = new QscDspDeviceJoinMap();
 
+			var joinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey);
 
-			QscDspDeviceJoinMap joinMap = new QscDspDeviceJoinMap();
-
-			var JoinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey);
-
-			if (!string.IsNullOrEmpty(JoinMapSerialized))
-				joinMap = JsonConvert.DeserializeObject<QscDspDeviceJoinMap>(JoinMapSerialized);
+			if (!string.IsNullOrEmpty(joinMapSerialized))
+				joinMap = JsonConvert.DeserializeObject<QscDspDeviceJoinMap>(joinMapSerialized);
 
 			joinMap.OffsetJoinNumbers(joinStart);
 			Debug.Console(1, DspDevice, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 			ushort x = 1;
 			var comm = DspDevice as ICommunicationMonitor;
+
+			// from Plugin > to SiMPL
 			DspDevice.CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline]);
+
+			// from SiMPL > to Plugin
 			trilist.SetStringSigAction(joinMap.Prefix, (s) => { DspDevice.SetPrefix(s); });
 			trilist.SetStringSigAction(joinMap.Address, (s) => { DspDevice.SetIpAddress(s); });
 
@@ -37,36 +41,38 @@ namespace QscQsysDsp
 				var genericChannel = channel.Value as IBasicVolumeWithFeedback;
 				if (channel.Value.Enabled)
 				{
+					// from SiMPL > to Plugin
 					trilist.StringInput[joinMap.ChannelName + x].StringValue = channel.Value.LevelCustomName;
 					trilist.UShortInput[joinMap.ChannelType + x].UShortValue = (ushort)channel.Value.Type;
 					trilist.BooleanInput[joinMap.ChannelVisible + x].BoolValue = true;
 
+					// from Plugin > to SiMPL
 					genericChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.ChannelMuteToggle + x]);
 					genericChannel.VolumeLevelFeedback.LinkInputSig(trilist.UShortInput[joinMap.ChannelVolume + x]);
 
+					// from SiMPL > to Plugin
 					trilist.SetSigTrueAction(joinMap.ChannelMuteToggle + x, () => genericChannel.MuteToggle());
 					trilist.SetSigTrueAction(joinMap.ChannelMuteOn + x, () => genericChannel.MuteOn());
 					trilist.SetSigTrueAction(joinMap.ChannelMuteOff + x, () => genericChannel.MuteOff());
-
+					// from SiMPL > to Plugin
 					trilist.SetBoolSigAction(joinMap.ChannelVolumeUp + x, b => genericChannel.VolumeUp(b));
 					trilist.SetBoolSigAction(joinMap.ChannelVolumeDown + x, b => genericChannel.VolumeDown(b));
-
+					// from SiMPL > to Plugin
 					trilist.SetUShortSigAction(joinMap.ChannelVolume + x, u => { if (u > 0) { genericChannel.SetVolume(u); } });
-
-
-
 				}
 				x++;
 			}
 
 
-			//Presets 
+			// Presets 
 			x = 0;
+			// from SiMPL > to Plugin
 			trilist.SetStringSigAction(joinMap.Presets, s => DspDevice.RunPreset(s));
 			foreach (var preset in DspDevice.PresetList)
 			{
 				var temp = x;
-				trilist.StringInput[joinMap.Presets + temp + 1].StringValue = preset.label;
+				// from SiMPL > to Plugin
+				trilist.StringInput[joinMap.Presets + temp + 1].StringValue = preset.Label;
 				trilist.SetSigTrueAction(joinMap.Presets + temp + 1, () => DspDevice.RunPresetNumber(temp));
 				x++;
 			}
@@ -80,21 +86,22 @@ namespace QscQsysDsp
 				var dialerLineOffset = lineOffset;
 				Debug.Console(2, "AddingDialerBRidge {0} {1} Offset", dialer.Key, dialerLineOffset);
 
-				trilist.SetSigTrueAction((joinMap.Keypad0 + dialerLineOffset), () => DspDevice.Dialers[dialer.Key].SendKeypad(QscDspDialer.eKeypadKeys.Num0));
-				trilist.SetSigTrueAction((joinMap.Keypad1 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num1));
-				trilist.SetSigTrueAction((joinMap.Keypad2 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num2));
-				trilist.SetSigTrueAction((joinMap.Keypad3 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num3));
-				trilist.SetSigTrueAction((joinMap.Keypad4 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num4));
-				trilist.SetSigTrueAction((joinMap.Keypad5 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num5));
-				trilist.SetSigTrueAction((joinMap.Keypad6 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num6));
-				trilist.SetSigTrueAction((joinMap.Keypad7 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num7));
-				trilist.SetSigTrueAction((joinMap.Keypad8 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num8));
-				trilist.SetSigTrueAction((joinMap.Keypad9 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Num9));
-				trilist.SetSigTrueAction((joinMap.KeypadStar + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Star));
-				trilist.SetSigTrueAction((joinMap.KeypadPound + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Pound));
-				trilist.SetSigTrueAction((joinMap.KeypadClear + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Clear));
-				trilist.SetSigTrueAction((joinMap.KeypadBackspace + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.eKeypadKeys.Backspace));
-
+				// from SiMPL > to Plugin
+				trilist.SetSigTrueAction((joinMap.Keypad0 + dialerLineOffset), () => DspDevice.Dialers[dialer.Key].SendKeypad(QscDspDialer.EKeypadKeys.Num0));
+				trilist.SetSigTrueAction((joinMap.Keypad1 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Num1));
+				trilist.SetSigTrueAction((joinMap.Keypad2 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Num2));
+				trilist.SetSigTrueAction((joinMap.Keypad3 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Num3));
+				trilist.SetSigTrueAction((joinMap.Keypad4 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Num4));
+				trilist.SetSigTrueAction((joinMap.Keypad5 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Num5));
+				trilist.SetSigTrueAction((joinMap.Keypad6 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Num6));
+				trilist.SetSigTrueAction((joinMap.Keypad7 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Num7));
+				trilist.SetSigTrueAction((joinMap.Keypad8 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Num8));
+				trilist.SetSigTrueAction((joinMap.Keypad9 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Num9));
+				trilist.SetSigTrueAction((joinMap.KeypadStar + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Star));
+				trilist.SetSigTrueAction((joinMap.KeypadPound + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Pound));
+				trilist.SetSigTrueAction((joinMap.KeypadClear + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Clear));
+				trilist.SetSigTrueAction((joinMap.KeypadBackspace + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Backspace));
+				// from SiMPL > to Plugin
 				trilist.SetSigTrueAction(joinMap.Dial + dialerLineOffset, () => dialer.Value.Dial());
 				trilist.SetSigTrueAction(joinMap.DoNotDisturbToggle + dialerLineOffset, () => dialer.Value.DoNotDisturbToggle());
 				trilist.SetSigTrueAction(joinMap.DoNotDisturbOn + dialerLineOffset, () => dialer.Value.DoNotDisturbOn());
@@ -104,28 +111,34 @@ namespace QscQsysDsp
 				trilist.SetSigTrueAction(joinMap.AutoAnswerOff + dialerLineOffset, () => dialer.Value.AutoAnswerOff());
 				trilist.SetSigTrueAction(joinMap.EndCall + dialerLineOffset, () => dialer.Value.EndAllCalls());
 
-
+				// from Plugin > to SiMPL
 				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbToggle + dialerLineOffset]);
 				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbOn + dialerLineOffset]);
 				dialer.Value.DoNotDisturbFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.DoNotDisturbOff + dialerLineOffset]);
 
+				// from Plugin > to SiMPL
 				dialer.Value.AutoAnswerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoAnswerToggle + dialerLineOffset]);
 				dialer.Value.AutoAnswerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoAnswerOn + dialerLineOffset]);
 				dialer.Value.AutoAnswerFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.AutoAnswerOff + dialerLineOffset]);
-				dialer.Value.CallerIDNumberFB.LinkInputSig(trilist.StringInput[joinMap.CallerIDNumberFB + dialerLineOffset]);
+				dialer.Value.CallerIdNumberFb.LinkInputSig(trilist.StringInput[joinMap.CallerIdNumberFb + dialerLineOffset]);
 
+				// from Plugin > to SiMPL
 				dialer.Value.OffHookFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Dial + dialerLineOffset]);
 				dialer.Value.OffHookFeedback.LinkInputSig(trilist.BooleanInput[joinMap.OffHook + dialerLineOffset]);
 				dialer.Value.OffHookFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.OnHook + dialerLineOffset]);
 				dialer.Value.DialStringFeedback.LinkInputSig(trilist.StringInput[joinMap.DialStringCmd + dialerLineOffset]);
 
+				// from Plugin > to SiMPL
 				dialer.Value.IncomingCallFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IncomingCall + dialerLineOffset]);
 
 				lineOffset = lineOffset + 50;
 			}
-
 		}
 	}
+
+	/// <summary>
+	/// QSC DSP Join Map
+	/// </summary>
 	public class QscDspDeviceJoinMap : JoinMapBase
 	{
 		public uint IsOnline { get; set; }
@@ -166,7 +179,7 @@ namespace QscQsysDsp
 		public uint OffHook { get; set; }
 		public uint OnHook { get; set; }
 		public uint ChannelVisible { get; set; }
-		public uint CallerIDNumberFB { get; set; }
+		public uint CallerIdNumberFb { get; set; }
 		public uint EndCall { get; set; }
 
 		public QscDspDeviceJoinMap()
@@ -214,10 +227,7 @@ namespace QscQsysDsp
 			Dial = 3124;
 			OffHook = 3130;
 			OnHook = 3129;
-			CallerIDNumberFB = 3104;
-
-
-
+			CallerIdNumberFb = 3104;
 		}
 
 		public override void OffsetJoinNumbers(uint joinStart)

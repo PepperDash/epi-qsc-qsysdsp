@@ -1,7 +1,6 @@
 ﻿using PepperDash.Essentials.Devices.Common.DSP;
-using QscQsysDspPlugin;
 
-namespace QscQsysDsp
+namespace QscQsysDspPlugin
 {
 	public abstract class QscDspControlPoint : DspControlPoint
 	{
@@ -13,6 +12,12 @@ namespace QscQsysDsp
 
 		public bool IsSubscribed { get; protected set; }
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="levelInstanceTag">level named control/instance tag</param>
+		/// <param name="muteInstanceTag">mute named control/instance tag</param>
+		/// <param name="parent">parent DSP instance</param>
 		protected QscDspControlPoint(string levelInstanceTag, string muteInstanceTag, QscDsp parent)
 		{
 			LevelInstanceTag = levelInstanceTag;
@@ -20,6 +25,9 @@ namespace QscQsysDsp
 			Parent = parent;
 		}
 
+		/// <summary>
+		/// Initializes the plugin
+		/// </summary>
 		virtual public void Initialize()
 		{
 		}
@@ -27,8 +35,8 @@ namespace QscQsysDsp
 		/// <summary>
 		/// Sends a command to the DSP
 		/// </summary>
-		/// <param name="command">command</param>
-		/// <param name="attribute">attribute code</param>
+		/// <param name="cmd">command</param>
+		/// <param name="instance">named control/instance tag</param>
 		/// <param name="value">value (use "" if not applicable)</param>
 		public virtual void SendFullCommand(string cmd, string instance, string value)
 		{
@@ -39,12 +47,21 @@ namespace QscQsysDsp
 
 		}
 
+		/// <summary>
+		/// Parses get messgae return
+		/// </summary>
+		/// <param name="attributeCode">attributte code</param>
+		/// <param name="message">message</param>
 		virtual public void ParseGetMessage(string attributeCode, string message)
 		{
 		}
 
 
-
+		/// <summary>
+		/// Sends the subscription command of the instance tag for the provided change group
+		/// </summary>
+		/// <param name="instanceTag">named control/instance tag</param>
+		/// <param name="changeGroup">change group</param>
 		public virtual void SendSubscriptionCommand(string instanceTag, string changeGroup)
 		{
 			// Subscription string format: InstanceTag subscribe attributeCode Index1 customName responseRate
@@ -56,7 +73,5 @@ namespace QscQsysDsp
 
 			Parent.SendLine(cmd);
 		}
-
-
 	}
 }

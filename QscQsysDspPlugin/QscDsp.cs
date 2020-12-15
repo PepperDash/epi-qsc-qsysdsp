@@ -9,12 +9,9 @@ using PepperDash.Essentials.Bridges;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
-using QscQsysDsp;
 
 namespace QscQsysDspPlugin
 {
-
-
 	/// <summary>
 	/// DSP Device 
 	/// </summary>
@@ -79,11 +76,20 @@ namespace QscQsysDspPlugin
 		bool CommandQueueInProgress = false;
 		uint HeartbeatTracker = 0;
 		public bool ShowHexResponse { get; set; }
+		
+		
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="key">String</param>
+		/// <param name="name">String</param>
+		/// <param name="comm">IBasicCommunication</param>
+		/// <param name="dc">DeviceConfig</param>
 		public QscDsp(string key, string name, IBasicCommunication comm, DeviceConfig dc)
 			: base(dc)
 		{
 			_Dc = dc;
-			QscDspPropertiesConfig props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
+			var props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
 			Debug.Console(0, this, "Made it to device constructor");
 
 			CommandQueue = new CrestronQueue(100);
@@ -109,15 +115,24 @@ namespace QscQsysDspPlugin
 			Cameras = new Dictionary<string, QscDspCamera>();
 			CreateDspObjects();
 		}
+
+		/// <summary>
+		/// CustomActivate Override
+		/// </summary>
+		/// <returns></returns>
 		public override bool CustomActivate()
 		{
 			Communication.Connect();
-			CommunicationMonitor.StatusChange += (o, a) => { Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status); };
+			CommunicationMonitor.StatusChange += (o, a) =>
+			{
+				Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
+			};
 
 			CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
 			CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
 			return true;
 		}
+
 		void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
 		{
 			Debug.Console(2, this, "Socket Status Change: {0}", e.Client.ClientStatus.ToString());
@@ -137,7 +152,7 @@ namespace QscQsysDspPlugin
 		public void CreateDspObjects()
 		{
 
-			QscDspPropertiesConfig props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(_Dc.Properties.ToString());
+			var props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(_Dc.Properties.ToString());
 
 			LevelControlPoints.Clear();
 			PresetList.Clear();
@@ -161,14 +176,14 @@ namespace QscQsysDspPlugin
 					Debug.Console(2, this, "Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key, value.LevelInstanceTag, value.MuteInstanceTag);
 				}
 			}
-			if (props.presets != null)
+			if (props.Presets != null)
 			{
-				foreach (KeyValuePair<string, QscDspPresets> preset in props.presets)
+				foreach (KeyValuePair<string, QscDspPresets> preset in props.Presets)
 				{
 					var value = preset.Value;
-					value.preset = string.Format("{0}{1}", prefix, value.preset);
+					value.Preset = string.Format("{0}{1}", prefix, value.Preset);
 					this.addPreset(value);
-					Debug.Console(2, this, "Added Preset {0} {1}", value.label, value.preset);
+					Debug.Console(2, this, "Added Preset {0} {1}", value.Label, value.Preset);
 				}
 			}
 			if (props.CameraControlBlocks != null)
@@ -199,35 +214,35 @@ namespace QscQsysDspPlugin
 
 				}
 			}
-			if (props.dialerControlBlocks != null)
+			if (props.DialerControlBlocks != null)
 			{
-				foreach (KeyValuePair<string, QscDialerConfig> dialerConfig in props.dialerControlBlocks)
+				foreach (KeyValuePair<string, QscDialerConfig> dialerConfig in props.DialerControlBlocks)
 				{
 					var value = dialerConfig.Value;
 					var key = dialerConfig.Key;
 					key = string.Format("{0}{1}", prefix, key);
-					value.autoAnswerTag = string.Format("{0}{1}", prefix, value.autoAnswerTag);
-					value.callStatusTag = string.Format("{0}{1}", prefix, value.callStatusTag);
-					value.connectTag = string.Format("{0}{1}", prefix, value.connectTag);
-					value.dialStringTag = string.Format("{0}{1}", prefix, value.dialStringTag);
-					value.disconnectTag = string.Format("{0}{1}", prefix, value.disconnectTag);
-					value.doNotDisturbTag = string.Format("{0}{1}", prefix, value.doNotDisturbTag);
-					value.hookStatusTag = string.Format("{0}{1}", prefix, value.hookStatusTag);
-					value.incomingCallRingerTag = string.Format("{0}{1}", prefix, value.incomingCallRingerTag);
-					value.keypad0Tag = string.Format("{0}{1}", prefix, value.keypad0Tag);
-					value.keypad1Tag = string.Format("{0}{1}", prefix, value.keypad1Tag);
-					value.keypad2Tag = string.Format("{0}{1}", prefix, value.keypad2Tag);
-					value.keypad3Tag = string.Format("{0}{1}", prefix, value.keypad3Tag);
-					value.keypad4Tag = string.Format("{0}{1}", prefix, value.keypad4Tag);
-					value.keypad5Tag = string.Format("{0}{1}", prefix, value.keypad5Tag);
-					value.keypad6Tag = string.Format("{0}{1}", prefix, value.keypad6Tag);
-					value.keypad7Tag = string.Format("{0}{1}", prefix, value.keypad7Tag);
-					value.keypad8Tag = string.Format("{0}{1}", prefix, value.keypad8Tag);
-					value.keypad9Tag = string.Format("{0}{1}", prefix, value.keypad9Tag);
-					value.keypadBackspaceTag = string.Format("{0}{1}", prefix, value.keypadBackspaceTag);
-					value.keypadClearTag = string.Format("{0}{1}", prefix, value.keypadClearTag);
-					value.keypadPoundTag = string.Format("{0}{1}", prefix, value.keypadPoundTag);
-					value.keypadStarTag = string.Format("{0}{1}", prefix, value.keypadStarTag);
+					value.AutoAnswerTag = string.Format("{0}{1}", prefix, value.AutoAnswerTag);
+					value.CallStatusTag = string.Format("{0}{1}", prefix, value.CallStatusTag);
+					value.ConnectTag = string.Format("{0}{1}", prefix, value.ConnectTag);
+					value.DialStringTag = string.Format("{0}{1}", prefix, value.DialStringTag);
+					value.DisconnectTag = string.Format("{0}{1}", prefix, value.DisconnectTag);
+					value.DoNotDisturbTag = string.Format("{0}{1}", prefix, value.DoNotDisturbTag);
+					value.HookStatusTag = string.Format("{0}{1}", prefix, value.HookStatusTag);
+					value.IncomingCallRingerTag = string.Format("{0}{1}", prefix, value.IncomingCallRingerTag);
+					value.Keypad0Tag = string.Format("{0}{1}", prefix, value.Keypad0Tag);
+					value.Keypad1Tag = string.Format("{0}{1}", prefix, value.Keypad1Tag);
+					value.Keypad2Tag = string.Format("{0}{1}", prefix, value.Keypad2Tag);
+					value.Keypad3Tag = string.Format("{0}{1}", prefix, value.Keypad3Tag);
+					value.Keypad4Tag = string.Format("{0}{1}", prefix, value.Keypad4Tag);
+					value.Keypad5Tag = string.Format("{0}{1}", prefix, value.Keypad5Tag);
+					value.Keypad6Tag = string.Format("{0}{1}", prefix, value.Keypad6Tag);
+					value.Keypad7Tag = string.Format("{0}{1}", prefix, value.Keypad7Tag);
+					value.Keypad8Tag = string.Format("{0}{1}", prefix, value.Keypad8Tag);
+					value.Keypad9Tag = string.Format("{0}{1}", prefix, value.Keypad9Tag);
+					value.KeypadBackspaceTag = string.Format("{0}{1}", prefix, value.KeypadBackspaceTag);
+					value.KeypadClearTag = string.Format("{0}{1}", prefix, value.KeypadClearTag);
+					value.KeypadPoundTag = string.Format("{0}{1}", prefix, value.KeypadPoundTag);
+					value.KeypadStarTag = string.Format("{0}{1}", prefix, value.KeypadStarTag);
 					this.Dialers.Add(key, new QscDspDialer(value, this));
 					Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
 
@@ -240,6 +255,11 @@ namespace QscQsysDspPlugin
 		{
 			ConfigWriter.UpdateDeviceConfig(config);
 		}
+
+		/// <summary>
+		/// Sets the IP address used by the plugin 
+		/// </summary>
+		/// <param name="hostname">string</param>
 		public void SetIpAddress(string hostname)
 		{
 			try
@@ -262,6 +282,11 @@ namespace QscQsysDspPlugin
 					Debug.Console(2, this, "Error SetIpAddress: '{0}'", e);
 			}
 		}
+
+		/// <summary>
+		/// Sets the DSP prefix
+		/// </summary>
+		/// <param name="prefix">string</param>
 		public void SetPrefix(string prefix)
 		{
 			if (_Dc.Properties["prefix"].ToString() != prefix && prefix.Length > 0)
@@ -278,6 +303,10 @@ namespace QscQsysDspPlugin
 
 			}
 		}
+
+		/// <summary>
+		/// Writes the config
+		/// </summary>
 		public void WriteConfig()
 		{
 			CustomSetConfig(_Dc);
@@ -461,7 +490,7 @@ namespace QscQsysDspPlugin
 		/// <summary>
 		/// Adds a command from a child module to the queue
 		/// </summary>
-		/// <param name="command">Command object from child module</param>
+		/// <param name="commandToEnqueue">Command object from child module</param>
 		public void EnqueueCommand(QueuedCommand commandToEnqueue)
 		{
 			CommandQueue.Enqueue(commandToEnqueue);
@@ -511,15 +540,24 @@ namespace QscQsysDspPlugin
 
 		}
 
+		/// <summary>
+		/// Runs the preset with the number provided
+		/// </summary>
+		/// <param name="n">ushort</param>
 		public void RunPresetNumber(ushort n)
 		{
-			RunPreset(PresetList[n].preset);
+			RunPreset(PresetList[n].Preset);
 		}
 
+		/// <summary>
+		/// Adds a presst
+		/// </summary>
+		/// <param name="s">QscDspPresets</param>
 		public void addPreset(QscDspPresets s)
 		{
 			PresetList.Add(s);
 		}
+
 		/// <summary>
 		/// Sends a command to execute a preset
 		/// </summary>
@@ -530,6 +568,9 @@ namespace QscQsysDspPlugin
 			SendLine("cgp 1");
 		}
 
+		/// <summary>
+		/// Queues Commands
+		/// </summary>
 		public class QueuedCommand
 		{
 			public string Command { get; set; }
@@ -539,6 +580,12 @@ namespace QscQsysDspPlugin
 
 		#region IBridge Members
 
+		/// <summary>
+		/// Link to API
+		/// </summary>
+		/// <param name="trilist">BasicTriList</param>
+		/// <param name="joinStart">uint</param>
+		/// <param name="joinMapKey">string</param>
 		public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)
 		{
 			this.LinkToApiExt(trilist, joinStart, joinMapKey);
