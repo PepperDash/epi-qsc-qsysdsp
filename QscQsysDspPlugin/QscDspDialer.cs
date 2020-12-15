@@ -13,29 +13,125 @@ namespace QscQsysDspPlugin
 	/// </summary>
 	public class QscDspDialer : IHasDialer
 	{
-		public QscDialerConfig Tags;
-		public bool IsInCall { get; private set; }
+		/// <summary>
+		/// Parent DSP
+		/// </summary>
 		public QscDsp Parent { get; private set; }
-		public string DialString { get; private set; }
-		public bool OffHook { get; private set; }
-		public bool AutoAnswerState { get; private set; }
-		public bool DoNotDisturbState { get; private set; }
 
-		private string _callerIdNumber;
-		public string CallerIdNumber
+		/// <summary>
+		/// Dialer block configuration 
+		/// </summary>
+		public QscDialerConfig Tags;
+
+		/// <summary>
+		/// Tracks in call state
+		/// </summary>
+		public bool IsInCall { get; private set; }
+
+		/// <summary>
+		/// Dial string feedback 
+		/// </summary>
+		public StringFeedback DialStringFeedback;
+		// Dial string backer field
+		private string _dialString;
+		/// <summary>
+		/// Dial string property
+		/// </summary>
+		public string DialString
 		{
-			get
+			get { return _dialString; }
+			private set
 			{
-				return _callerIdNumber;
-			}
-			set
-			{
-				_callerIdNumber = value;
-				CallerIdNumberFb.FireUpdate();
+				_dialString = value;
+				DialStringFeedback.FireUpdate();
 			}
 		}
 
+		/// <summary>
+		/// Off hook feedback
+		/// </summary>
+		public BoolFeedback OffHookFeedback;
+		// Off hook backer field
+		private bool _offHook;
+		/// <summary>
+		/// Off Hook property
+		/// </summary>
+		public bool OffHook
+		{
+			get { return _offHook; }
+			private set
+			{
+				_offHook = value;
+				OffHookFeedback.FireUpdate();
+			}
+		}
+
+		/// <summary>
+		/// Auto answer feedback
+		/// </summary>
+		public BoolFeedback AutoAnswerFeedback;
+		// Auto answer backer field
+		private bool _autoAnswerState;
+		/// <summary>
+		/// Auto answer property
+		/// </summary>
+		public bool AutoAnswerState
+		{
+			get { return _autoAnswerState; }
+			private set
+			{
+				_autoAnswerState = value;
+				AutoAnswerFeedback.FireUpdate();
+			}
+		}
+
+		/// <summary>
+		/// Do not disturb feedback
+		/// </summary>
+		public BoolFeedback DoNotDisturbFeedback;
+		// Do not disturb backer field
+		private bool _doNotDisturbState;
+		/// <summary>
+		/// Do not disturb property
+		/// </summary>
+		public bool DoNotDisturbState
+		{
+			get { return _doNotDisturbState; }
+			private set
+			{
+				_doNotDisturbState = value;
+				DoNotDisturbFeedback.FireUpdate();
+			}
+		}
+
+		/// <summary>
+		/// Caller ID number feedback
+		/// </summary>
+		public StringFeedback CallerIdNumberFeedback;
+		// Caller ID number backer field
+		private string _callerIdNumber;
+		/// <summary>
+		///  Caller ID Number property
+		/// </summary>
+		public string CallerIdNumber
+		{
+			get { return _callerIdNumber; }
+			set
+			{
+				_callerIdNumber = value;
+				CallerIdNumberFeedback.FireUpdate();
+			}
+		}
+
+		/// <summary>
+		/// Incoming call feedback
+		/// </summary>
+		public BoolFeedback IncomingCallFeedback;
+		// Incoming call backer field
 		private bool _incomingCall;
+		/// <summary>
+		/// Incoming call property
+		/// </summary>
 		public bool IncomingCall
 		{
 			get { return _incomingCall; }
@@ -46,21 +142,14 @@ namespace QscQsysDspPlugin
 			}
 		}
 
-		public BoolFeedback IncomingCallFeedback;
-		public BoolFeedback OffHookFeedback;
-		public BoolFeedback AutoAnswerFeedback;
-		public BoolFeedback DoNotDisturbFeedback;
-		public StringFeedback DialStringFeedback;
-		public StringFeedback CallerIdNumberFb;
-
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="Config">configuration object</param>
+		/// <param name="config">configuration object</param>
 		/// <param name="parent">parent dsp instance</param>
-		public QscDspDialer(QscDialerConfig Config, QscDsp parent)
+		public QscDspDialer(QscDialerConfig config, QscDsp parent)
 		{
-			Tags = Config;
+			Tags = config;
 			Parent = parent;
 
 			IncomingCallFeedback = new BoolFeedback(() => { return IncomingCall; });
@@ -68,24 +157,24 @@ namespace QscQsysDspPlugin
 			OffHookFeedback = new BoolFeedback(() => { return OffHook; });
 			AutoAnswerFeedback = new BoolFeedback(() => { return AutoAnswerState; });
 			DoNotDisturbFeedback = new BoolFeedback(() => { return DoNotDisturbState; });
-			CallerIdNumberFb = new StringFeedback(() => { return CallerIdNumber; });
+			CallerIdNumberFeedback = new StringFeedback(() => { return CallerIdNumber; });
 		}
-		
+
 		/// <summary>
 		/// Call status change event
 		/// Interface requires this
 		/// </summary>
 		public event EventHandler<CodecCallStatusItemChangeEventArgs> CallStatusChange;
-		
+
 		/// <summary>
 		/// Call status event handler
 		/// </summary>
 		/// <param name="args"></param>
-		void OnCallStatusChange(CodecCallStatusItemChangeEventArgs args)
+		public void OnCallStatusChange(CodecCallStatusItemChangeEventArgs args)
 		{
 			var handler = CallStatusChange;
-			if (handler != null)
-				CallStatusChange(this, args);
+			if (handler == null) return;
+			CallStatusChange(this, args);
 		}
 
 		/// <summary>
@@ -97,7 +186,8 @@ namespace QscQsysDspPlugin
 			{
 				// Do subscriptions and blah blah
 				// This would be better using reflection JTA 2018-08-28
-				PropertyInfo[] properties = Tags.GetType().GetCType().GetProperties();
+				//PropertyInfo[] properties = Tags.GetType().GetCType().GetProperties();
+				var properties = Tags.GetType().GetCType().GetProperties();
 				//GetPropertyValues(Tags);
 
 				Debug.Console(2, "QscDspDialer Subscribe");
@@ -105,12 +195,13 @@ namespace QscQsysDspPlugin
 				{
 					//var val = prop.GetValue(obj, null);
 					Debug.Console(2, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, prop.PropertyType.FullName);
-					if (prop.Name.Contains("Tag") && !prop.Name.Contains("keypad"))
-					{
-						var propValue = prop.GetValue(Tags, null) as string;
-						Debug.Console(2, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, propValue);
-						SendSubscriptionCommand(propValue, "1");
-					}
+
+					//if (prop.Name.Contains("Tag") && !prop.Name.Contains("keypad"))
+					if (!prop.Name.Contains("Tag") || prop.Name.Contains("keypad")) continue;
+
+					var propValue = prop.GetValue(Tags, null) as string;
+					Debug.Console(2, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, propValue);
+					SendSubscriptionCommand(propValue, "1");
 				}
 			}
 			catch (Exception e)
@@ -121,7 +212,7 @@ namespace QscQsysDspPlugin
 			// SendSubscriptionCommand(, "1");
 			// SendSubscriptionCommand(config. , "mute", 500);
 		}
-		
+
 		/// <summary>
 		/// Parses subscription messages
 		/// </summary>
@@ -134,38 +225,37 @@ namespace QscQsysDspPlugin
 			if (customName == Tags.DialStringTag)
 			{
 				Debug.Console(2, "QscDialerTag DialStringChanged ", value);
-				this.DialString = value;
-				this.DialStringFeedback.FireUpdate();
+				DialString = value;
+				DialStringFeedback.FireUpdate();
 			}
 			else if (customName == Tags.DoNotDisturbTag)
 			{
-				if (value == "on")
+				switch (value)
 				{
-					this.DoNotDisturbState = true;
+					case "on":
+						DoNotDisturbState = true;
+						break;
+					case "off":
+						DoNotDisturbState = false;
+						break;
 				}
-				else if (value == "off")
-				{
-					this.DoNotDisturbState = false;
-				}
-				DoNotDisturbFeedback.FireUpdate();
 			}
 			else if (customName == Tags.CallStatusTag)
 			{
 				// TODO [ ] Add incoming call/ringing to parse subscription message
-				if (value.Contains("Ringing"))
+				//if (value.Contains(""))
+				//{
+				//    OffHook = true;
+				//    var splitString = value.Split(' ');
+				//    if (splitString.Count() >= 2)
+				//    {
+				//        CallerIdNumber = splitString[1];
+				//    }
+				//}
+				if (value.Contains("Dialing") || value.Contains("Connected") || value.Contains("Ringing"))
 				{
-					this.OffHook = true;
+					OffHook = true;
 					var splitString = value.Split(' ');
-					if (splitString.Count() >= 2)
-					{
-						CallerIdNumber = splitString[1];
-					}
-				}
-				else if (value.Contains("Dialing") || value.Contains("Connected"))
-				{
-					this.OffHook = true;
-					var splitString = value.Split(' ');
-
 					if (splitString.Count() >= 2)
 					{
 						CallerIdNumber = splitString[1];
@@ -173,56 +263,55 @@ namespace QscQsysDspPlugin
 				}
 				else if (value == "Disconnected")
 				{
-					this.OffHook = false;
+					OffHook = false;
 					CallerIdNumber = "";
 					if (Tags.ClearOnHangup)
 					{
-						this.SendKeypad(EKeypadKeys.Clear);
+						SendKeypad(EKeypadKeys.Clear);
 					}
 				}
 				else if (value == "Idle")
 				{
-					this.OffHook = false;
+					OffHook = false;
 					CallerIdNumber = "";
 					if (Tags.ClearOnHangup)
 					{
-						this.SendKeypad(EKeypadKeys.Clear);
+						SendKeypad(EKeypadKeys.Clear);
 					}
 				}
-				this.OffHookFeedback.FireUpdate();
 			}
 			else if (customName == Tags.AutoAnswerTag)
 			{
-				if (value == "on")
+				switch (value)
 				{
-					this.AutoAnswerState = true;
+					case "on":
+						AutoAnswerState = true;
+						break;
+					case "off":
+						AutoAnswerState = false;
+						break;
 				}
-				else if (value == "off")
-				{
-					this.AutoAnswerState = false;
-				}
-				AutoAnswerFeedback.FireUpdate();
 			}
 			else if (customName == Tags.HookStatusTag)
 			{
-				if (value == "true")
+				switch (value)
 				{
-					this.OffHook = true;
+					case "true":
+						OffHook = true;
+						break;
+					case "false":
+						OffHook = false;
+						break;
 				}
-				else if (value == "false")
-				{
-					this.OffHook = false;
-				}
-				this.OffHookFeedback.FireUpdate();
 			}
 		}
-		
+
 		/// <summary>
 		/// Toggles the do not disturb state
 		/// </summary>
 		public void DoNotDisturbToggle()
 		{
-			int dndStateInt = !DoNotDisturbState ? 1 : 0;
+			var dndStateInt = !DoNotDisturbState ? 1 : 0;
 			Parent.SendLine(string.Format("csv {0} {1}", Tags.DoNotDisturbTag, dndStateInt));
 		}
 
@@ -247,7 +336,7 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void AutoAnswerToggle()
 		{
-			int autoAnswerStateInt = !AutoAnswerState ? 1 : 0;
+			var autoAnswerStateInt = !AutoAnswerState ? 1 : 0;
 			Parent.SendLine(string.Format("csv {0} {1}", Tags.AutoAnswerTag, autoAnswerStateInt));
 		}
 
@@ -298,12 +387,11 @@ namespace QscQsysDspPlugin
 				case EKeypadKeys.Backspace: keypadTag = Tags.KeypadBackspaceTag; break;
 				case EKeypadKeys.Clear: keypadTag = Tags.KeypadClearTag; break;
 			}
-			if (keypadTag != null)
-			{
-				var cmdToSend = string.Format("ct {0}", keypadTag);
-				Parent.SendLine(cmdToSend);
-				PollKeypad();
-			}
+
+			if (keypadTag == null) return;
+
+			Parent.SendLine(string.Format("ct {0}", keypadTag));
+			PollKeypad();
 		}
 
 		/// <summary>
@@ -326,14 +414,10 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void Dial()
 		{
-			if (!this.OffHook)
-			{
-				Parent.SendLine(string.Format("ct {0}", Tags.ConnectTag));
-			}
-			else
-			{
-				Parent.SendLine(string.Format("ct {0}", Tags.DisconnectTag));
-			}
+			Parent.SendLine(OffHook
+				? string.Format("ct {0}", Tags.DisconnectTag) // OffHook true
+				: string.Format("ct {0}", Tags.ConnectTag));  // OffHook false
+
 			Thread.Sleep(50);
 			Parent.SendLine(string.Format("cg {0}", Tags.CallStatusTag));
 		}
@@ -345,7 +429,17 @@ namespace QscQsysDspPlugin
 		/// <param name="number">Number to dial</param>
 		public void Dial(string number)
 		{
-			throw new NotImplementedException();
+			if (OffHook) return;
+
+			if (number.Length > 0)
+			{
+				Parent.SendLine(string.Format("css {0} {1}", Tags.DialStringTag, number));
+			}
+
+			Parent.SendLine(string.Format("ct {0}", Tags.ConnectTag));
+
+			Thread.Sleep(50);
+			Parent.SendLine(string.Format("cg {0}", Tags.CallStatusTag));
 		}
 
 		/// <summary>
@@ -371,7 +465,8 @@ namespace QscQsysDspPlugin
 		/// <param name="item">Use "", use of CodecActiveCallItem is not implemented</param>
 		public void AcceptCall(CodecActiveCallItem item)
 		{
-			throw new NotImplementedException();
+			//throw new NotImplementedException();
+			Dial();
 		}
 
 		/// <summary>
@@ -380,7 +475,8 @@ namespace QscQsysDspPlugin
 		/// <param name="item"></param>
 		public void RejectCall(CodecActiveCallItem item)
 		{
-			throw new NotImplementedException();
+			//throw new NotImplementedException();
+			EndAllCalls();
 		}
 
 		/// <summary>
@@ -389,7 +485,51 @@ namespace QscQsysDspPlugin
 		/// <param name="digit">keypad digit pressed as a string</param>
 		public void SendDtmf(string digit)
 		{
-			throw new NotImplementedException();
+			var keypadTag = EKeypadKeys.Clear;
+			// Debug.Console(2, "DIaler {0} SendKeypad {1}", this.ke);
+			switch (digit)
+			{
+				case "0":
+					keypadTag = EKeypadKeys.Num0;
+					break;
+				case "1":
+					keypadTag = EKeypadKeys.Num1;
+					break;
+				case "2":
+					keypadTag = EKeypadKeys.Num2;
+					break;
+				case "3":
+					keypadTag = EKeypadKeys.Num3;
+					break;
+				case "4":
+					keypadTag = EKeypadKeys.Num4;
+					break;
+				case "5":
+					keypadTag = EKeypadKeys.Num5;
+					break;
+				case "6":
+					keypadTag = EKeypadKeys.Num6;
+					break;
+				case "7":
+					keypadTag = EKeypadKeys.Num7;
+					break;
+				case "8":
+					keypadTag = EKeypadKeys.Num8;
+					break;
+				case "9":
+					keypadTag = EKeypadKeys.Num9;
+					break;
+				case "#":
+					keypadTag = EKeypadKeys.Pound;
+					break;
+				case "*":
+					keypadTag = EKeypadKeys.Star;
+					break;
+			}
+
+			if (keypadTag == EKeypadKeys.Clear) return;
+
+			SendKeypad(keypadTag);
 		}
 
 		/// <summary>
