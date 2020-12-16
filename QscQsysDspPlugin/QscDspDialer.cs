@@ -429,7 +429,7 @@ namespace QscQsysDspPlugin
 		/// <param name="number">Number to dial</param>
 		public void Dial(string number)
 		{
-			if (OffHook) return;
+			if (OffHook) EndAllCalls();
 
 			if (number.Length > 0)
 			{
@@ -445,7 +445,7 @@ namespace QscQsysDspPlugin
 		/// <summary>
 		/// Ends the current call with the provided Id
 		/// </summary>		
-		/// <param name="item">Use "", use of CodecActiveCallItem is not implemented</param>
+		/// <param name="item">Use null as the parameter, use of CodecActiveCallItem is not implemented</param>
 		public void EndCall(CodecActiveCallItem item)
 		{
 			Parent.SendLine(string.Format("ct {0}", Tags.DisconnectTag));

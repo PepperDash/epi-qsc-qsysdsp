@@ -183,51 +183,59 @@ namespace QscQsysDspPlugin
 		public uint EndCall { get; set; }
 
 		public QscDspDeviceJoinMap()
-		{
-			// Arrays
-			ChannelName = 200;
-			ChannelMuteToggle = 400;
-			ChannelMuteOn = 600;
-			ChannelMuteOff = 800;
-			ChannelVolume = 200;
-			ChannelVolumeUp = 1000;
-			ChannelVolumeDown = 1200;
-			ChannelType = 400;
-			Presets = 100;
-			ChannelVisible = 200;
+		{			
+			IsOnline = 1;				// digitial single feedback
+			Presets = 100;				// digital array input, analog single input, serial array feedback			
+			ChannelVisible = 200;		// digital array feedback			
+			ChannelMuteToggle = 400;	// digital array input/feedback
+			ChannelMuteOn = 600;		// digital array input/feedback
+			ChannelMuteOff = 800;		// digital array input/feedback
+			ChannelVolumeUp = 1000;		// digital array input
+			ChannelVolumeDown = 1200;	// digital array input
 
-			// SIngleJoins
-			IsOnline = 1;
-			Prefix = 2;
-			Address = 1;
-			Presets = 100;
-			DialStringCmd = 3100;
-			IncomingCall = 3100;
-			EndCall = 3107;
-			Keypad0 = 3110;
-			Keypad1 = 3111;
-			Keypad2 = 3112;
-			Keypad3 = 3113;
-			Keypad4 = 3114;
-			Keypad5 = 3115;
-			Keypad6 = 3116;
-			Keypad7 = 3117;
-			Keypad8 = 3118;
-			Keypad9 = 3119;
-			KeypadStar = 3120;
-			KeypadPound = 3121;
-			KeypadClear = 3122;
-			KeypadBackspace = 3123;
-			DoNotDisturbToggle = 3132;
-			DoNotDisturbOn = 3133;
-			DoNotDisturbOff = 3134;
-			AutoAnswerToggle = 3127;
-			AutoAnswerOn = 3125;
-			AutoAnswerOff = 3126;
-			Dial = 3124;
-			OffHook = 3130;
-			OnHook = 3129;
-			CallerIdNumberFb = 3104;
+
+			ChannelVolume = 200;		// analog array input/feedback
+			ChannelType = 400;			// analog array feedback
+
+
+			Address = 1;				// serial single input
+			Prefix = 2;					// serial single input
+			ChannelName = 200;			// serial array feedback
+			
+			// dialer			
+			IncomingCall = 3100;		// digital single feedback
+			DialStringCmd = 3100;		// serial single input/feedback
+
+			CallerIdNumberFb = 3104;	// serial single feedback
+			EndCall = 3107;				// digital single feedback
+
+			Keypad0 = 3110;				// digital single input
+			Keypad1 = 3111;				// digital single input
+			Keypad2 = 3112;				// digital single input
+			Keypad3 = 3113;				// digital single input
+			Keypad4 = 3114;				// digital single input
+			Keypad5 = 3115;				// digital single input
+			Keypad6 = 3116;				// digital single input
+			Keypad7 = 3117;				// digital single input
+			Keypad8 = 3118;				// digital single input
+			Keypad9 = 3119;				// digital single input
+			KeypadStar = 3120;			// digital single input
+			KeypadPound = 3121;			// digital single input
+			KeypadClear = 3122;			// digital single input
+			KeypadBackspace = 3123;		// digital single input
+
+			Dial = 3124;				// digital single input
+
+			AutoAnswerOn = 3125;		// digital single input/feedback
+			AutoAnswerOff = 3126;		// digital single input/feedback
+			AutoAnswerToggle = 3127;	// digital single input/feedback
+
+			OnHook = 3129;				// digital single input/feedback
+			OffHook = 3130;				// digital single input/feedback
+
+			DoNotDisturbToggle = 3132;	// digital single input/feedback
+			DoNotDisturbOn = 3133;		// digital single input/feedback
+			DoNotDisturbOff = 3134;		// digital single input/feedback
 		}
 
 		public override void OffsetJoinNumbers(uint joinStart)

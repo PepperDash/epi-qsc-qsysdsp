@@ -84,68 +84,82 @@ Update the configuration object as needed for the plugin being developed.
 ```json
 "properties": {
 	"levelControlBlocks": {
-		"fader-1": {
+		"fader-room": {
 			"label": "Room",
 			"levelInstanceTag": "ROOM_VOL",
 			"muteInstanceTag": "ROOM_MUTE",
 			"disabled": false,
 			"hasLevel": true,
 			"hasMute": true,
-			"isMic": false
+			"isMic": false,
+			"useAbsoluteValue": false,
+			"unmuteOnVolChange": true
 		},
-		"fader-2": {
+		"fader-program": {
 			"label": "Program",
 			"levelInstanceTag": "PGM_VOL",
 			"muteInstanceTag": "PGM_MUTE",
 			"disabled": false,
 			"hasLevel": true,
 			"hasMute": true,
-			"isMic": false
+			"isMic": false,
+			"useAbsoluteValue": false,
+			"unmuteOnVolChange": true
 		},
-		"fader-3": {
+		"fader-speech": {
 			"label": "Speech",
 			"levelInstanceTag": "SPEECH_VOL",
 			"muteInstanceTag": "SPEECH_MUTE",
 			"disabled": false,
 			"hasLevel": true,
 			"hasMute": true,
-			"isMic": false
+			"isMic": false,
+			"useAbsoluteValue": false,
+			"unmuteOnVolChange": true
 		},
-		"fader-4": {
+		"fader-phone-call": {
 			"label": "Phone Call",
 			"levelInstanceTag": "AC_RX_VOL",
 			"muteInstanceTag": "AC_RX_MUTE",
 			"disabled": false,
 			"hasLevel": true,
 			"hasMute": true,
-			"isMic": false
+			"isMic": false,
+			"useAbsoluteValue": false,
+			"unmuteOnVolChange": true
 		},
-		"fader-5": {
+		"fader-video-call": {
 			"label": "Video Call",
 			"levelInstanceTag": "VC_RX_VOL",
 			"muteInstanceTag": "VC_RX_MUTE",
 			"disabled": false,
 			"hasLevel": true,
 			"hasMute": true,
-			"isMic": false
+			"isMic": false,
+			"useAbsoluteValue": false,
+			"unmuteOnVolChange": true
 		},
-		"fader-6": {
+		"fader-privacy": {
 			"label": "Privacy",
 			"levelInstanceTag": "PRIVACY_VOL",
 			"muteInstanceTag": "PRIVACY_MUTE",
 			"disabled": false,
 			"hasLevel": false,
 			"hasMute": true,
-			"isMic": true
+			"isMic": true,
+			"useAbsoluteValue": false,
+			"unmuteOnVolChange": true
 		},
-		"fader-7": {
+		"fader-wireless-mics": {
 			"label": "Wireless Mics",
 			"levelInstanceTag": "WLESS_VOL",
 			"muteInstanceTag": "WLESS_MUTE",
 			"disabled": false,
 			"hasLevel": true,
 			"hasMute": true,
-			"isMic": true
+			"isMic": true,
+			"useAbsoluteValue": false,
+			"unmuteOnVolChange": true
 		},
 		"fader-8": {
 			"label": "Fader 8",
@@ -160,12 +174,15 @@ Update the configuration object as needed for the plugin being developed.
 			"disabled": true
 		},
 		"sourceControl-1": {
+			"comment": "When using a fader for source selection you must include useAbsoluteValue:true",
 			"label": "Room A Audio",
 			"levelInstanceTag": "SOURCE_SELECT",
 			"disabled": false,
-			"hasLevel": true,
+			"hasLevel": false,
 			"hasMute": false,
-			"isMiic": false
+			"isMic": false,
+			"useAbsoluteValue": true,
+			"unmuteOnVolChange": false
 		}
 	}
 }
@@ -193,7 +210,7 @@ Update the configuration object as needed for the plugin being developed.
 }
 ```
 
-### Plugin Source COntrol Blocks
+### Plugin Source Control Blocks
 
 ```json
 "properties": {
@@ -317,31 +334,63 @@ Update the bridge configuration object as needed for the plugin being developed.
 
 The selection below documents the digital, analog, and serial joins used by the SiMPL EISC. Update the bridge join maps as needed for the plugin being developed.
 
-#### Digitals
-| dig-o (Input/Triggers)                | I/O | dig-i (Feedback) |
-|---------------------------------------|-----|------------------|
-|                                       | 1   | Is Online        |
-|                                       | 2   |                  |
-|                                       | 3   |                  |
-|                                       | 4   |                  |
-|                                       | 5   |                  |
+When instantiating multiple dialers joins start @ 3100 and use digital/analog/serial joins in blocks of 50.  For example, Dialer 2 would start @ 3150.
 
-#### Analogs
-| an_o (Input/Triggers) | I/O | an_i (Feedback) |
-|-----------------------|-----|-----------------|
-|                       | 1   |                 |
-|                       | 2   |                 |
-|                       | 3   |                 |
-|                       | 4   |                 |
-|                       | 5   |                 |
+#### **Digitals**
+| dig-o (Input/Triggers)                | I/O         | dig-i (Feedback)                        |
+|---------------------------------------|-------------|-----------------------------------------|
+|                                       | 1           | Is Online Feedback                      |
+| Run Preset by Number                  | 100 - 199   |                                         |
+|                                       | 200 - 399   | Fader [n] Visible Feedback              |
+| Fader [n] Mute Toggle                 | 400 - 599   | Fader [n] Mute Toggle Feedback          |
+| Fader [n] Mute On                     | 600 - 799   | Fader [n] Mute On Feedback              |
+| Fader [n] Mute Off                    | 800 - 999   | Fader [n] Mute Off Feddback             |
+| Fader [n] Level Increment             | 1000 - 1199 |                                         |
+| Fader [n] Level Decrement             | 1200 - 1399 |                                         |
+|                                       | 3100        | Dialer Incoming Call Feedback           |
+| Dialer 1 End Call                     | 3107        |                                         |
+| Dialer 1 Keypad 0                     | 3110        |                                         |
+| Dialer 1 Keypad 1                     | 3111        |                                         |
+| Dialer 1 Keypad 2                     | 3112        |                                         |
+| Dialer 1 Keypad 3                     | 3113        |                                         |
+| Dialer 1 Keypad 4                     | 3114        |                                         |
+| Dialer 1 Keypad 5                     | 3115        |                                         |
+| Dialer 1 Keypad 6                     | 3116        |                                         |
+| Dialer 1 Keypad 7                     | 3117        |                                         |
+| Dialer 1 Keypad 8                     | 3118        |                                         |
+| Dialer 1 Keypad 9                     | 3119        |                                         |
+| Dialer 1 Keypad * (Start)             | 3120        |                                         |
+| Dialer 1 Keypad # (Pound)             | 3121        |                                         |
+| Dialer 1 Keypad Clear                 | 3122        |                                         |
+| Dialer 1 Keypad Backspace             | 3123        |                                         |
+| Dialer 1 Dial/End Call                | 3124        | Dialer 1 Dial Feedback                  |
+| Dialer 1 Auto Answer On               | 3125        | Dialer 1 Auto Answer On Feedback        |
+| Dialer 1 Auto Answer Off              | 3126        | Dialer 1 Auto Answer Off Feedback       |
+| Dialer 1 Auto Answer Toggle           | 3127        | Dialer 1 Auto Answer Toggle Feedback    |
+| Dialer 1 On Hook                      | 3129        | Dialer 1 On Hook Feedback               |
+| Dialer 1 Off Hook                     | 3130        | Dialer 1 Off Hook Feedback              |
+| Dialer 1 Do Not Disturb Toggle        | 3132        | Dialer 1 Do Not Distrub Toggle Feedback |
+| Dialer 1 Do Not Disturb On            | 3133        | Dialer 1 Do Not Distrub On Feedback     |
+| Dialer 1 Do Not Disturb Off           | 3134        | Dialer 1 Do Not Distrub Off Feedback    |
 
 
-#### Serials
-| serial-o (Input/Triggers) | I/O | serial-i (Feedback) |
-|---------------------------|-----|---------------------|
-|                           | 1   |                     |
-|                           | 2   |                     |
-|                           | 3   |                     |
-|                           | 4   |                     |
-|                           | 5   |                     |
+#### **Analogs**
+| an_o (Input/Triggers) | I/O       | an_i (Feedback)          |
+|-----------------------|-----------|--------------------------|
+| Fader [n] Level Set   | 200 - 399 | Fader [n] Level Feedback |
+|                       | 400 - 599 | Fader [n] Type Feedback  |
+
+
+#### **Serials**
+| serial-o (Input/Triggers) | I/O       | serial-i (Feedback)                |
+|---------------------------|-----------|------------------------------------|
+| DSP IP Address            | 1         |                                    |
+| DSP Prefix                | 2         |                                    |
+| Run Preset by Name        | 100       |                                    |
+|                           | 100 - 199 | Preset [n] Name Feedback           |
+|                           | 200 - 399 | Fader [n] Name Feedback            |
+|                           | 3100      | Dialer 1 Dial String Feedback      |
+|                           | 3104      | Dialer 1 Caller ID Number Feedback |
+
+
 

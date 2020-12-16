@@ -182,7 +182,7 @@ namespace QscQsysDspPlugin
 				{
 					var value = preset.Value;
 					value.Preset = string.Format("{0}{1}", prefix, value.Preset);
-					this.addPreset(value);
+					this.AddPreset(value);
 					Debug.Console(2, this, "Added Preset {0} {1}", value.Label, value.Preset);
 				}
 			}
@@ -518,26 +518,19 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		void SendNextQueuedCommand()
 		{
-			if (Communication.IsConnected && !CommandQueue.IsEmpty)
+			if (!Communication.IsConnected || CommandQueue.IsEmpty) return;
+
+			CommandQueueInProgress = true;
+			if (CommandQueue.Peek() is QueuedCommand)
 			{
-				CommandQueueInProgress = true;
-
-				if (CommandQueue.Peek() is QueuedCommand)
-				{
-					QueuedCommand nextCommand = new QueuedCommand();
-
-					nextCommand = (QueuedCommand)CommandQueue.Peek();
-
-					SendLine(nextCommand.Command);
-				}
-				else
-				{
-					string nextCommand = (string)CommandQueue.Peek();
-
-					SendLine(nextCommand);
-				}
+				var nextCommand = (QueuedCommand)CommandQueue.Peek();
+				SendLine(nextCommand.Command);
 			}
-
+			else
+			{
+				var nextCommand = (string)CommandQueue.Peek();
+				SendLine(nextCommand);
+			}
 		}
 
 		/// <summary>
@@ -553,7 +546,7 @@ namespace QscQsysDspPlugin
 		/// Adds a presst
 		/// </summary>
 		/// <param name="s">QscDspPresets</param>
-		public void addPreset(QscDspPresets s)
+		public void AddPreset(QscDspPresets s)
 		{
 			PresetList.Add(s);
 		}
