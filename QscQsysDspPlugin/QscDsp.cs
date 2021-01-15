@@ -385,7 +385,7 @@ namespace QscQsysDspPlugin
 		/// <param name="args"></param>
 		void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
 		{
-			Debug.Console(2, this, "RX: '{0}'", args.Text);
+			Debug.Console(0, this, "Port_LineRecieved Rx: '{0}'", args.Text);
 			try
 			{
 				if (args.Text.EndsWith("cgpa\r"))
@@ -472,9 +472,8 @@ namespace QscQsysDspPlugin
 			catch (Exception e)
 			{
 				if (Debug.Level == 2)
-					Debug.Console(2, this, "Error parsing response: '{0}'\n{1}", args.Text, e);
+					Debug.Console(2, this, "Port_LineRecieved Exception: '{0}'\n{1}", args.Text, e);
 			}
-
 		}
 
 		/// <summary>
@@ -483,7 +482,7 @@ namespace QscQsysDspPlugin
 		/// <param name="s">Command to send</param>
 		public void SendLine(string s)
 		{
-			Debug.Console(1, this, "TX: '{0}'", s);
+			Debug.Console(1, this, "SendLine Tx: '{0}'", s);
 			Communication.SendText(s + "\x0a");
 		}
 
@@ -534,15 +533,6 @@ namespace QscQsysDspPlugin
 		}
 
 		/// <summary>
-		/// Runs the preset with the number provided
-		/// </summary>
-		/// <param name="n">ushort</param>
-		public void RunPresetNumber(ushort n)
-		{
-			RunPreset(PresetList[n].Preset);
-		}
-
-		/// <summary>
 		/// Adds a presst
 		/// </summary>
 		/// <param name="s">QscDspPresets</param>
@@ -552,6 +542,15 @@ namespace QscQsysDspPlugin
 		}
 
 		/// <summary>
+		/// Runs the preset with the number provided
+		/// </summary>
+		/// <param name="n">ushort</param>
+		public void RunPresetNumber(ushort n)
+		{
+			RunPreset(PresetList[n].Preset);
+		}
+				
+		/// <summary>
 		/// Sends a command to execute a preset
 		/// </summary>
 		/// <param name="name">Preset Name</param>
@@ -560,6 +559,30 @@ namespace QscQsysDspPlugin
 			SendLine(string.Format("ssl {0}", name));
 			SendLine("cgp 1");
 		}
+
+		/// <summary>
+		/// Saves the preset with the number provided
+		/// </summary>
+		/// <param name="n">ushort</param>
+		public void SavePresetNumber(ushort n)
+		{
+			// assuming the preset configuration is "SNAPSsHOT_BANK SNAPSHOT_NUM FLOTATING_POINT_NUM"
+			// we need to revome the floating point number parameter when saving
+			// split the preset on ' ' (\x20) and only use the 1st two indexes which should be the SNAPSHOT_BANK and SNAPSHOT_NUM
+			var cmd = PresetList[n].Preset.Split(' ');
+			SavePreset(string.Format("{0} {1}", cmd[0], cmd[1]));
+		}
+
+		/// <summary>
+		/// Sends a command to save a preset
+		/// </summary>		
+		/// <param name="name"></param>
+		public void SavePreset(string name)
+		{
+			SendLine(string.Format("sss {0}", name));
+			SendLine("cgp 1");
+		}
+
 
 		/// <summary>
 		/// Queues Commands

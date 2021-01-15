@@ -71,9 +71,11 @@ namespace QscQsysDspPlugin
 			foreach (var preset in DspDevice.PresetList)
 			{
 				var temp = x;
+				var presetNum = joinMap.Presets + temp + 1;
 				// from SiMPL > to Plugin
-				trilist.StringInput[joinMap.Presets + temp + 1].StringValue = preset.Label;
-				trilist.SetSigTrueAction(joinMap.Presets + temp + 1, () => DspDevice.RunPresetNumber(temp));
+				trilist.StringInput[presetNum].StringValue = preset.Label;
+				//trilist.SetSigTrueAction(presetNum, () => DspDevice.RunPresetNumber(temp));
+				trilist.SetSigHeldAction(presetNum, 5000, () => DspDevice.RunPresetNumber(temp), () => DspDevice.SavePresetNumber(temp));
 				x++;
 			}
 
@@ -84,8 +86,8 @@ namespace QscQsysDspPlugin
 				var dialer = line;
 
 				var dialerLineOffset = lineOffset;
-				Debug.Console(2, "AddingDialerBRidge {0} {1} Offset", dialer.Key, dialerLineOffset);
-
+				Debug.Console(0, "AddingDialerBridge {0} {1} Offset", dialer.Key, dialerLineOffset);
+				
 				// from SiMPL > to Plugin
 				trilist.SetSigTrueAction((joinMap.Keypad0 + dialerLineOffset), () => DspDevice.Dialers[dialer.Key].SendKeypad(QscDspDialer.EKeypadKeys.Num0));
 				trilist.SetSigTrueAction((joinMap.Keypad1 + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Num1));
@@ -183,7 +185,7 @@ namespace QscQsysDspPlugin
 		public uint EndCall { get; set; }
 
 		public QscDspDeviceJoinMap()
-		{			
+		{
 			IsOnline = 1;				// digitial single feedback
 			Presets = 100;				// digital array input, analog single input, serial array feedback			
 			ChannelVisible = 200;		// digital array feedback			
@@ -201,7 +203,7 @@ namespace QscQsysDspPlugin
 			Address = 1;				// serial single input
 			Prefix = 2;					// serial single input
 			ChannelName = 200;			// serial array feedback
-			
+
 			// dialer			
 			IncomingCall = 3100;		// digital single feedback
 			DialStringCmd = 3100;		// serial single input/feedback

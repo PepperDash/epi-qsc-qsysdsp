@@ -1,4 +1,5 @@
-﻿using PepperDash.Essentials.Devices.Common.DSP;
+﻿using System.Net;
+using PepperDash.Essentials.Devices.Common.DSP;
 
 namespace QscQsysDspPlugin
 {

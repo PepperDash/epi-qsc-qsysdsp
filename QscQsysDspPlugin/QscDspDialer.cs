@@ -221,10 +221,10 @@ namespace QscQsysDspPlugin
 		public void ParseSubscriptionMessage(string customName, string value)
 		{
 			// Check for valid subscription response
-			Debug.Console(1, "QscDialerTag {0} Response: '{1}'", customName, value);
+			Debug.Console(0, "ParseMessage customName: {0} value: '{1}'", customName, value);
 			if (customName == Tags.DialStringTag)
 			{
-				Debug.Console(2, "QscDialerTag DialStringChanged ", value);
+				Debug.Console(0, "ParseMessage customName: {0} == Tags.DialStringTag: {1} | value: {2}", customName, Tags.DialStringTag, value);
 				DialString = value;
 				DialStringFeedback.FireUpdate();
 			}
