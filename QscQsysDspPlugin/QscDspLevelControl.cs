@@ -153,7 +153,9 @@ namespace QscQsysDspPlugin
 		{
 			// Check for valid subscription response
 			Debug.Console(1, this, "Level {0} Response: '{1}'", customName, value);
-			if (!String.IsNullOrEmpty(MuteInstanceTag) && customName == MuteInstanceTag)
+			if (
+                !String.IsNullOrEmpty(MuteInstanceTag) 
+                && customName.Equals(MuteInstanceTag, StringComparison.OrdinalIgnoreCase))
 			{
 			    switch (value)
 			    {
@@ -171,7 +173,10 @@ namespace QscQsysDspPlugin
 
 			    MuteFeedback.FireUpdate();
 			}
-            else if (!String.IsNullOrEmpty(LevelInstanceTag) && customName == LevelInstanceTag && !UseAbsoluteValue)
+            else if (
+                !String.IsNullOrEmpty(LevelInstanceTag) 
+                && customName.Equals(LevelInstanceTag, StringComparison.OrdinalIgnoreCase) 
+                && !UseAbsoluteValue)
 			{
 				var parsedValue = Double.Parse(value);
 
@@ -181,7 +186,10 @@ namespace QscQsysDspPlugin
 
 				VolumeLevelFeedback.FireUpdate();
 			}
-			else if (!String.IsNullOrEmpty(LevelInstanceTag) && customName == LevelInstanceTag && UseAbsoluteValue)
+			else if (
+                !String.IsNullOrEmpty(LevelInstanceTag)
+                && customName.Equals(LevelInstanceTag, StringComparison.OrdinalIgnoreCase) 
+                && UseAbsoluteValue)
 			{
 
 				_volumeLevel = ushort.Parse(absoluteValue);
