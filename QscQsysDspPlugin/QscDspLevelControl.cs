@@ -153,33 +153,35 @@ namespace QscQsysDspPlugin
 		{
 			// Check for valid subscription response
 			Debug.Console(1, this, "Level {0} Response: '{1}'", customName, value);
-			if (customName == MuteInstanceTag)
+			if (!String.IsNullOrEmpty(MuteInstanceTag) && customName == MuteInstanceTag)
 			{
-				if (value == "muted")
-				{
-					_isMuted = true;
-					_muteIsSubscribed = true;
+			    switch (value)
+			    {
+			        case "true":
+			        case "muted":
+			            _isMuted = true;
+			            _muteIsSubscribed = true;
+			            break;
+			        case "false":
+			        case "unmuted":
+			            _isMuted = false;
+			            _muteIsSubscribed = true;
+			            break;
+			    }
 
-				}
-				else if (value == "unmuted")
-				{
-					_isMuted = false;
-					_muteIsSubscribed = true;
-				}
-
-				MuteFeedback.FireUpdate();
+			    MuteFeedback.FireUpdate();
 			}
-			else if (customName == LevelInstanceTag && !UseAbsoluteValue)
+            else if (!String.IsNullOrEmpty(LevelInstanceTag) && customName == LevelInstanceTag && !UseAbsoluteValue)
 			{
-				var _value = Double.Parse(value);
+				var parsedValue = Double.Parse(value);
 
-				_volumeLevel = (ushort)(_value * 65535);
+                _volumeLevel = (ushort)(parsedValue * 65535);
 				Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", customName, _volumeLevel);
 				_levelIsSubscribed = true;
 
 				VolumeLevelFeedback.FireUpdate();
 			}
-			else if (customName == LevelInstanceTag && UseAbsoluteValue)
+			else if (!String.IsNullOrEmpty(LevelInstanceTag) && customName == LevelInstanceTag && UseAbsoluteValue)
 			{
 
 				_volumeLevel = ushort.Parse(absoluteValue);
