@@ -19,6 +19,7 @@ namespace QscQsysDspPlugin
 		public ePdtLevelTypes Type;
 		CTimer _volumeUpRepeatTimer;
 		CTimer _volumeDownRepeatTimer;
+	    private readonly QscDsp _parent;
 
 		/// <summary>
 		/// Used for to identify level subscription values
@@ -85,7 +86,10 @@ namespace QscQsysDspPlugin
 		public QscDspLevelControl(string key, QscDspLevelControlBlockConfig config, QscDsp parent)
 			: base(config.LevelInstanceTag, config.MuteInstanceTag, parent)
 		{
-			if (config.Disabled) return;
+		    _parent = parent;
+		    if (config.Disabled) 
+                return;
+
 			Initialize(key, config);
 		}
 
@@ -115,6 +119,16 @@ namespace QscQsysDspPlugin
 			HasMute = config.HasMute;
 			HasLevel = config.HasLevel;
 			UseAbsoluteValue = config.UseAbsoluteValue;
+
+            var poll = new CTimer(o =>
+            {
+                if (!String.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
+                    _parent.SendLine(String.Format("cg {0}", config.LevelInstanceTag));
+
+                if (!String.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
+                    _parent.SendLine(String.Format("cg {0}", config.MuteInstanceTag));
+            },
+            10000);
 		}
 
 		/// <summary>
