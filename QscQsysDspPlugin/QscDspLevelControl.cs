@@ -90,6 +90,21 @@ namespace QscQsysDspPlugin
 		    if (config.Disabled) 
                 return;
 
+		    parent.CommunicationMonitor.IsOnlineFeedback.OutputChange += (sender, args) =>
+		        {
+		            if (!args.BoolValue)
+		                return;
+
+                    CrestronInvoke.BeginInvoke(o =>
+		                {
+		                    if (!String.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
+		                        _parent.SendLine(String.Format("cg {0}", config.LevelInstanceTag));
+
+		                    if (!String.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
+		                        _parent.SendLine(String.Format("cg {0}", config.MuteInstanceTag));
+		                });
+		        };
+
 			Initialize(key, config);
 		}
 
@@ -120,15 +135,7 @@ namespace QscQsysDspPlugin
 			HasLevel = config.HasLevel;
 			UseAbsoluteValue = config.UseAbsoluteValue;
 
-            var poll = new CTimer(o =>
-            {
-                if (!String.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
-                    _parent.SendLine(String.Format("cg {0}", config.LevelInstanceTag));
-
-                if (!String.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
-                    _parent.SendLine(String.Format("cg {0}", config.MuteInstanceTag));
-            },
-            10000);
+            
 		}
 
 		/// <summary>
