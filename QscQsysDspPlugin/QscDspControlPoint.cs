@@ -1,4 +1,6 @@
-﻿using PepperDash.Essentials.Devices.Common.DSP;
+﻿using System;
+using Crestron.SimplSharp;
+using PepperDash.Essentials.Devices.Common.DSP;
 
 namespace QscQsysDspPlugin
 {
@@ -22,7 +24,7 @@ namespace QscQsysDspPlugin
 		{
 			LevelInstanceTag = levelInstanceTag;
 			MuteInstanceTag = muteInstanceTag;
-			Parent = parent;
+			Parent = parent; 
 		}
 
 		/// <summary>

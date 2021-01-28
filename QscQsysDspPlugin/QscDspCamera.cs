@@ -10,7 +10,7 @@ namespace QscQsysDspPlugin
 	/// <summary>
 	/// QSC DSP Camera class
 	/// </summary>
-	public class QscDspCamera : Device, IBridge
+	public class QscDspCamera : Device, IBridge, IOnline
 	{
 		QscDsp _Dsp;
 		public QscDspCameraConfig Config { get; private set; }
@@ -21,14 +21,13 @@ namespace QscQsysDspPlugin
 			set
 			{
 				this._Online = value;
-				OnlineFeedback.FireUpdate();
+				IsOnline.FireUpdate();
 			}
 			get
 			{
 				return this._Online;
 			}
 		}
-		public BoolFeedback OnlineFeedback;
 
 		/// <summary>
 		/// Constructor
@@ -42,7 +41,7 @@ namespace QscQsysDspPlugin
 		{
 			_Dsp = dsp;
 			Config = dc;
-			OnlineFeedback = new BoolFeedback(() => { return Online; });
+            IsOnline = new BoolFeedback(() => Online);
 			DeviceManager.AddDevice(this);
 
 		}
@@ -203,6 +202,8 @@ namespace QscQsysDspPlugin
 		}
 
 		#endregion
+
+	    public BoolFeedback IsOnline { get; private set; }
 	}
 
 	/// <summary>
