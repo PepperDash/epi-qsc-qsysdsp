@@ -24,7 +24,7 @@ namespace QscQsysDspPlugin
 	/// ! "publishToken":"name" "value":-77.0
 	/// ! "myLevelName" -77
 	/// </remarks>
-	public class QscDsp : ReconfigurableDevice, IBridge
+	public class QscDsp : ReconfigurableDevice, IBridge, IOnline, ICommunicationMonitor
 	{
 		/// <summary>
 		/// Loads plugin using the factory
@@ -62,7 +62,7 @@ namespace QscQsysDspPlugin
 		/// <summary>
 		/// Communication monitor object
 		/// </summary>
-		public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
+		public StatusMonitorBase CommunicationMonitor { get; private set; }
 
 		public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
 		public Dictionary<string, QscDspDialer> Dialers { get; set; }
@@ -90,7 +90,7 @@ namespace QscQsysDspPlugin
 		{
 			_Dc = dc;
 			var props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
-			Debug.Console(0, this, "Made it to device constructor");
+			Debug.Console(2, this, "Made it to device constructor");
 
 			CommandQueue = new CrestronQueue(100);
 			Communication = comm;
@@ -98,12 +98,13 @@ namespace QscQsysDspPlugin
 			if (socket != null)
 			{
 				// This instance uses IP control
-				socket.ConnectionChange += new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
+				socket.ConnectionChange += socket_ConnectionChange;
 			}
 			else
 			{
 				// This instance uses RS-232 control
 			}
+
 			PortGather = new CommunicationGather(Communication, "\x0a");
 			PortGather.LineReceived += this.Port_LineReceived;
 
@@ -123,10 +124,8 @@ namespace QscQsysDspPlugin
 		public override bool CustomActivate()
 		{
 			Communication.Connect();
-			CommunicationMonitor.StatusChange += (o, a) =>
-			{
-				Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
-			};
+			CommunicationMonitor.StatusChange += 
+                (o, a) => Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
 
 			CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
 			CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
@@ -135,8 +134,6 @@ namespace QscQsysDspPlugin
 
 		void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
 		{
-			Debug.Console(2, this, "Socket Status Change: {0}", e.Client.ClientStatus.ToString());
-
 			if (e.Client.IsConnected)
 			{
 				SubscribeToAttributes();
@@ -608,5 +605,7 @@ namespace QscQsysDspPlugin
 		}
 
 		#endregion
+
+	    public BoolFeedback IsOnline { get { return CommunicationMonitor.IsOnlineFeedback; } }
 	}
 }

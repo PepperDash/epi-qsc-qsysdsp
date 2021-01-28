@@ -27,7 +27,7 @@ namespace QscQsysDspPlugin
 			var comm = DspDevice as ICommunicationMonitor;
 
 			// from Plugin > to SiMPL
-			DspDevice.CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline]);
+			DspDevice.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline]);
 
 			// from SiMPL > to Plugin
 			trilist.SetStringSigAction(joinMap.Prefix, (s) => { DspDevice.SetPrefix(s); });

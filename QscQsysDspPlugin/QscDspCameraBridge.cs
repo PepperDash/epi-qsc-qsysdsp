@@ -25,7 +25,7 @@ namespace QscQsysDspPlugin
 			Debug.Console(1, camera, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
 			// from Plugin > to SiMPL
-			camera.OnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Online]);
+			camera.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.Online]);
 
 			// from SiMPL > to Plugin
 			// ternary: camera.MoveCamera(bool ? [bool == true, method to execute] : [bool == false, method to execute])
