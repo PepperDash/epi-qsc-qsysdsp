@@ -213,7 +213,7 @@ Update the configuration object as needed for the plugin being developed.
 	"dialerControlBlocks": {
 		"dialer-1": {
 			"ClearOnHangup": true,
-			"incomingCallRingerTag": "VOIP_RINGTRIG",
+			"incomingCallRingerTag": "VOIP_RINGING",
 			"dialStringTag": "VOIP_DIALSTRING",
 			"disconnectTag": "VOIP_DISCONNECT",
 			"connectTag": "VOIP_CONNECT",
@@ -318,13 +318,15 @@ Update the bridge configuration object as needed for the plugin being developed.
 The selection below documents the digital, analog, and serial joins used by the SiMPL EISC. Update the bridge join maps as needed for the plugin being developed.
 
 #### Digitals
-| dig-o (Input/Triggers)                | I/O | dig-i (Feedback) |
-|---------------------------------------|-----|------------------|
-|                                       | 1   | Is Online        |
-|                                       | 2   |                  |
-|                                       | 3   |                  |
-|                                       | 4   |                  |
-|                                       | 5   |                  |
+| dig-o (Input/Triggers)                | I/O  | dig-i (Feedback) |
+|---------------------------------------|----- |------------------|
+|                                       | 1    | Is Online        |
+|                                       | 2    |                  |
+|                                       | 3    |                  |
+|                                       | 4    |                  |
+|                                       | 5    |                  |
+| Incoming Call Accept                  | 3136 |                  |
+| Incoming Call Reject                  | 3137 |                  |
 
 #### Analogs
 | an_o (Input/Triggers) | I/O | an_i (Feedback) |

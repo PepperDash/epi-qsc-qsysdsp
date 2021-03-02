@@ -110,6 +110,8 @@ namespace QscQsysDspPlugin
 				trilist.SetSigTrueAction(joinMap.AutoAnswerOn + dialerLineOffset, () => dialer.Value.AutoAnswerOn());
 				trilist.SetSigTrueAction(joinMap.AutoAnswerOff + dialerLineOffset, () => dialer.Value.AutoAnswerOff());
 				trilist.SetSigTrueAction(joinMap.EndCall + dialerLineOffset, () => dialer.Value.EndAllCalls());
+				trilist.SetSigTrueAction(joinMap.IncomingCallAccept + dialerLineOffset, () => dialer.Value.AcceptCall());
+				trilist.SetSigTrueAction(joinMap.IncomingCallReject + dialerLineOffset, () => dialer.Value.RejectCall());
 
 				// from Plugin > to SiMPL
 				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbToggle + dialerLineOffset]);
@@ -181,6 +183,8 @@ namespace QscQsysDspPlugin
 		public uint ChannelVisible { get; set; }
 		public uint CallerIdNumberFb { get; set; }
 		public uint EndCall { get; set; }
+		public uint IncomingCallAccept { get; set; }
+		public uint IncomingCallReject { get; set; }
 
 		public QscDspDeviceJoinMap()
 		{
@@ -228,6 +232,8 @@ namespace QscQsysDspPlugin
 			OffHook = 3130;
 			OnHook = 3129;
 			CallerIdNumberFb = 3104;
+			IncomingCallAccept = 3136;
+			IncomingCallReject = 3137;
 		}
 
 		public override void OffsetJoinNumbers(uint joinStart)

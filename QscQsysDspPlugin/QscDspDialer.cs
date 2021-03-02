@@ -11,7 +11,7 @@ namespace QscQsysDspPlugin
 	/// <summary>
 	/// QSC DSP Dialer class
 	/// </summary>
-	public class QscDspDialer : IHasDialer
+	public class QscDspDialer : IHasDialer 
 	{
 		public QscDialerConfig Tags;
 		public bool IsInCall { get; private set; }
@@ -152,8 +152,13 @@ namespace QscQsysDspPlugin
 			else if (customName == Tags.CallStatusTag)
 			{
 				// TODO [ ] Add incoming call/ringing to parse subscription message
-				if (value.Contains("Ringing"))
+				if (value == "Incoming")
 				{
+					this.IncomingCall = true;
+				}
+				else if (value.Contains("Ringing"))
+				{
+					this.IncomingCall = false;
 					this.OffHook = true;
 					var splitString = value.Split(' ');
 					if (splitString.Count() >= 2)
@@ -173,6 +178,7 @@ namespace QscQsysDspPlugin
 				}
 				else if (value == "Disconnected")
 				{
+					this.IncomingCall = false;
 					this.OffHook = false;
 					CallerIdNumber = "";
 					if (Tags.ClearOnHangup)
@@ -182,6 +188,7 @@ namespace QscQsysDspPlugin
 				}
 				else if (value == "Idle")
 				{
+					this.IncomingCall = false;
 					this.OffHook = false;
 					CallerIdNumber = "";
 					if (Tags.ClearOnHangup)
@@ -326,14 +333,9 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void Dial()
 		{
-			if (!this.OffHook)
-			{
-				Parent.SendLine(string.Format("ct {0}", Tags.ConnectTag));
-			}
-			else
-			{
-				Parent.SendLine(string.Format("ct {0}", Tags.DisconnectTag));
-			}
+			Parent.SendLine(!this.OffHook
+				? string.Format("ct {0}", Tags.ConnectTag)		// !this.OffHook
+				: string.Format("ct {0}", Tags.DisconnectTag));	// this.OffHook
 			Thread.Sleep(50);
 			Parent.SendLine(string.Format("cg {0}", Tags.CallStatusTag));
 		}
@@ -366,21 +368,49 @@ namespace QscQsysDspPlugin
 		}
 
 		/// <summary>
-		/// Accepts the incoming call
+		/// Accepts incoming call
+		/// </summary>
+		public void AcceptCall()
+		{
+			this.IncomingCall = false;
+			Parent.SendLine(string.Format("ct {0}", Tags.ConnectTag));
+			Thread.Sleep(50);
+			Parent.SendLine(string.Format("cg {0}", Tags.HookStatusTag));
+		}
+
+		/// <summary>
+		/// Accepts the incoming call overload
 		/// </summary>
 		/// <param name="item">Use "", use of CodecActiveCallItem is not implemented</param>
 		public void AcceptCall(CodecActiveCallItem item)
 		{
-			throw new NotImplementedException();
+			this.IncomingCall = false;
+			Parent.SendLine(string.Format("ct {0}", Tags.ConnectTag));
+			Thread.Sleep(50);
+			Parent.SendLine(string.Format("cg {0}", Tags.HookStatusTag));
 		}
 
 		/// <summary>
 		/// Rejects the incoming call
 		/// </summary>
+		public void RejectCall()
+		{
+			this.IncomingCall = false;
+			Parent.SendLine(string.Format("ct {0}", Tags.DisconnectTag));
+			Thread.Sleep(50);
+			Parent.SendLine(string.Format("cg {0}", Tags.HookStatusTag));
+		}
+
+		/// <summary>
+		/// Rejects the incoming call overload
+		/// </summary>
 		/// <param name="item"></param>
 		public void RejectCall(CodecActiveCallItem item)
 		{
-			throw new NotImplementedException();
+			this.IncomingCall = false;
+			Parent.SendLine(string.Format("ct {0}", Tags.DisconnectTag));
+			Thread.Sleep(50);
+			Parent.SendLine(string.Format("cg {0}", Tags.HookStatusTag));
 		}
 
 		/// <summary>
