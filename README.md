@@ -15,7 +15,7 @@ This is a direct port from BB Cloud repo, which has since been archived.  The fo
 Link to archived BB Cloud repo:
 https://bitbucket.org/Pepperdash_Products/archive-kpmg.qsc.dsp.epi/src/master/
 
-Please refer to QSC Q-Sys plugin developer for questions and issues or use the "Issues" tab above.
+Please use the "Issues" tab above to submitt bug reports or feature requests for the QSC Q-Sys plugin.
 
 ## Device Specific Information
 
@@ -309,7 +309,7 @@ Update the bridge configuration object as needed for the plugin being developed.
 			"key": "dsp-1-bridge",
 			"name": "QSC Q-Sys Essentials Plugin Bridge",
 			"group": "api",
-			"type": "eiscApi",
+			"type": "eiscApiAdvanced",
 			"properties": {
 				"control": {
 					"ipid": "1A",
@@ -347,7 +347,7 @@ When instantiating multiple dialers joins start @ 3100 and use digital/analog/se
 | Fader [n] Mute Off                    | 800 - 999   | Fader [n] Mute Off Feddback             |
 | Fader [n] Level Increment             | 1000 - 1199 |                                         |
 | Fader [n] Level Decrement             | 1200 - 1399 |                                         |
-|                                       | 3100        | Dialer Incoming Call Feedback           |
+|                                       | 3100        | Dialer 1 Incoming Call Feedback         |
 | Dialer 1 End Call                     | 3107        |                                         |
 | Dialer 1 Keypad 0                     | 3110        |                                         |
 | Dialer 1 Keypad 1                     | 3111        |                                         |

@@ -47,13 +47,7 @@
                             "autoReconnectIntervalMs": 5000
                         }
                     },
-                    "prefix": "",
-                    "sourceControlBlocks": {
-                        "sourceControl-1": {
-                            "label": "MainSourceSelector",
-                            "instanceTag": "NAMED_CONTROL"
-                        }
-                    },
+                    "prefix": "",                    
                     "levelControlBlocks": {
                         "fader-1": {
                             "label": "Room",
@@ -62,7 +56,9 @@
                             "disabled": false,
                             "hasLevel": true,
                             "hasMute": true,
-                            "isMic": false
+                            "isMic": false,
+                            "useAbsoluteValue": false,
+                            "unmuteOnVolChange": true
                         },
                         "fader-2": {
                             "label": "Program",
@@ -71,7 +67,9 @@
                             "disabled": false,
                             "hasLevel": true,
                             "hasMute": true,
-                            "isMic": false
+                            "isMic": false,
+                            "useAbsoluteValue": false,
+                            "unmuteOnVolChange": true
                         },
                         "fader-3": {
                             "label": "Speech",
@@ -80,7 +78,9 @@
                             "disabled": false,
                             "hasLevel": true,
                             "hasMute": true,
-                            "isMic": false
+                            "isMic": false,
+                            "useAbsoluteValue": false,
+                            "unmuteOnVolChange": true
                         },
                         "fader-4": {
                             "label": "Phone Call",
@@ -89,7 +89,9 @@
                             "disabled": false,
                             "hasLevel": true,
                             "hasMute": true,
-                            "isMic": false
+                            "isMic": false,
+                            "useAbsoluteValue": false,
+                            "unmuteOnVolChange": true
                         },
                         "fader-5": {
                             "label": "Video Call",
@@ -98,7 +100,9 @@
                             "disabled": false,
                             "hasLevel": true,
                             "hasMute": true,
-                            "isMic": false
+                            "isMic": false,
+                            "useAbsoluteValue": false,
+                            "unmuteOnVolChange": true
                         },
                         "fader-6": {
                             "label": "Privacy",
@@ -107,7 +111,9 @@
                             "disabled": false,
                             "hasLevel": false,
                             "hasMute": true,
-                            "isMic": true
+                            "isMic": true,
+                            "useAbsoluteValue": false,
+                            "unmuteOnVolChange": true
                         },
                         "fader-7": {
                             "label": "Wireless Mics",
@@ -116,7 +122,9 @@
                             "disabled": false,
                             "hasLevel": true,
                             "hasMute": true,
-                            "isMic": true
+                            "isMic": true,
+                            "useAbsoluteValue": false,
+                            "unmuteOnVolChange": true
                         },
                         "fader-8": {
                             "label": "Fader 8",
@@ -131,14 +139,17 @@
                             "disabled": true
                         },
                         "sourceControl-1": {
+                            "comment": "When using a fader for source selection you must include useAbsoluteValue:true",
                             "label": "Room A Audio",
                             "levelInstanceTag": "SOURCE_SELECT",
                             "disabled": false,
                             "hasLevel": true,
                             "hasMute": false,
-                            "isMiic": false
+                            "isMiic": false,
+                            "useAbsoluteValue": true,
+                            "unmuteOnVolChange": false
                         }
-                    },
+                    },                    
                     "presets": {
                         "preset-1": {
                             "label": "System On",
@@ -151,6 +162,12 @@
                         "preset-3": {
                             "label": "Default Levels",
                             "preset": "PRESETS 3 0"
+                        }
+                    },
+                    "sourceControlBlocks": {
+                        "sourceControl-1": {
+                            "label": "MainSourceSelector",
+                            "instanceTag": "NAMED_CONTROL"
                         }
                     },
                     "dialerControlBlocks": {
@@ -219,9 +236,9 @@
             {
                 "key": "dsp-1-bridge",
                 "uid": 4,
-                "name": "QSC Q-Sys DSP Essentials Plugin Bridge",
+                "name": "QSC Q-Sys DSP Essentials Plugin Bridge Advanced",
                 "group": "api",
-                "type": "eiscApi",
+                "type": "eiscApiAdvanced",
                 "properties": {
                     "control": {
                         "tcpSshProperties": {

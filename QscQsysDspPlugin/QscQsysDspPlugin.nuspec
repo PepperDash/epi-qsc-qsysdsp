@@ -3,7 +3,7 @@
   <metadata>
     <!-- Update ID with a plugin ID representative of the plugin being built-->
     <id>QscQsysDspPlugin</id>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <!-- Update Title with the plugin name that users will see-->
     <title>QSC Q-Sys DSP Plugin</title>
     <authors>PepperDash Technologies</authors>
