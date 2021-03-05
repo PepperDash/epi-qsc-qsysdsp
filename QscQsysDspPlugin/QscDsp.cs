@@ -146,6 +146,18 @@ namespace QscQsysDspPlugin
 			}
 		}
 
+        private string FormatTag(string prefix, string tag)
+        {
+            if (prefix == null)
+                prefix = "";
+            if (tag == null)
+                return null;
+            if(tag.Contains(" "))
+                return string.Format("\"{0}{1}\"", prefix, tag);
+            else
+                return string.Format("{0}{1}", prefix, tag);
+        }
+
 		public void CreateDspObjects()
 		{
 
@@ -166,8 +178,8 @@ namespace QscQsysDspPlugin
 				{
 					string key = string.Format("{0}{1}", prefix, block.Key);
 					var value = block.Value;
-					value.LevelInstanceTag = string.Format("{0}{1}", prefix, value.LevelInstanceTag);
-					value.MuteInstanceTag = string.Format("{0}{1}", prefix, value.MuteInstanceTag);
+                    value.LevelInstanceTag = FormatTag(prefix, value.LevelInstanceTag);
+					value.MuteInstanceTag = FormatTag(prefix, value.MuteInstanceTag);
 
 					this.LevelControlPoints.Add(key, new QscDspLevelControl(key, value, this));
 					Debug.Console(2, this, "Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key, value.LevelInstanceTag, value.MuteInstanceTag);
@@ -178,7 +190,7 @@ namespace QscQsysDspPlugin
 				foreach (KeyValuePair<string, QscDspPresets> preset in props.Presets)
 				{
 					var value = preset.Value;
-					value.Preset = string.Format("{0}{1}", prefix, value.Preset);
+                    value.Preset = FormatTag(prefix, value.Preset);
 					this.addPreset(value);
 					Debug.Console(2, this, "Added Preset {0} {1}", value.Label, value.Preset);
 				}
@@ -189,23 +201,21 @@ namespace QscQsysDspPlugin
 				{
 					var value = camera.Value;
 					var key = camera.Key;
-					if (prefix.Length > 0)
-					{
-						value.PanLeftTag = string.Format("{0}{1}", prefix, value.PanLeftTag);
-						value.PanRightTag = string.Format("{0}{1}", prefix, value.PanRightTag);
-						value.TiltUpTag = string.Format("{0}{1}", prefix, value.TiltUpTag);
-						value.TiltDownTag = string.Format("{0}{1}", prefix, value.TiltDownTag);
-						value.ZoomInTag = string.Format("{0}{1}", prefix, value.ZoomInTag);
-						value.ZoomOutTag = string.Format("{0}{1}", prefix, value.ZoomOutTag);
-						value.PresetBankTag = string.Format("{0}{1}", prefix, value.PresetBankTag);
-						value.Privacy = string.Format("{0}{1}", prefix, value.Privacy);
-						value.OnlineStatus = string.Format("{0}{1}", prefix, value.OnlineStatus);
-						foreach (var preset in value.Presets)
-						{
-							value.Presets[preset.Key].Bank = string.Format("{0}{1}", prefix, value.Presets[preset.Key].Bank);
-						}
 
+                    value.PanLeftTag = FormatTag(prefix, value.PanLeftTag);
+                    value.PanRightTag = FormatTag(prefix, value.PanRightTag);
+                    value.TiltUpTag = FormatTag(prefix, value.TiltUpTag);
+                    value.TiltDownTag = FormatTag(prefix, value.TiltDownTag);
+                    value.ZoomInTag = FormatTag(prefix, value.ZoomInTag);
+                    value.ZoomOutTag = FormatTag(prefix, value.ZoomOutTag);
+                    value.PresetBankTag = FormatTag(prefix, value.PresetBankTag);
+                    value.Privacy = FormatTag(prefix, value.Privacy);
+                    value.OnlineStatus = FormatTag(prefix, value.OnlineStatus);
+					foreach (var preset in value.Presets)
+					{
+                        value.Presets[preset.Key].Bank = FormatTag(prefix, value.Presets[preset.Key].Bank);
 					}
+
 					Cameras.Add(key, new QscDspCamera(this, key, key, value));
 					Debug.Console(2, this, "Added Camera {0}\n {1}", key, value);
 
@@ -218,28 +228,28 @@ namespace QscQsysDspPlugin
 					var value = dialerConfig.Value;
 					var key = dialerConfig.Key;
 					key = string.Format("{0}{1}", prefix, key);
-					value.AutoAnswerTag = string.Format("{0}{1}", prefix, value.AutoAnswerTag);
-					value.CallStatusTag = string.Format("{0}{1}", prefix, value.CallStatusTag);
-					value.ConnectTag = string.Format("{0}{1}", prefix, value.ConnectTag);
-					value.DialStringTag = string.Format("{0}{1}", prefix, value.DialStringTag);
-					value.DisconnectTag = string.Format("{0}{1}", prefix, value.DisconnectTag);
-					value.DoNotDisturbTag = string.Format("{0}{1}", prefix, value.DoNotDisturbTag);
-					value.HookStatusTag = string.Format("{0}{1}", prefix, value.HookStatusTag);
-					value.IncomingCallRingerTag = string.Format("{0}{1}", prefix, value.IncomingCallRingerTag);
-					value.Keypad0Tag = string.Format("{0}{1}", prefix, value.Keypad0Tag);
-					value.Keypad1Tag = string.Format("{0}{1}", prefix, value.Keypad1Tag);
-					value.Keypad2Tag = string.Format("{0}{1}", prefix, value.Keypad2Tag);
-					value.Keypad3Tag = string.Format("{0}{1}", prefix, value.Keypad3Tag);
-					value.Keypad4Tag = string.Format("{0}{1}", prefix, value.Keypad4Tag);
-					value.Keypad5Tag = string.Format("{0}{1}", prefix, value.Keypad5Tag);
-					value.Keypad6Tag = string.Format("{0}{1}", prefix, value.Keypad6Tag);
-					value.Keypad7Tag = string.Format("{0}{1}", prefix, value.Keypad7Tag);
-					value.Keypad8Tag = string.Format("{0}{1}", prefix, value.Keypad8Tag);
-					value.Keypad9Tag = string.Format("{0}{1}", prefix, value.Keypad9Tag);
-					value.KeypadBackspaceTag = string.Format("{0}{1}", prefix, value.KeypadBackspaceTag);
-					value.KeypadClearTag = string.Format("{0}{1}", prefix, value.KeypadClearTag);
-					value.KeypadPoundTag = string.Format("{0}{1}", prefix, value.KeypadPoundTag);
-					value.KeypadStarTag = string.Format("{0}{1}", prefix, value.KeypadStarTag);
+                    value.AutoAnswerTag = FormatTag(prefix, value.AutoAnswerTag);
+                    value.CallStatusTag = FormatTag(prefix, value.CallStatusTag);
+                    value.ConnectTag = FormatTag(prefix, value.ConnectTag);
+                    value.DialStringTag = FormatTag(prefix, value.DialStringTag);
+                    value.DisconnectTag = FormatTag(prefix, value.DisconnectTag);
+                    value.DoNotDisturbTag = FormatTag(prefix, value.DoNotDisturbTag);
+                    value.HookStatusTag = FormatTag(prefix, value.HookStatusTag);
+                    value.IncomingCallRingerTag = FormatTag(prefix, value.IncomingCallRingerTag);
+                    value.Keypad0Tag = FormatTag(prefix, value.Keypad0Tag);
+                    value.Keypad1Tag = FormatTag(prefix, value.Keypad1Tag);
+                    value.Keypad2Tag = FormatTag(prefix, value.Keypad2Tag);
+                    value.Keypad3Tag = FormatTag(prefix, value.Keypad3Tag);
+                    value.Keypad4Tag = FormatTag(prefix, value.Keypad4Tag);
+                    value.Keypad5Tag = FormatTag(prefix, value.Keypad5Tag);
+                    value.Keypad6Tag = FormatTag(prefix, value.Keypad6Tag);
+                    value.Keypad7Tag = FormatTag(prefix, value.Keypad7Tag);
+                    value.Keypad8Tag = FormatTag(prefix, value.Keypad8Tag);
+                    value.Keypad9Tag = FormatTag(prefix, value.Keypad9Tag);
+                    value.KeypadBackspaceTag = FormatTag(prefix, value.KeypadBackspaceTag);
+                    value.KeypadClearTag = FormatTag(prefix, value.KeypadClearTag);
+                    value.KeypadPoundTag = FormatTag(prefix, value.KeypadPoundTag);
+                    value.KeypadStarTag = FormatTag(prefix, value.KeypadStarTag);
 					this.Dialers.Add(key, new QscDspDialer(value, this));
 					Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
 
