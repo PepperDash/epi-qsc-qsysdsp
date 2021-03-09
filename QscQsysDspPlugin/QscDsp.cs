@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
@@ -405,9 +407,9 @@ namespace QscQsysDspPlugin
 				}
 				else if (args.Text.IndexOf("cv") > -1)
 				{
-					var changeMessage = args.Text.Split(null);
+                    var changeMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");   //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
 
-					string changedInstance = changeMessage[1].Replace("\"", "");
+					string changedInstance = changeMessage[1];
 					Debug.Console(1, this, "cv parse Instance: {0}", changedInstance);
 					bool foundItFlag = false;
 					foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
@@ -432,7 +434,6 @@ namespace QscQsysDspPlugin
 						foreach (var dialer in Dialers)
 						{
 							PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
-							//GetPropertyValues(Tags);
 							foreach (var prop in properties)
 							{
 								var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
