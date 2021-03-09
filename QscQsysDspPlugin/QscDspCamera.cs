@@ -58,7 +58,7 @@ namespace QscQsysDspPlugin
 			{
 				case eCameraPtzControls.Stop:
 					{
-						var cmdToSend = string.Format("csv {0} 0", LastCmd);
+                        var cmdToSend = string.Format("csv \"{0}\" 0", LastCmd);
 						_Dsp.SendLine(cmdToSend);
 						break;
 					}
@@ -73,7 +73,7 @@ namespace QscQsysDspPlugin
 			}
 			if (tag != null)
 			{
-				var cmdToSend = string.Format("csv {0} 1", tag);
+                var cmdToSend = string.Format("csv \"{0}\" 1", tag);
 				LastCmd = tag;
 				_Dsp.SendLine(cmdToSend);
 
@@ -85,7 +85,7 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void PrivacyOn()
 		{
-			var cmdToSend = string.Format("csv {0} 1", Config.Privacy);
+            var cmdToSend = string.Format("csv \"{0}\" 1", Config.Privacy);
 			_Dsp.SendLine(cmdToSend);
 		}
 
@@ -94,7 +94,7 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void PrivacyOff()
 		{
-			var cmdToSend = string.Format("csv {0} 0", Config.Privacy);
+            var cmdToSend = string.Format("csv \"{0}\" 0", Config.Privacy);
 			_Dsp.SendLine(cmdToSend);
 		}
 
@@ -154,7 +154,7 @@ namespace QscQsysDspPlugin
 				// Do subscriptions and blah blah
 				if (Config.OnlineStatus != null)
 				{
-					var cmd = string.Format("cga {0} {1}", 1, Config.OnlineStatus);
+                    var cmd = string.Format("cga 1 \"{0}\"", Config.OnlineStatus);
 					_Dsp.SendLine(cmd);
 				}
 			}

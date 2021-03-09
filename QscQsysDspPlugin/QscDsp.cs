@@ -154,8 +154,6 @@ namespace QscQsysDspPlugin
                 prefix = "";
             if (tag == null)
                 return null;
-            if(tag.Contains(" "))
-                return string.Format("\"{0}{1}\"", prefix, tag);
             else
                 return string.Format("{0}{1}", prefix, tag);
         }
@@ -409,19 +407,19 @@ namespace QscQsysDspPlugin
 				{
                     var changeMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");   //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
 
-					string changedInstance = changeMessage[1];
+                    string changedInstance = changeMessage[1].Replace("\"", "");
 					Debug.Console(1, this, "cv parse Instance: {0}", changedInstance);
 					bool foundItFlag = false;
 					foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
 					{
-						if (changedInstance == controlPoint.Value.LevelInstanceTag)
+                        if (changedInstance == controlPoint.Value.LevelInstanceTag)
 						{
 							controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[4], changeMessage[3]);
 							foundItFlag = true;
 							return;
 						}
 
-						else if (changedInstance == controlPoint.Value.MuteInstanceTag)
+                        else if (changedInstance == controlPoint.Value.MuteInstanceTag)
 						{
 							controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""), null);
 							foundItFlag = true;
@@ -437,7 +435,7 @@ namespace QscQsysDspPlugin
 							foreach (var prop in properties)
 							{
 								var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
-								if (changedInstance == propValue)
+                                if (changedInstance == propValue)
 								{
 									if (changeMessage[2].Contains("Dialing") || changeMessage[2].Contains("Connected"))
 									{

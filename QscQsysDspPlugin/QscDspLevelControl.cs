@@ -98,10 +98,10 @@ namespace QscQsysDspPlugin
                     CrestronInvoke.BeginInvoke(o =>
 		                {
 		                    if (!String.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
-		                        _parent.SendLine(String.Format("cg {0}", config.LevelInstanceTag));
+                                _parent.SendLine(String.Format("cg \"{0}\"", config.LevelInstanceTag));
 
 		                    if (!String.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
-		                        _parent.SendLine(String.Format("cg {0}", config.MuteInstanceTag));
+                                _parent.SendLine(String.Format("cg \"{0}\"", config.MuteInstanceTag));
 		                });
 		        };
 
@@ -147,19 +147,13 @@ namespace QscQsysDspPlugin
 			// Subscribe to mute
 			if (this.HasMute)
 			{
-
-				SendSubscriptionCommand(this.MuteInstanceTag, "1");
-				// SendSubscriptionCommand(config. , "mute", 500);
+				SendSubscriptionCommand(this.MuteInstanceTag);
 			}
 
 			// Subscribe to level
-			if (this.HasLevel)
-			{
+			if (this.HasLevel)			{
 
-				SendSubscriptionCommand(this.LevelInstanceTag, "1");
-				// SendSubscriptionCommand(this.con, "level", 250);
-				//SendFullCommand("get", "minLevel", null);
-				//SendFullCommand("get", "maxLevel", null);
+				SendSubscriptionCommand(this.LevelInstanceTag);
 			}
 		}
 
