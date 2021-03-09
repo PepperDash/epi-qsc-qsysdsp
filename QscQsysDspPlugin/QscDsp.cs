@@ -190,7 +190,7 @@ namespace QscQsysDspPlugin
 				foreach (KeyValuePair<string, QscDspPresets> preset in props.Presets)
 				{
 					var value = preset.Value;
-                    value.Preset = FormatTag(prefix, value.Preset);
+                    value.Preset = string.Format("{0}{1}", prefix, value.Preset);
 					this.addPreset(value);
 					Debug.Console(2, this, "Added Preset {0} {1}", value.Label, value.Preset);
 				}
