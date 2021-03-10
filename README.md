@@ -154,7 +154,7 @@ Update the configuration object as needed for the plugin being developed.
 			"disabled": false,
 			"hasLevel": true,
 			"hasMute": false,
-			"isMiic": false,
+			"isMic": false,
 			"useAbsoluteValue": true,
 		}
 	}
@@ -163,6 +163,8 @@ Update the configuration object as needed for the plugin being developed.
 
 
 ### Plugin Preset Configuration Object
+Presets can be handled two ways:
+1) Point directly to the snapshot name using the first method below. This will not provide feedback.
 
 ```json
 "properties": {
@@ -181,6 +183,24 @@ Update the configuration object as needed for the plugin being developed.
 		}
 	}
 }
+```
+
+2) Another option is to give each preset a named control in the DSP. This is done on the QSC side by opening the snapshot component and giving the "Preset Recall" button a named control. This allows for true and half-state feedback. Half-state feedback is when the preset was the last recalled preset in the grouping but the DSP state no longer matches the preset state. To define presets in this manner use the following config object. Note it is placed with the level control blocks.
+
+To control from SIMPL, use the analog level input and output on the object. Triggering any analog value above 0 will active the preset. Feedback is 0=inactive, 1=half-state, 2=active.
+
+```
+    "levelControlBlocks": 
+    {
+	"preset-1": 
+	{
+	    "label": "Default Levels",
+	    "levelInstanceTag": "DEFAULT",
+	    "disabled": false,
+	    "hasLevel": true,
+	    "useAbsoluteValue": true
+	}
+    }
 ```
 
 ### Plugin Dialer Control Blocks
