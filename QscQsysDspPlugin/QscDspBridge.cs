@@ -48,6 +48,7 @@ namespace QscQsysDspPlugin
 
 					// from Plugin > to SiMPL
 					genericChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.ChannelMuteToggle + x]);
+					genericChannel.MuteFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.ChannelMuteOff + x]);
 					genericChannel.VolumeLevelFeedback.LinkInputSig(trilist.UShortInput[joinMap.ChannelVolume + x]);
 
 					// from SiMPL > to Plugin
