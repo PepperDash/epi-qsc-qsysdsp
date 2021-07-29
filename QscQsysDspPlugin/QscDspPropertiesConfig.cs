@@ -80,7 +80,7 @@ namespace QscQsysDspPlugin
 	///		}
 	/// }
 	/// </code>
-	public class QscDspPresets
+	public class QscDspPresets : IDspPreset
 	{
 		// backer field
 		private string _label;
@@ -111,13 +111,19 @@ namespace QscQsysDspPlugin
 		[JsonProperty("labelFeedback")]
 		public StringFeedback LabelFeedback;
 
-		/// <summary>
+	    /// <summary>
 		/// Constructor
 		/// </summary>
 		public QscDspPresets()
 		{
-			LabelFeedback = new StringFeedback(() => { return Label; });
+            LabelFeedback = new StringFeedback(() => _label);
 		}
+
+        [JsonIgnore]
+	    public string Name
+	    {
+            get { return Preset; }
+	    }
 	}
 
 	/// <summary>

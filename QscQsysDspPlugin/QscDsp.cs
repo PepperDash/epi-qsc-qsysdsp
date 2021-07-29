@@ -26,7 +26,7 @@ namespace QscQsysDspPlugin
 	/// ! "publishToken":"name" "value":-77.0
 	/// ! "myLevelName" -77
 	/// </remarks>
-	public class QscDsp : ReconfigurableDevice, IBridge, IOnline, ICommunicationMonitor
+	public class QscDsp : ReconfigurableDevice, IBridge, IOnline, ICommunicationMonitor, IHasDspPresets
 	{
 		/// <summary>
 		/// Loads plugin using the factory
@@ -69,7 +69,7 @@ namespace QscQsysDspPlugin
 		public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
 		public Dictionary<string, QscDspDialer> Dialers { get; set; }
 		public Dictionary<string, QscDspCamera> Cameras { get; set; }
-		public List<QscDspPresets> PresetList = new List<QscDspPresets>();
+        public List<QscDspPresets> PresetList = new List<QscDspPresets>();
 
 		DeviceConfig _Dc;
 
@@ -77,7 +77,7 @@ namespace QscQsysDspPlugin
 
 		bool CommandQueueInProgress = false;
 		uint HeartbeatTracker = 0;
-		public bool ShowHexResponse { get; set; }
+	    public bool ShowHexResponse { get; set; }
 		
 		
 		/// <summary>
@@ -600,5 +600,15 @@ namespace QscQsysDspPlugin
 		#endregion
 
 	    public BoolFeedback IsOnline { get { return CommunicationMonitor.IsOnlineFeedback; } }
+
+	    public void RecallPreset(IDspPreset preset)
+	    {
+	        RunPreset(preset.Name);
+	    }
+
+	    public List<IDspPreset> Presets
+	    {
+	        get { return PresetList.Cast<IDspPreset>().ToList(); }
+	    }
 	}
 }
