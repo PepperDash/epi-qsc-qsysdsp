@@ -71,13 +71,39 @@ namespace QscQsysDspPlugin
 		public Dictionary<string, QscDspCamera> Cameras { get; set; }
 		public List<QscDspPresets> PresetList = new List<QscDspPresets>();
 
+        public BoolFeedback IsPrimaryFeedback;
+        public BoolFeedback IsActiveFeedback;
+
 		DeviceConfig _Dc;
 
 		CrestronQueue CommandQueue;
 
 		bool CommandQueueInProgress = false;
+        bool _IsPrimary;
+        public bool IsPrimary
+        {
+            get { return _IsPrimary; }
+            private set
+            {
+                _IsPrimary = value;
+                IsPrimaryFeedback.FireUpdate();
+            }
+        }
+
+        bool _IsActive;
+        public bool IsActive
+        {
+            get { return _IsActive; }
+            private set
+            {
+                _IsActive = value;
+                IsActiveFeedback.FireUpdate();
+            }
+        }
 		uint HeartbeatTracker = 0;
 		public bool ShowHexResponse { get; set; }
+
+        public string DspName { get; private set; }
 		
 		
 		/// <summary>
@@ -96,6 +122,9 @@ namespace QscQsysDspPlugin
 
 			CommandQueue = new CrestronQueue(100);
 			Communication = comm;
+
+            DspName = name;
+
 			var socket = comm as ISocketStatus;
 			if (socket != null)
 			{
@@ -112,6 +141,11 @@ namespace QscQsysDspPlugin
 
 			// Custom monitoring, will check the heartbeat tracker count every 20s and reset. Heartbeat sbould be coming in every 20s if subscriptions are valid
 			CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000, CheckSubscriptions);
+
+            // Failover feedback, IsPrimary - will indicate dsp is either standalone or primary Core of a redundant pair
+            // IsActive - indicates this core is the active unit of a redundant pair.
+            IsPrimaryFeedback = new BoolFeedback(() => IsPrimary);
+            IsActiveFeedback = new BoolFeedback(() => IsActive);
 
 			LevelControlPoints = new Dictionary<string, QscDspLevelControl>();
 			Dialers = new Dictionary<string, QscDspDialer>();
@@ -311,6 +345,15 @@ namespace QscQsysDspPlugin
 			}
 		}
 
+        /// <summary>
+        /// Issue a Status Get ("sg") to Core.
+        /// </summary>
+        /// <param name="prefix">string</param>
+        public void StatusGet(bool enable)
+        {
+            if (enable) SendLine("sg");
+        }
+
 		/// <summary>
 		/// Writes the config
 		/// </summary>
@@ -402,6 +445,19 @@ namespace QscQsysDspPlugin
 				}
 				if (args.Text.IndexOf("sr ") > -1)
 				{
+                    Debug.Console(1, this, "Status Response received");
+
+                    var statusMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");   //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
+                    
+                    if (statusMessage.Length != 5) return;
+
+                   
+
+                    IsPrimary = statusMessage[3].Contains("1") ? true : false;
+                    IsActive = statusMessage[4].Contains("1") ? true : false;
+
+                    Debug.Console(1, this, "IsPrimary = {0}{1}:: IsActive = {2}{3}", statusMessage[3], IsPrimary, statusMessage[4], IsActive);
+
 				}
 				else if (args.Text.IndexOf("cv") > -1)
 				{
@@ -482,6 +538,13 @@ namespace QscQsysDspPlugin
 			}
 
 		}
+
+        public void ProcessSimulatedRx(string s)
+        {
+            GenericCommMethodReceiveTextArgs args = new GenericCommMethodReceiveTextArgs(s);
+            
+            Port_LineReceived(this, args);
+        }
 
 		/// <summary>
 		/// Sends a command to the DSP (with delimiter appended)
