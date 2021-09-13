@@ -10,12 +10,15 @@ namespace QscQsysDspPlugin
 		bool _isMuted;
 		ushort _volumeLevel;
 
+        const ushort _rampResetTime = 250;
+
 		public BoolFeedback MuteFeedback { get; private set; }
 
 		public IntFeedback VolumeLevelFeedback { get; private set; }
 
 		public bool Enabled { get; set; }
 		public bool UseAbsoluteValue { get; set; }
+
 		public ePdtLevelTypes Type;
 		CTimer _volumeUpRepeatTimer;
 		CTimer _volumeDownRepeatTimer;
@@ -289,7 +292,7 @@ namespace QscQsysDspPlugin
 		{
 			if (press)
 			{
-				_volumeDownRepeatTimer.Reset(100);
+                _volumeDownRepeatTimer.Reset(_rampResetTime);
 				SendFullCommand("css ", this.LevelInstanceTag, "--");
 			}
 			else
@@ -307,7 +310,7 @@ namespace QscQsysDspPlugin
 		{
 			if (press)
 			{
-				_volumeUpRepeatTimer.Reset(100);
+                _volumeUpRepeatTimer.Reset(_rampResetTime);
 				SendFullCommand("css ", this.LevelInstanceTag, "++");
 
 				if (AutomaticUnmuteOnVolumeUp && !_isMuted) MuteOff();
