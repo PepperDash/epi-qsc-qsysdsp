@@ -10,7 +10,7 @@ namespace QscQsysDspPlugin
 		bool _isMuted;
 		ushort _volumeLevel;
 
-        const ushort _rampResetTime = 250;
+        const ushort _rampResetTime = 100;
 
 		public BoolFeedback MuteFeedback { get; private set; }
 
@@ -307,7 +307,7 @@ namespace QscQsysDspPlugin
 			{
                 _volumeRampTracker = false;
 				_volumeDownRepeatTimer.Stop();
-                _volumeRampDelay.Reset(500);
+                _volumeRampDelay.Reset(200);
 				// VolumeDownRepeatTimer.Dispose();
 			}
 		}
