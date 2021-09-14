@@ -345,7 +345,14 @@ namespace QscQsysDspPlugin
 		/// <param name="number">Number to dial</param>
 		public void Dial(string number)
 		{
-			throw new NotImplementedException();
+            if (number.Length == 0) return;
+
+            Parent.SendLine(string.Format("css \"{0}\" \"{1}\"",Tags.DialStringTag, number));
+            Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
+            Thread.Sleep(50);
+            Parent.SendLine(string.Format("cg \"{0}\"", Tags.CallStatusTag));
+
+			//throw new NotImplementedException();
 		}
 
 		/// <summary>

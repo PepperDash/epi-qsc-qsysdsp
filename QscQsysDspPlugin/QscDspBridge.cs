@@ -124,6 +124,9 @@ namespace QscQsysDspPlugin
 				trilist.SetSigTrueAction(joinMap.IncomingCallAccept + dialerLineOffset, () => dialer.Value.AcceptCall());
 				trilist.SetSigTrueAction(joinMap.IncomingCallReject + dialerLineOffset, () => dialer.Value.RejectCall());
 
+                // from SIMPL > to Plugin
+                trilist.SetStringSigAction(joinMap.DialStringCmd + dialerLineOffset, directDialString => dialer.Value.Dial(directDialString));
+
 				// from Plugin > to SiMPL
 				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbToggle + dialerLineOffset]);
 				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbOn + dialerLineOffset]);
