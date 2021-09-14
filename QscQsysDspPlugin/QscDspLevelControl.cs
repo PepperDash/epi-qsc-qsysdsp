@@ -22,7 +22,10 @@ namespace QscQsysDspPlugin
 		public ePdtLevelTypes Type;
 		CTimer _volumeUpRepeatTimer;
 		CTimer _volumeDownRepeatTimer;
+        CTimer _volumeRampDelay;
 	    private readonly QscDsp _parent;
+
+        bool _volumeRampTracker;
 
 		/// <summary>
 		/// Used for to identify level subscription values
@@ -133,6 +136,8 @@ namespace QscQsysDspPlugin
 
 			_volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
 			_volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
+
+            _volumeRampDelay = new CTimer(VolumeRampStop, Timeout.Infinite);
 			LevelCustomName = config.Label;
 			HasMute = config.HasMute;
 			HasLevel = config.HasLevel;
@@ -292,12 +297,17 @@ namespace QscQsysDspPlugin
 		{
 			if (press)
 			{
+                _volumeRampTracker = true;
+                _volumeUpRepeatTimer.Stop();
+
                 _volumeDownRepeatTimer.Reset(_rampResetTime);
 				SendFullCommand("css ", this.LevelInstanceTag, "--");
 			}
 			else
 			{
+                _volumeRampTracker = false;
 				_volumeDownRepeatTimer.Stop();
+                _volumeRampDelay.Reset(500);
 				// VolumeDownRepeatTimer.Dispose();
 			}
 		}
@@ -310,6 +320,9 @@ namespace QscQsysDspPlugin
 		{
 			if (press)
 			{
+                _volumeRampTracker = true;
+                _volumeDownRepeatTimer.Stop();
+
                 _volumeUpRepeatTimer.Reset(_rampResetTime);
 				SendFullCommand("css ", this.LevelInstanceTag, "++");
 
@@ -317,9 +330,19 @@ namespace QscQsysDspPlugin
 			}
 			else
 			{
+                _volumeRampTracker = false;
 				_volumeUpRepeatTimer.Stop();
+                _volumeRampDelay.Reset(500);
 			}
 		}
+
+        public void VolumeRampStop(object callbackObject)
+        {
+            if (_volumeRampTracker == true) return;
+
+            _volumeUpRepeatTimer.Stop();
+            _volumeDownRepeatTimer.Stop();
+        }
 		
 		/// <summary>
 		/// Scales the input provided
