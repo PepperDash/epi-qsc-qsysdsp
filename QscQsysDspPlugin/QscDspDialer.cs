@@ -345,7 +345,76 @@ namespace QscQsysDspPlugin
 		/// <param name="number">Number to dial</param>
 		public void Dial(string number)
 		{
-			throw new NotImplementedException();
+            if (string.IsNullOrEmpty(number))
+                return;
+
+            SendKeypad(EKeypadKeys.Clear);
+		    foreach (var digit in number)
+		    {
+		        switch (digit)
+		        {
+		            case '0':
+		            {
+		                SendKeypad(EKeypadKeys.Num0);
+		                break;
+		            }
+                    case '1':
+                    {
+                        SendKeypad(EKeypadKeys.Num1);
+                        break;
+                    }
+                    case '2':
+                    {
+                        SendKeypad(EKeypadKeys.Num2);
+                        break;
+                    }
+                    case '3':
+                    {
+                        SendKeypad(EKeypadKeys.Num3);
+                        break;
+                    }
+                    case '4':
+                    {
+                        SendKeypad(EKeypadKeys.Num4);
+                        break;
+                    }
+                    case '5':
+                    {
+                        SendKeypad(EKeypadKeys.Num5);
+                        break;
+                    }
+                    case '6':
+                    {
+                        SendKeypad(EKeypadKeys.Num6);
+                        break;
+                    }
+                    case '7':
+                    {
+                        SendKeypad(EKeypadKeys.Num7);
+                        break;
+                    }
+                    case '8':
+                    {
+                        SendKeypad(EKeypadKeys.Num8);
+                        break;
+                    }
+                    case '9':
+                    {
+                        SendKeypad(EKeypadKeys.Num9);
+                        break;
+                    }
+                    case '#':
+                    {
+                        SendKeypad(EKeypadKeys.Pound);
+                        break;
+                    }
+                    case '*':
+                    {
+                        SendKeypad(EKeypadKeys.Star);
+                        break;
+                    }
+		        }
+		    }
 		}
 
 		/// <summary>

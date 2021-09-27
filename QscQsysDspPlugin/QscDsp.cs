@@ -78,6 +78,9 @@ namespace QscQsysDspPlugin
 		bool CommandQueueInProgress = false;
 		uint HeartbeatTracker = 0;
 		public bool ShowHexResponse { get; set; }
+
+	    private string _username;
+	    private string _password;
 		
 		
 		/// <summary>
@@ -117,18 +120,20 @@ namespace QscQsysDspPlugin
 			Dialers = new Dictionary<string, QscDspDialer>();
 			Cameras = new Dictionary<string, QscDspCamera>();
 			CreateDspObjects();
-		}
 
+		    DeviceManager.AllDevicesActivated += (sender, args) =>
+		    {
+		        if (comm != null)
+		            comm.Connect();
+		    };
+		}
+        
 		/// <summary>
 		/// CustomActivate Override
 		/// </summary>
 		/// <returns></returns>
 		public override bool CustomActivate()
 		{
-			Communication.Connect();
-			CommunicationMonitor.StatusChange += 
-                (o, a) => Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
-
 			CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
 			CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
 			return true;
@@ -162,6 +167,9 @@ namespace QscQsysDspPlugin
 		{
 
 			var props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(_Dc.Properties.ToString());
+
+		    _username = props.Control.TcpSshProperties.Username;
+		    _password = props.Control.TcpSshProperties.Password;
 
 			LevelControlPoints.Clear();
 			PresetList.Clear();
@@ -395,6 +403,18 @@ namespace QscQsysDspPlugin
 			Debug.Console(2, this, "RX: '{0}'", args.Text);
 			try
 			{
+			    if (args.Text.Contains("login_required"))
+			    {
+			        if (string.IsNullOrEmpty(_username) || string.IsNullOrEmpty(_password))
+			        {
+			            Debug.Console(0, this, "DEVICE REQUIRES LOGIN CREDENTIALS");
+			            return;
+			        }
+
+                    SendLine(String.Format("login \"{0}\" \"{1}\"", _username, _password));
+                    return;
+			    }
+
 				if (args.Text.EndsWith("cgpa\r"))
 				{
 					Debug.Console(1, this, "Found poll response");
