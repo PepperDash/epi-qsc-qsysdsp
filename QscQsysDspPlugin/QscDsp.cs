@@ -349,7 +349,7 @@ namespace QscQsysDspPlugin
 			}
 			else
 			{
-				Debug.Console(1, this, "Heartbeat okay");
+				Debug.Console(2, this, "Heartbeat okay");
 			}
 		}
 
@@ -400,7 +400,7 @@ namespace QscQsysDspPlugin
 		/// <param name="args"></param>
 		void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
 		{
-			Debug.Console(2, this, "RX: '{0}'", args.Text);
+			//Debug.Console(2, this, "RX: '{0}'", args.Text);
 			try
 			{
 			    if (args.Text.Contains("login_required"))
@@ -417,7 +417,7 @@ namespace QscQsysDspPlugin
 
 				if (args.Text.EndsWith("cgpa\r"))
 				{
-					Debug.Console(1, this, "Found poll response");
+					Debug.Console(2, this, "Found poll response");
 					HeartbeatTracker = 0;
 				}
 				if (args.Text.IndexOf("sr ") > -1)
@@ -428,7 +428,7 @@ namespace QscQsysDspPlugin
                     var changeMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");   //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
 
                     string changedInstance = changeMessage[1].Replace("\"", "");
-					Debug.Console(1, this, "cv parse Instance: {0}", changedInstance);
+					Debug.Console(2, this, "cv parse Instance: {0}", changedInstance);
 					bool foundItFlag = false;
 					foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
 					{
@@ -479,7 +479,7 @@ namespace QscQsysDspPlugin
 					{
 						foreach (var camera in Cameras)
 						{
-							Debug.Console(1, this, "DSP Camera Status Compare: {0} ==? {1}", changedInstance, camera.Value.Config.OnlineStatus);
+							Debug.Console(2, this, "DSP Camera Status Compare: {0} ==? {1}", changedInstance, camera.Value.Config.OnlineStatus);
 							if (changedInstance == camera.Value.Config.OnlineStatus)
 							{
 								camera.Value.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", ""), null);
@@ -509,7 +509,7 @@ namespace QscQsysDspPlugin
 		/// <param name="s">Command to send</param>
 		public void SendLine(string s)
 		{
-			Debug.Console(1, this, "TX: '{0}'", s);
+			//Debug.Console(1, this, "TX: '{0}'", s);
 			Communication.SendText(s + "\x0a");
 		}
 
