@@ -103,12 +103,9 @@ namespace QscQsysDspPlugin
 		uint HeartbeatTracker = 0;
 		public bool ShowHexResponse { get; set; }
 
-<<<<<<< HEAD
 	    private string _username;
 	    private string _password;
-=======
         public string DspName { get; private set; }
->>>>>>> 822be48d6a5da6310dc86e92fb3819e762b19708
 		
 		
 		/// <summary>

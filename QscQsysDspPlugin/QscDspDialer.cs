@@ -345,87 +345,13 @@ namespace QscQsysDspPlugin
 		/// <param name="number">Number to dial</param>
 		public void Dial(string number)
 		{
-<<<<<<< HEAD
             if (string.IsNullOrEmpty(number))
                 return;
-
-            SendKeypad(EKeypadKeys.Clear);
-		    foreach (var digit in number)
-		    {
-		        switch (digit)
-		        {
-		            case '0':
-		            {
-		                SendKeypad(EKeypadKeys.Num0);
-		                break;
-		            }
-                    case '1':
-                    {
-                        SendKeypad(EKeypadKeys.Num1);
-                        break;
-                    }
-                    case '2':
-                    {
-                        SendKeypad(EKeypadKeys.Num2);
-                        break;
-                    }
-                    case '3':
-                    {
-                        SendKeypad(EKeypadKeys.Num3);
-                        break;
-                    }
-                    case '4':
-                    {
-                        SendKeypad(EKeypadKeys.Num4);
-                        break;
-                    }
-                    case '5':
-                    {
-                        SendKeypad(EKeypadKeys.Num5);
-                        break;
-                    }
-                    case '6':
-                    {
-                        SendKeypad(EKeypadKeys.Num6);
-                        break;
-                    }
-                    case '7':
-                    {
-                        SendKeypad(EKeypadKeys.Num7);
-                        break;
-                    }
-                    case '8':
-                    {
-                        SendKeypad(EKeypadKeys.Num8);
-                        break;
-                    }
-                    case '9':
-                    {
-                        SendKeypad(EKeypadKeys.Num9);
-                        break;
-                    }
-                    case '#':
-                    {
-                        SendKeypad(EKeypadKeys.Pound);
-                        break;
-                    }
-                    case '*':
-                    {
-                        SendKeypad(EKeypadKeys.Star);
-                        break;
-                    }
-		        }
-		    }
-=======
-            if (number.Length == 0) return;
 
             Parent.SendLine(string.Format("css \"{0}\" \"{1}\"",Tags.DialStringTag, number));
             Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
             Thread.Sleep(50);
             Parent.SendLine(string.Format("cg \"{0}\"", Tags.CallStatusTag));
-
-			//throw new NotImplementedException();
->>>>>>> 822be48d6a5da6310dc86e92fb3819e762b19708
 		}
 
 		/// <summary>
