@@ -28,10 +28,20 @@ namespace QscQsysDspPlugin
 
 			// from Plugin > to SiMPL
 			DspDevice.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline]);
+            trilist.StringInput[joinMap.DspName].StringValue = DspDevice.DspName;
+
+            DspDevice.IsPrimaryFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsPrimary]);
+            DspDevice.IsPrimaryFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.IsSecondary]);
+            DspDevice.IsActiveFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsActive]);
+            DspDevice.IsActiveFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.IsInactive]);
 
 			// from SiMPL > to Plugin
 			trilist.SetStringSigAction(joinMap.Prefix, (s) => { DspDevice.SetPrefix(s); });
 			trilist.SetStringSigAction(joinMap.Address, (s) => { DspDevice.SetIpAddress(s); });
+
+            trilist.SetBoolSigAction(joinMap.GetStatus, (b) => { DspDevice.StatusGet(b); });
+
+            trilist.SetStringSigAction(joinMap.SimTxRx, (s) => { DspDevice.ProcessSimulatedRx(s); });
 
 			foreach (var channel in DspDevice.LevelControlPoints)
 			{
@@ -115,6 +125,9 @@ namespace QscQsysDspPlugin
 				trilist.SetSigTrueAction(joinMap.IncomingCallAccept + dialerLineOffset, () => dialer.Value.AcceptCall());
 				trilist.SetSigTrueAction(joinMap.IncomingCallReject + dialerLineOffset, () => dialer.Value.RejectCall());
 
+                // from SIMPL > to Plugin
+                trilist.SetStringSigAction(joinMap.DialStringCmd + dialerLineOffset, directDialString => dialer.Value.Dial(directDialString));
+
 				// from Plugin > to SiMPL
 				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbToggle + dialerLineOffset]);
 				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbOn + dialerLineOffset]);
@@ -146,6 +159,13 @@ namespace QscQsysDspPlugin
 	public class QscDspDeviceJoinMap : JoinMapBase
 	{
 		public uint IsOnline { get; set; }
+        public uint IsPrimary { get; set; }
+        public uint IsSecondary { get; set; }
+        public uint IsActive { get; set; }
+        public uint SimTxRx { get; set; }
+        public uint IsInactive { get; set; }
+        public uint GetStatus { get; set; }
+        public uint DspName { get; set; }
 		public uint Address { get; set; }
 		public uint Prefix { get; set; }
 		public uint ChannelMuteToggle { get; set; }
@@ -204,8 +224,15 @@ namespace QscQsysDspPlugin
 
 			// SIngleJoins
 			IsOnline = 1;
+            IsPrimary = 2;
+            IsSecondary = 3;
+            IsActive = 4;
+            IsInactive = 5;
+            SimTxRx = 6;
+            GetStatus = 2;
 			Prefix = 2;
 			Address = 1;
+            DspName = 3;
 			Presets = 100;
 			DialStringCmd = 3100;
 			IncomingCall = 3100;

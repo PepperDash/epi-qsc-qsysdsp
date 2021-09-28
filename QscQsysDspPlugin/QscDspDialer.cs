@@ -345,6 +345,7 @@ namespace QscQsysDspPlugin
 		/// <param name="number">Number to dial</param>
 		public void Dial(string number)
 		{
+<<<<<<< HEAD
             if (string.IsNullOrEmpty(number))
                 return;
 
@@ -415,6 +416,16 @@ namespace QscQsysDspPlugin
                     }
 		        }
 		    }
+=======
+            if (number.Length == 0) return;
+
+            Parent.SendLine(string.Format("css \"{0}\" \"{1}\"",Tags.DialStringTag, number));
+            Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
+            Thread.Sleep(50);
+            Parent.SendLine(string.Format("cg \"{0}\"", Tags.CallStatusTag));
+
+			//throw new NotImplementedException();
+>>>>>>> 822be48d6a5da6310dc86e92fb3819e762b19708
 		}
 
 		/// <summary>
