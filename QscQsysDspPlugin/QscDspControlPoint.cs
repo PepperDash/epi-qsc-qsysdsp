@@ -44,7 +44,7 @@ namespace QscQsysDspPlugin
 		public virtual void SendFullCommand(string cmd, string instance, string value)
 		{
 
-			var cmdToSemd = string.Format("{0} {1} {2}", cmd, instance, value);
+            var cmdToSemd = string.Format("{0} \"{1}\" {2}", cmd, instance, value);
 
 			Parent.SendLine(cmdToSemd);
 
@@ -65,14 +65,14 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		/// <param name="instanceTag">named control/instance tag</param>
 		/// <param name="changeGroup">change group</param>
-		public virtual void SendSubscriptionCommand(string instanceTag, string changeGroup)
+		public virtual void SendSubscriptionCommand(string instanceTag)
 		{
 			// Subscription string format: InstanceTag subscribe attributeCode Index1 customName responseRate
 			// Ex: "RoomLevel subscribe level 1 MyRoomLevel 500"
 
 			string cmd;
 
-			cmd = string.Format("cga {0} {1}", changeGroup, instanceTag);
+            cmd = string.Format("cga 1 \"{0}\"", instanceTag);
 
 			Parent.SendLine(cmd);
 		}

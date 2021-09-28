@@ -28,10 +28,20 @@ namespace QscQsysDspPlugin
 
 			// from Plugin > to SiMPL
 			DspDevice.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline]);
+            trilist.StringInput[joinMap.DspName].StringValue = DspDevice.DspName;
+
+            DspDevice.IsPrimaryFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsPrimary]);
+            DspDevice.IsPrimaryFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.IsSecondary]);
+            DspDevice.IsActiveFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsActive]);
+            DspDevice.IsActiveFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.IsInactive]);
 
 			// from SiMPL > to Plugin
 			trilist.SetStringSigAction(joinMap.Prefix, (s) => { DspDevice.SetPrefix(s); });
 			trilist.SetStringSigAction(joinMap.Address, (s) => { DspDevice.SetIpAddress(s); });
+
+            trilist.SetBoolSigAction(joinMap.GetStatus, (b) => { DspDevice.StatusGet(b); });
+
+            trilist.SetStringSigAction(joinMap.SimTxRx, (s) => { DspDevice.ProcessSimulatedRx(s); });
 
 			foreach (var channel in DspDevice.LevelControlPoints)
 			{
@@ -48,6 +58,7 @@ namespace QscQsysDspPlugin
 
 					// from Plugin > to SiMPL
 					genericChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.ChannelMuteToggle + x]);
+					genericChannel.MuteFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.ChannelMuteOff + x]);
 					genericChannel.VolumeLevelFeedback.LinkInputSig(trilist.UShortInput[joinMap.ChannelVolume + x]);
 
 					// from SiMPL > to Plugin
@@ -105,6 +116,7 @@ namespace QscQsysDspPlugin
 				trilist.SetSigTrueAction((joinMap.KeypadBackspace + dialerLineOffset), () => dialer.Value.SendKeypad(QscDspDialer.EKeypadKeys.Backspace));
 				// from SiMPL > to Plugin
 				trilist.SetSigTrueAction(joinMap.Dial + dialerLineOffset, () => dialer.Value.Dial());
+			    trilist.SetStringSigAction(joinMap.DialStringCmd + dialerLineOffset, dialer.Value.Dial);
 				trilist.SetSigTrueAction(joinMap.DoNotDisturbToggle + dialerLineOffset, () => dialer.Value.DoNotDisturbToggle());
 				trilist.SetSigTrueAction(joinMap.DoNotDisturbOn + dialerLineOffset, () => dialer.Value.DoNotDisturbOn());
 				trilist.SetSigTrueAction(joinMap.DoNotDisturbOff + dialerLineOffset, () => dialer.Value.DoNotDisturbOff());
@@ -112,6 +124,11 @@ namespace QscQsysDspPlugin
 				trilist.SetSigTrueAction(joinMap.AutoAnswerOn + dialerLineOffset, () => dialer.Value.AutoAnswerOn());
 				trilist.SetSigTrueAction(joinMap.AutoAnswerOff + dialerLineOffset, () => dialer.Value.AutoAnswerOff());
 				trilist.SetSigTrueAction(joinMap.EndCall + dialerLineOffset, () => dialer.Value.EndAllCalls());
+				trilist.SetSigTrueAction(joinMap.IncomingCallAccept + dialerLineOffset, () => dialer.Value.AcceptCall());
+				trilist.SetSigTrueAction(joinMap.IncomingCallReject + dialerLineOffset, () => dialer.Value.RejectCall());
+
+                // from SIMPL > to Plugin
+                trilist.SetStringSigAction(joinMap.DialStringCmd + dialerLineOffset, directDialString => dialer.Value.Dial(directDialString));
 
 				// from Plugin > to SiMPL
 				dialer.Value.DoNotDisturbFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DoNotDisturbToggle + dialerLineOffset]);
@@ -144,6 +161,13 @@ namespace QscQsysDspPlugin
 	public class QscDspDeviceJoinMap : JoinMapBase
 	{
 		public uint IsOnline { get; set; }
+        public uint IsPrimary { get; set; }
+        public uint IsSecondary { get; set; }
+        public uint IsActive { get; set; }
+        public uint SimTxRx { get; set; }
+        public uint IsInactive { get; set; }
+        public uint GetStatus { get; set; }
+        public uint DspName { get; set; }
 		public uint Address { get; set; }
 		public uint Prefix { get; set; }
 		public uint ChannelMuteToggle { get; set; }
@@ -183,61 +207,64 @@ namespace QscQsysDspPlugin
 		public uint ChannelVisible { get; set; }
 		public uint CallerIdNumberFb { get; set; }
 		public uint EndCall { get; set; }
+		public uint IncomingCallAccept { get; set; }
+		public uint IncomingCallReject { get; set; }
 
 		public QscDspDeviceJoinMap()
 		{
-			IsOnline = 1;				// digitial single feedback
-			Presets = 100;				// digital array input, analog single input, serial array feedback			
-			ChannelVisible = 200;		// digital array feedback			
-			ChannelMuteToggle = 400;	// digital array input/feedback
-			ChannelMuteOn = 600;		// digital array input/feedback
-			ChannelMuteOff = 800;		// digital array input/feedback
-			ChannelVolumeUp = 1000;		// digital array input
-			ChannelVolumeDown = 1200;	// digital array input
+			// Arrays
+			ChannelName = 200;
+			ChannelMuteToggle = 400;
+			ChannelMuteOn = 600;
+			ChannelMuteOff = 800;
+			ChannelVolume = 200;
+			ChannelVolumeUp = 1000;
+			ChannelVolumeDown = 1200;
+			ChannelType = 400;
+			Presets = 100;
+			ChannelVisible = 200;
 
-
-			ChannelVolume = 200;		// analog array input/feedback
-			ChannelType = 400;			// analog array feedback
-
-
-			Address = 1;				// serial single input
-			Prefix = 2;					// serial single input
-			ChannelName = 200;			// serial array feedback
-
-			// dialer			
-			IncomingCall = 3100;		// digital single feedback
-			DialStringCmd = 3100;		// serial single input/feedback
-
-			CallerIdNumberFb = 3104;	// serial single feedback
-			EndCall = 3107;				// digital single feedback
-
-			Keypad0 = 3110;				// digital single input
-			Keypad1 = 3111;				// digital single input
-			Keypad2 = 3112;				// digital single input
-			Keypad3 = 3113;				// digital single input
-			Keypad4 = 3114;				// digital single input
-			Keypad5 = 3115;				// digital single input
-			Keypad6 = 3116;				// digital single input
-			Keypad7 = 3117;				// digital single input
-			Keypad8 = 3118;				// digital single input
-			Keypad9 = 3119;				// digital single input
-			KeypadStar = 3120;			// digital single input
-			KeypadPound = 3121;			// digital single input
-			KeypadClear = 3122;			// digital single input
-			KeypadBackspace = 3123;		// digital single input
-
-			Dial = 3124;				// digital single input
-
-			AutoAnswerOn = 3125;		// digital single input/feedback
-			AutoAnswerOff = 3126;		// digital single input/feedback
-			AutoAnswerToggle = 3127;	// digital single input/feedback
-
-			OnHook = 3129;				// digital single input/feedback
-			OffHook = 3130;				// digital single input/feedback
-
-			DoNotDisturbToggle = 3132;	// digital single input/feedback
-			DoNotDisturbOn = 3133;		// digital single input/feedback
-			DoNotDisturbOff = 3134;		// digital single input/feedback
+			// SIngleJoins
+			IsOnline = 1;
+            IsPrimary = 2;
+            IsSecondary = 3;
+            IsActive = 4;
+            IsInactive = 5;
+            SimTxRx = 6;
+            GetStatus = 2;
+			Prefix = 2;
+			Address = 1;
+            DspName = 3;
+			Presets = 100;
+			DialStringCmd = 3100;
+			IncomingCall = 3100;
+			EndCall = 3107;
+			Keypad0 = 3110;
+			Keypad1 = 3111;
+			Keypad2 = 3112;
+			Keypad3 = 3113;
+			Keypad4 = 3114;
+			Keypad5 = 3115;
+			Keypad6 = 3116;
+			Keypad7 = 3117;
+			Keypad8 = 3118;
+			Keypad9 = 3119;
+			KeypadStar = 3120;
+			KeypadPound = 3121;
+			KeypadClear = 3122;
+			KeypadBackspace = 3123;
+			DoNotDisturbToggle = 3132;
+			DoNotDisturbOn = 3133;
+			DoNotDisturbOff = 3134;
+			AutoAnswerToggle = 3127;
+			AutoAnswerOn = 3125;
+			AutoAnswerOff = 3126;
+			Dial = 3124;
+			OffHook = 3130;
+			OnHook = 3129;
+			CallerIdNumberFb = 3104;
+			IncomingCallAccept = 3136;
+			IncomingCallReject = 3137;
 		}
 
 		public override void OffsetJoinNumbers(uint joinStart)

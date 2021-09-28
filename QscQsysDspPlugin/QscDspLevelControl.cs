@@ -10,16 +10,22 @@ namespace QscQsysDspPlugin
 		bool _isMuted;
 		ushort _volumeLevel;
 
+        const ushort _rampResetTime = 100;
+
 		public BoolFeedback MuteFeedback { get; private set; }
 
 		public IntFeedback VolumeLevelFeedback { get; private set; }
 
 		public bool Enabled { get; set; }
 		public bool UseAbsoluteValue { get; set; }
+
 		public ePdtLevelTypes Type;
 		CTimer _volumeUpRepeatTimer;
 		CTimer _volumeDownRepeatTimer;
+        CTimer _volumeRampDelay;
 	    private readonly QscDsp _parent;
+
+        bool _volumeRampTracker;
 
 		/// <summary>
 		/// Used for to identify level subscription values
@@ -98,10 +104,10 @@ namespace QscQsysDspPlugin
                     CrestronInvoke.BeginInvoke(o =>
 		                {
 		                    if (!String.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
-		                        _parent.SendLine(String.Format("cg {0}", config.LevelInstanceTag));
+                                _parent.SendLine(String.Format("cg \"{0}\"", config.LevelInstanceTag));
 
 		                    if (!String.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
-		                        _parent.SendLine(String.Format("cg {0}", config.MuteInstanceTag));
+                                _parent.SendLine(String.Format("cg \"{0}\"", config.MuteInstanceTag));
 		                });
 		        };
 
@@ -130,6 +136,8 @@ namespace QscQsysDspPlugin
 
 			_volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
 			_volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
+
+            _volumeRampDelay = new CTimer(VolumeRampStop, Timeout.Infinite);
 			LevelCustomName = config.Label;
 			HasMute = config.HasMute;
 			HasLevel = config.HasLevel;
@@ -147,19 +155,13 @@ namespace QscQsysDspPlugin
 			// Subscribe to mute
 			if (this.HasMute)
 			{
-
-				SendSubscriptionCommand(this.MuteInstanceTag, "1");
-				// SendSubscriptionCommand(config. , "mute", 500);
+				SendSubscriptionCommand(this.MuteInstanceTag);
 			}
 
 			// Subscribe to level
-			if (this.HasLevel)
-			{
+			if (this.HasLevel)			{
 
-				SendSubscriptionCommand(this.LevelInstanceTag, "1");
-				// SendSubscriptionCommand(this.con, "level", 250);
-				//SendFullCommand("get", "minLevel", null);
-				//SendFullCommand("get", "maxLevel", null);
+				SendSubscriptionCommand(this.LevelInstanceTag);
 			}
 		}
 
@@ -295,12 +297,17 @@ namespace QscQsysDspPlugin
 		{
 			if (press)
 			{
-				_volumeDownRepeatTimer.Reset(100);
+                _volumeRampTracker = true;
+                _volumeUpRepeatTimer.Stop();
+
+                _volumeDownRepeatTimer.Reset(_rampResetTime);
 				SendFullCommand("css ", this.LevelInstanceTag, "--");
 			}
 			else
 			{
+                _volumeRampTracker = false;
 				_volumeDownRepeatTimer.Stop();
+                _volumeRampDelay.Reset(200);
 				// VolumeDownRepeatTimer.Dispose();
 			}
 		}
@@ -313,16 +320,29 @@ namespace QscQsysDspPlugin
 		{
 			if (press)
 			{
-				_volumeUpRepeatTimer.Reset(100);
+                _volumeRampTracker = true;
+                _volumeDownRepeatTimer.Stop();
+
+                _volumeUpRepeatTimer.Reset(_rampResetTime);
 				SendFullCommand("css ", this.LevelInstanceTag, "++");
 
 				if (AutomaticUnmuteOnVolumeUp && !_isMuted) MuteOff();
 			}
 			else
 			{
+                _volumeRampTracker = false;
 				_volumeUpRepeatTimer.Stop();
+                _volumeRampDelay.Reset(500);
 			}
 		}
+
+        public void VolumeRampStop(object callbackObject)
+        {
+            if (_volumeRampTracker == true) return;
+
+            _volumeUpRepeatTimer.Stop();
+            _volumeDownRepeatTimer.Stop();
+        }
 		
 		/// <summary>
 		/// Scales the input provided

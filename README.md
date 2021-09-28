@@ -1,19 +1,10 @@
-# QSC Q-Sys DSP Essentials Plugin (c) 2020
+# QSC Q-Sys DSP Essentials Plugin (c) 2021
 
 ## License
 
 Provided under MIT license
 
 ## Notes
-
-This is a direct port from BB Cloud repo, which has since been archived.  The following updates were made in the port:
-1. Removed customer reference from all filenames
-2. Changed named space from CUSTOMER_REF.QSC.DSP to QscQsysDsp
-2. Added .github actions
-3. Added .nuspec file
-
-Link to archived BB Cloud repo:
-https://bitbucket.org/Pepperdash_Products/archive-kpmg.qsc.dsp.epi/src/master/
 
 Please refer to QSC Q-Sys plugin developer for questions and issues or use the "Issues" tab above.
 
@@ -25,17 +16,17 @@ Update the below readme as needed to support documentation of the plugin
 
 Update the communication settings as needed for the plugin being developed.
 
-| Setting      | Value       |
-|--------------|-------------|
-| Delimiter    | "\n"        |
-| Default IP   | NA          |
-| Default Port | 1702        |
-| Username     | NA          |
-| Password     | NA          |
+| Setting      | Value |
+| ------------ | ----- |
+| Delimiter    | "\n"  |
+| Default IP   | NA    |
+| Default Port | 1702  |
+| Username     | NA    |
+| Password     | NA    |
 
 #### Plugin Valid Communication methods
 
-Reference PepperDash Core eControlMethods Enum for valid values, (currently listed below).  Update to reflect the valid values for the plugin device being developed.
+Reference PepperDash Core eControlMethods Enum for valid values, (currently listed below). Update to reflect the valid values for the plugin device being developed.
 
 ```c#
 Tcpip
@@ -47,35 +38,34 @@ Update the configuration object as needed for the plugin being developed.
 
 ```json
 {
-	"devices": [
-		{
-			"key": "dsp-1",
-			"name": "QSC Q-Sys Essentials Plugin",
-			"type": "qscdsp",
-			"group": "pluginDevices",
-			"properties": {
-				"control": {
-					"method": "tcpIp",
-					"endOfLineString": "\n",
-					"deviceReadyResponsePattern": "",
-					"tcpSshProperties": {
-						"address": "172.22.0.101",
-						"port": 1702,
-						"username": "",
-						"password": "",
-						"autoReconnect": true,
-						"autoReconnectIntervalMs": 5000
-					}
-				},
-				"prefix": "",
-				"levelControlBlocks": {},
-				"presets": {},
-				"sourceControlBlocks": {},
-				"dialerControlBlock": {},
-				"cameraControlBlocks": {}
-			}
-		}		
-	]
+  "devices": [
+    {
+      "key": "dsp-1",
+      "name": "QSC Q-Sys Essentials Plugin",
+      "type": "qscdsp",
+      "group": "pluginDevices",
+      "properties": {
+        "control": {
+          "method": "tcpIp",
+          "endOfLineString": "\n",
+          "deviceReadyResponsePattern": "",
+          "tcpSshProperties": {
+            "address": "172.22.0.101",
+            "port": 1702,
+            "username": "",
+            "password": "",
+            "autoReconnect": true,
+            "autoReconnectIntervalMs": 5000
+          }
+        },
+        "prefix": "",
+        "levelControlBlocks": {},
+        "presets": {},
+        "dialerControlBlock": {},
+        "cameraControlBlocks": {}
+      }
+    }
+  ]
 }
 ```
 
@@ -188,8 +178,11 @@ Update the configuration object as needed for the plugin being developed.
 }
 ```
 
-
 ### Plugin Preset Configuration Object
+
+Presets can be handled two ways:
+
+1. Point directly to the snapshot name using the first method below. This will not provide feedback.
 
 ```json
 "properties": {
@@ -210,17 +203,22 @@ Update the configuration object as needed for the plugin being developed.
 }
 ```
 
-### Plugin Source Control Blocks
+2. Another option is to give each preset a named control in the DSP. This is done on the QSC side by opening the snapshot component and giving the "Preset Recall" button a named control. This allows for true and half-state feedback. Half-state feedback is when the preset was the last recalled preset in the grouping but the DSP state no longer matches the preset state. To define presets in this manner use the following config object. Note it is placed with the level control blocks.
 
-```json
-"properties": {
-	"sourceControlBlocks": {
-		"sourceControl-1": {
-			"label": "MainSourceSelector",
-			"instanceTag": "NAMED_CONTROL"
-		}
+To control from SIMPL, use the analog level input and output on the object. Triggering any analog value above 0 will active the preset. Feedback is 0=inactive, 1=half-state, 2=active.
+
+```
+    "levelControlBlocks":
+    {
+	"preset-1":
+	{
+	    "label": "Default Levels",
+	    "levelInstanceTag": "DEFAULT",
+	    "disabled": false,
+	    "hasLevel": true,
+	    "useAbsoluteValue": true
 	}
-}
+    }
 ```
 
 ### Plugin Dialer Control Blocks
@@ -230,7 +228,7 @@ Update the configuration object as needed for the plugin being developed.
 	"dialerControlBlocks": {
 		"dialer-1": {
 			"ClearOnHangup": true,
-			"incomingCallRingerTag": "VOIP_RINGTRIG",
+			"incomingCallRingerTag": "VOIP_RINGING",
 			"dialStringTag": "VOIP_DIALSTRING",
 			"disconnectTag": "VOIP_DISCONNECT",
 			"connectTag": "VOIP_CONNECT",
@@ -304,29 +302,29 @@ Update the bridge configuration object as needed for the plugin being developed.
 
 ```json
 {
-	"devices": [
-		{
-			"key": "dsp-1-bridge",
-			"name": "QSC Q-Sys Essentials Plugin Bridge",
-			"group": "api",
-			"type": "eiscApi",
-			"properties": {
-				"control": {
-					"ipid": "1A",
-					"tcpSshProperties": {
-						"address": "127.0.0.2",
-						"port": 0
-					}
-				},
-				"devices": [
-					{
-						"deviceKey": "dsp-1",
-						"joinStart": 1
-					}
-				]
-			}
-		}
-	]
+  "devices": [
+    {
+      "key": "dsp-1-bridge",
+      "name": "QSC Q-Sys Essentials Plugin Bridge",
+      "group": "api",
+      "type": "eiscApi",
+      "properties": {
+        "control": {
+          "ipid": "1A",
+          "tcpSshProperties": {
+            "address": "127.0.0.2",
+            "port": 0
+          }
+        },
+        "devices": [
+          {
+            "deviceKey": "dsp-1",
+            "joinStart": 1
+          }
+        ]
+      }
+    }
+  ]
 }
 ```
 
@@ -334,56 +332,57 @@ Update the bridge configuration object as needed for the plugin being developed.
 
 The selection below documents the digital, analog, and serial joins used by the SiMPL EISC. Update the bridge join maps as needed for the plugin being developed.
 
-When instantiating multiple dialers joins start @ 3100 and use digital/analog/serial joins in blocks of 50.  For example, Dialer 2 would start @ 3150.
+When instantiating multiple dialers joins start @ 3100 and use digital/analog/serial joins in blocks of 50. For example, Dialer 2 would start @ 3150.
 
 #### **Digitals**
-| dig-o (Input/Triggers)                | I/O         | dig-i (Feedback)                        |
-|---------------------------------------|-------------|-----------------------------------------|
-|                                       | 1           | Is Online Feedback                      |
-| Run Preset by Number                  | 100 - 199   |                                         |
-|                                       | 200 - 399   | Fader [n] Visible Feedback              |
-| Fader [n] Mute Toggle                 | 400 - 599   | Fader [n] Mute Toggle Feedback          |
-| Fader [n] Mute On                     | 600 - 799   | Fader [n] Mute On Feedback              |
-| Fader [n] Mute Off                    | 800 - 999   | Fader [n] Mute Off Feddback             |
-| Fader [n] Level Increment             | 1000 - 1199 |                                         |
-| Fader [n] Level Decrement             | 1200 - 1399 |                                         |
-|                                       | 3100        | Dialer Incoming Call Feedback           |
-| Dialer 1 End Call                     | 3107        |                                         |
-| Dialer 1 Keypad 0                     | 3110        |                                         |
-| Dialer 1 Keypad 1                     | 3111        |                                         |
-| Dialer 1 Keypad 2                     | 3112        |                                         |
-| Dialer 1 Keypad 3                     | 3113        |                                         |
-| Dialer 1 Keypad 4                     | 3114        |                                         |
-| Dialer 1 Keypad 5                     | 3115        |                                         |
-| Dialer 1 Keypad 6                     | 3116        |                                         |
-| Dialer 1 Keypad 7                     | 3117        |                                         |
-| Dialer 1 Keypad 8                     | 3118        |                                         |
-| Dialer 1 Keypad 9                     | 3119        |                                         |
-| Dialer 1 Keypad * (Start)             | 3120        |                                         |
-| Dialer 1 Keypad # (Pound)             | 3121        |                                         |
-| Dialer 1 Keypad Clear                 | 3122        |                                         |
-| Dialer 1 Keypad Backspace             | 3123        |                                         |
-| Dialer 1 Dial/End Call                | 3124        | Dialer 1 Dial Feedback                  |
-| Dialer 1 Auto Answer On               | 3125        | Dialer 1 Auto Answer On Feedback        |
-| Dialer 1 Auto Answer Off              | 3126        | Dialer 1 Auto Answer Off Feedback       |
-| Dialer 1 Auto Answer Toggle           | 3127        | Dialer 1 Auto Answer Toggle Feedback    |
-| Dialer 1 On Hook                      | 3129        | Dialer 1 On Hook Feedback               |
-| Dialer 1 Off Hook                     | 3130        | Dialer 1 Off Hook Feedback              |
-| Dialer 1 Do Not Disturb Toggle        | 3132        | Dialer 1 Do Not Distrub Toggle Feedback |
-| Dialer 1 Do Not Disturb On            | 3133        | Dialer 1 Do Not Distrub On Feedback     |
-| Dialer 1 Do Not Disturb Off           | 3134        | Dialer 1 Do Not Distrub Off Feedback    |
 
+| dig-o (Input/Triggers)         | I/O         | dig-i (Feedback)                        |
+| ------------------------------ | ----------- | --------------------------------------- |
+|                                | 1           | Is Online Feedback                      |
+| Run Preset by Number           | 100 - 199   |                                         |
+|                                | 200 - 399   | Fader [n] Visible Feedback              |
+| Fader [n] Mute Toggle          | 400 - 599   | Fader [n] Mute Toggle Feedback          |
+| Fader [n] Mute On              | 600 - 799   | Fader [n] Mute On Feedback              |
+| Fader [n] Mute Off             | 800 - 999   | Fader [n] Mute Off Feddback             |
+| Fader [n] Level Increment      | 1000 - 1199 |                                         |
+| Fader [n] Level Decrement      | 1200 - 1399 |                                         |
+|                                | 3100        | Dialer Incoming Call Feedback           |
+| Dialer 1 End Call              | 3107        |                                         |
+| Dialer 1 Keypad 0              | 3110        |                                         |
+| Dialer 1 Keypad 1              | 3111        |                                         |
+| Dialer 1 Keypad 2              | 3112        |                                         |
+| Dialer 1 Keypad 3              | 3113        |                                         |
+| Dialer 1 Keypad 4              | 3114        |                                         |
+| Dialer 1 Keypad 5              | 3115        |                                         |
+| Dialer 1 Keypad 6              | 3116        |                                         |
+| Dialer 1 Keypad 7              | 3117        |                                         |
+| Dialer 1 Keypad 8              | 3118        |                                         |
+| Dialer 1 Keypad 9              | 3119        |                                         |
+| Dialer 1 Keypad \* (Start)     | 3120        |                                         |
+| Dialer 1 Keypad # (Pound)      | 3121        |                                         |
+| Dialer 1 Keypad Clear          | 3122        |                                         |
+| Dialer 1 Keypad Backspace      | 3123        |                                         |
+| Dialer 1 Dial/End Call         | 3124        | Dialer 1 Dial Feedback                  |
+| Dialer 1 Auto Answer On        | 3125        | Dialer 1 Auto Answer On Feedback        |
+| Dialer 1 Auto Answer Off       | 3126        | Dialer 1 Auto Answer Off Feedback       |
+| Dialer 1 Auto Answer Toggle    | 3127        | Dialer 1 Auto Answer Toggle Feedback    |
+| Dialer 1 On Hook               | 3129        | Dialer 1 On Hook Feedback               |
+| Dialer 1 Off Hook              | 3130        | Dialer 1 Off Hook Feedback              |
+| Dialer 1 Do Not Disturb Toggle | 3132        | Dialer 1 Do Not Distrub Toggle Feedback |
+| Dialer 1 Do Not Disturb On     | 3133        | Dialer 1 Do Not Distrub On Feedback     |
+| Dialer 1 Do Not Disturb Off    | 3134        | Dialer 1 Do Not Distrub Off Feedback    |
 
 #### **Analogs**
+
 | an_o (Input/Triggers) | I/O       | an_i (Feedback)          |
-|-----------------------|-----------|--------------------------|
+| --------------------- | --------- | ------------------------ |
 | Fader [n] Level Set   | 200 - 399 | Fader [n] Level Feedback |
 |                       | 400 - 599 | Fader [n] Type Feedback  |
 
-
 #### **Serials**
+
 | serial-o (Input/Triggers) | I/O       | serial-i (Feedback)                |
-|---------------------------|-----------|------------------------------------|
+| ------------------------- | --------- | ---------------------------------- |
 | DSP IP Address            | 1         |                                    |
 | DSP Prefix                | 2         |                                    |
 | Run Preset by Name        | 100       |                                    |
@@ -391,6 +390,3 @@ When instantiating multiple dialers joins start @ 3100 and use digital/analog/se
 |                           | 200 - 399 | Fader [n] Name Feedback            |
 |                           | 3100      | Dialer 1 Dial String Feedback      |
 |                           | 3104      | Dialer 1 Caller ID Number Feedback |
-
-
-
