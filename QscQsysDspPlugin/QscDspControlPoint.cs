@@ -1,4 +1,5 @@
-﻿using System;
+
+using System;
 using Crestron.SimplSharp;
 using PepperDash.Essentials.Devices.Common.DSP;
 
