@@ -21,7 +21,7 @@ jobs:
     steps:
       # First we checkout the source repo
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       # Fetch all tags
@@ -201,10 +201,10 @@ jobs:
       # Create the release on the source repo
       - name: Create Release
         id: create_release
-        uses: fleskesvor/create-release@feature/support-target-commitish
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ env.VERSION  }}
-          release_name: ${{ env.VERSION }}
+          tag: ${{ env.VERSION  }}
+          name: ${{ env.VERSION }}
           prerelease: ${{contains('debug', env.BUILD_TYPE)}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
