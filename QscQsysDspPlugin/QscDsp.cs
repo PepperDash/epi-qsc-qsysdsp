@@ -8,6 +8,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
 using PepperDash.Essentials.Bridges;
+using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
@@ -26,7 +27,7 @@ namespace QscQsysDspPlugin
     /// ! "publishToken":"name" "value":-77.0
     /// ! "myLevelName" -77
     /// </remarks>
-    public class QscDsp : ReconfigurableDevice, IBridge, IOnline, ICommunicationMonitor
+    public class QscDsp : ReconfigurableDevice, IBridgeAdvanced, IOnline, ICommunicationMonitor
     {
         /// <summary>
         /// Loads plugin using the factory
@@ -700,24 +701,26 @@ namespace QscQsysDspPlugin
             public QscDspControlPoint ControlPoint { get; set; }
         }
 
-        #region IBridge Members
-
-        /// <summary>
-        /// Link to API
-        /// </summary>
-        /// <param name="trilist">BasicTriList</param>
-        /// <param name="joinStart">uint</param>
-        /// <param name="joinMapKey">string</param>
-        public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)
-        {
-            this.LinkToApiExt(trilist, joinStart, joinMapKey);
-        }
-
-        #endregion
 
         public BoolFeedback IsOnline
         {
             get { return CommunicationMonitor.IsOnlineFeedback; }
         }
+
+        #region IBridgeAdvanced Members
+
+        /// <summary>
+        /// Link to API
+        /// </summary>
+        /// <param name="trilist">BasicTrilist</param>
+        /// <param name="joinStart">uint</param>
+        /// <param name="joinMapKey">string</param>
+        /// <param name="bridge">EiscApiAdvanced</param>
+        public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
+        {
+            this.LinkToApiExt(trilist, joinStart, joinMapKey, bridge);
+        }
+
+        #endregion
     }
 }
