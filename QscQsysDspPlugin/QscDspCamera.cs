@@ -3,6 +3,7 @@ using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Bridges;
+using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core;
 
 namespace QscQsysDspPlugin
@@ -10,7 +11,7 @@ namespace QscQsysDspPlugin
 	/// <summary>
 	/// QSC DSP Camera class
 	/// </summary>
-	public class QscDspCamera : Device, IBridge, IOnline
+    public class QscDspCamera : Device, IBridgeAdvanced, IOnline
 	{
 		QscDsp _Dsp;
 		public QscDspCameraConfig Config { get; private set; }
@@ -188,23 +189,25 @@ namespace QscQsysDspPlugin
 
 		}
 
-		#region IBridge Members
-
-		/// <summary>
-		/// Link to API
-		/// </summary>
-		/// <param name="trilist"></param>
-		/// <param name="joinStart"></param>
-		/// <param name="joinMapKey"></param>
-		public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)
-		{
-			this.LinkToApiExt(trilist, joinStart, joinMapKey);
-		}
-
-		#endregion
 
 	    public BoolFeedback IsOnline { get; private set; }
-	}
+
+        #region IBridgeAdvanced Members
+
+        /// <summary>
+        /// Link to API
+        /// </summary>
+        /// <param name="trilist">BasicTrilist</param>
+        /// <param name="joinStart">uint</param>
+        /// <param name="joinMapKey">string</param>
+        /// <param name="bridge">EiscApiAdvanced</param>
+        public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
+        {
+            this.LinkToApiExt(trilist, joinStart, joinMapKey, bridge);
+        }
+
+        #endregion
+    }
 
 	/// <summary>
 	/// Camera PTZ controls enum
