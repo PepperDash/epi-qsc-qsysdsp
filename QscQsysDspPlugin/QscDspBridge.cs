@@ -82,11 +82,11 @@ namespace QscQsysDspPlugin
 			// Presets 
 			x = 0;
 			// from SiMPL > to Plugin
-            trilist.SetStringSigAction(joinMap.Presets.JoinNumber, s => DspDevice.RunPreset(s));
+            trilist.SetStringSigAction(joinMap.PresetsByName.JoinNumber, DspDevice.RunPreset);
 			foreach (var preset in DspDevice.PresetList)
 			{
 				var temp = x;
-                var presetNum = joinMap.Presets.JoinNumber + temp + 1;
+                var presetNum = joinMap.Presets.JoinNumber + temp;
 				// from SiMPL > to Plugin
 				trilist.StringInput[presetNum].StringValue = preset.Label;
 				//trilist.SetSigTrueAction(presetNum, () => DspDevice.RunPresetNumber(temp));
@@ -415,6 +415,21 @@ namespace QscQsysDspPlugin
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.DigitalSerial
             });
+
+        [JoinName("PresetsByName")]
+        public JoinDataComplete PresetsByName = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 100,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Recall presets by name",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
         [JoinName("IsOnline")]
         public JoinDataComplete IsOnline = new JoinDataComplete(
             new JoinData
