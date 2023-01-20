@@ -86,7 +86,7 @@ namespace QscQsysDspPlugin
 				// from SiMPL > to Plugin
 				trilist.StringInput[presetNum].StringValue = preset.Label;
 				//trilist.SetSigTrueAction(presetNum, () => DspDevice.RunPresetNumber(temp));
-				trilist.SetSigHeldAction(presetNum, 5000, () => DspDevice.RunPresetNumber(temp), () => DspDevice.SavePresetNumber(temp));
+                trilist.SetSigHeldAction(presetNum, 5000, () => DspDevice.SavePresetNumber(temp), () => DspDevice.RunPresetNumber(temp));
 				x++;
 			}
 
