@@ -27,7 +27,7 @@ namespace QscQsysDspPlugin
             //if (joinMap == null)
             //    joinMap = new QscDspCameraDeviceJoinMap();
             Debug.Console(1, DspDevice, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-			ushort x = 1;
+			ushort x = 0;
 			var comm = DspDevice as ICommunicationMonitor;
 
 			// from Plugin > to SiMPL
