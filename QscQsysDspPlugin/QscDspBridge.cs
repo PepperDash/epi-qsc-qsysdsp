@@ -59,7 +59,7 @@ namespace QscQsysDspPlugin
                 }
 
 				//var QscChannel = channel.Value as QSC.DSP.EPI.QscDspLevelControl;
-			    Debug.Console(2, "QscChannel {0} connect", x);
+			    Debug.Console(2, DspDevice, "QscChannel {0} connect", x);
                 
 				var genericChannel = channel.Value as IBasicVolumeWithFeedback;
 				if (channel.Value.Enabled)
