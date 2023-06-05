@@ -330,8 +330,10 @@ namespace QscQsysDspPlugin
 		[JsonProperty("zoomInTag")]
 		public string ZoomInTag { get; set; }
 
-		[JsonProperty("zoomOutTag")]
-		public string ZoomOutTag { get; set; }
+        [JsonProperty("zoomOutTag")]
+        public string ZoomOutTag { get; set; }
+        [JsonProperty("homeTag")]
+        public string HomeTag { get; set; }
 
 		[JsonProperty("presetBankTag")]
 		public string PresetBankTag { get; set; }

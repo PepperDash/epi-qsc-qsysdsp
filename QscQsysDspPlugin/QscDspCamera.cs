@@ -1,32 +1,34 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Bridges;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core;
+using PepperDash.Essentials.Devices.Common.Cameras;
 
 namespace QscQsysDspPlugin
 {
 	/// <summary>
 	/// QSC DSP Camera class
 	/// </summary>
-    public class QscDspCamera : Device, IBridgeAdvanced, IOnline
+    public class QscDspCamera : Device, ICommunicationMonitor, IBridgeAdvanced, IOnline, IHasCameraPtzControl, IHasCameraPresets
 	{
-		QscDsp _Dsp;
+	    readonly QscDsp _dsp;
 		public QscDspCameraConfig Config { get; private set; }
-		string LastCmd;
-		private bool _Online;
+		string _lastCmd;
+		private bool _online;
+	    public StatusMonitorBase CommunicationMonitor { get; private set; }
 		public bool Online
 		{
 			set
 			{
-				this._Online = value;
+				_online = value;
 				IsOnline.FireUpdate();
 			}
 			get
 			{
-				return this._Online;
+				return _online;
 			}
 		}
 
@@ -40,10 +42,12 @@ namespace QscQsysDspPlugin
 		public QscDspCamera(QscDsp dsp, string key, string name, QscDspCameraConfig dc)
 			: base(key, name)
 		{
-			_Dsp = dsp;
+			_dsp = dsp;
 			Config = dc;
             IsOnline = new BoolFeedback(() => Online);
 			DeviceManager.AddDevice(this);
+
+		    CommunicationMonitor = _dsp.CommunicationMonitor;
 
 		}
 
@@ -55,12 +59,14 @@ namespace QscQsysDspPlugin
 		{
 			string tag = null;
 
+		    string cmdToSend;
+
 			switch (button)
 			{
 				case eCameraPtzControls.Stop:
 					{
-                        var cmdToSend = string.Format("csv \"{0}\" 0", LastCmd);
-						_Dsp.SendLine(cmdToSend);
+                        cmdToSend = string.Format("csv \"{0}\" 0", _lastCmd);
+						_dsp.SendLine(cmdToSend);
 						break;
 					}
 				case eCameraPtzControls.PanLeft: tag = Config.PanLeftTag; break;
@@ -69,16 +75,16 @@ namespace QscQsysDspPlugin
 				case eCameraPtzControls.TiltDown: tag = Config.TiltDownTag; break;
 				case eCameraPtzControls.ZoomIn: tag = Config.ZoomInTag; break;
 				case eCameraPtzControls.ZoomOut: tag = Config.ZoomOutTag; break;
+                case eCameraPtzControls.Home:
+			        tag = Config.HomeTag;
+			        break;
 
 
 			}
-			if (tag != null)
-			{
-                var cmdToSend = string.Format("csv \"{0}\" 1", tag);
-				LastCmd = tag;
-				_Dsp.SendLine(cmdToSend);
-
-			}
+		    if (tag == null) return;
+		    cmdToSend = string.Format("csv \"{0}\" 1", tag);
+		    _lastCmd = tag;
+		    _dsp.SendLine(cmdToSend);
 		}
 
 		/// <summary>
@@ -87,7 +93,7 @@ namespace QscQsysDspPlugin
 		public void PrivacyOn()
 		{
             var cmdToSend = string.Format("csv \"{0}\" 1", Config.Privacy);
-			_Dsp.SendLine(cmdToSend);
+			_dsp.SendLine(cmdToSend);
 		}
 
 		/// <summary>
@@ -96,7 +102,7 @@ namespace QscQsysDspPlugin
 		public void PrivacyOff()
 		{
             var cmdToSend = string.Format("csv \"{0}\" 0", Config.Privacy);
-			_Dsp.SendLine(cmdToSend);
+			_dsp.SendLine(cmdToSend);
 		}
 
 		/// <summary>
@@ -106,12 +112,10 @@ namespace QscQsysDspPlugin
 		public void RecallPreset(ushort presetNumber)
 		{
 			Debug.Console(2, this, "Recall Camera Preset {0}", presetNumber);
-			if (Config.Presets.ElementAt(presetNumber).Value != null)
-			{
-				var preset = Config.Presets.ElementAt(presetNumber).Value;
-				var cmdToSend = string.Format("ssl {0} {1} 0", preset.Bank, preset.Number);
-				_Dsp.SendLine(cmdToSend);
-			}
+		    if (Config.Presets.ElementAt(presetNumber).Value == null) return;
+		    var preset = Config.Presets.ElementAt(presetNumber).Value;
+		    var cmdToSend = string.Format("ssl {0} {1} 0", preset.Bank, preset.Number);
+		    _dsp.SendLine(cmdToSend);
 		}
 
 		/// <summary>
@@ -120,12 +124,10 @@ namespace QscQsysDspPlugin
 		/// <param name="presetNumber">ushort</param>
 		public void SavePreset(ushort presetNumber)
 		{
-			if (Config.Presets.ElementAt(presetNumber).Value != null)
-			{
-				var preset = Config.Presets.ElementAt(presetNumber).Value;
-				var cmdToSend = string.Format("sss {0} {1}", preset.Bank, preset.Number);
-				_Dsp.SendLine(cmdToSend);
-			}
+		    if (Config.Presets.ElementAt(presetNumber).Value == null) return;
+		    var preset = Config.Presets.ElementAt(presetNumber).Value;
+		    var cmdToSend = string.Format("sss {0} {1}", preset.Bank, preset.Number);
+		    _dsp.SendLine(cmdToSend);
 		}
 
 		/// <summary>
@@ -135,14 +137,13 @@ namespace QscQsysDspPlugin
 		/// <param name="presetNumber">ushort</param>
 		public void WritePresetName(string newLabel, ushort presetNumber)
 		{
-			if (Config.Presets.ElementAt(presetNumber - 1).Value != null && newLabel.Length > 0 && Config.Presets.ElementAt(presetNumber - 1).Value.Label != newLabel)
-			{
-				Config.Presets.ElementAt(presetNumber - 1).Value.Label = newLabel;
-				_Dsp.Config.Properties["CameraControlBlocks"][Key]["Presets"][Config.Presets.ElementAt(presetNumber - 1).Key]["label"] = newLabel;
+		    if (Config.Presets.ElementAt(presetNumber - 1).Value == null || newLabel.Length <= 0 ||
+		        Config.Presets.ElementAt(presetNumber - 1).Value.Label == newLabel) return;
+		    Config.Presets.ElementAt(presetNumber - 1).Value.Label = newLabel;
+		    _dsp.Config.Properties["CameraControlBlocks"][Key]["Presets"][Config.Presets.ElementAt(presetNumber - 1).Key]["label"] = newLabel;
 
-				_Dsp.WriteConfig();
-			}
-
+		    _dsp.WriteConfig();
+		    OnPresetsListHasChanged();
 		}
 
 		/// <summary>
@@ -153,11 +154,9 @@ namespace QscQsysDspPlugin
 			try
 			{
 				// Do subscriptions and blah blah
-				if (Config.OnlineStatus != null)
-				{
-                    var cmd = string.Format("cga 1 \"{0}\"", Config.OnlineStatus);
-					_Dsp.SendLine(cmd);
-				}
+			    if (Config.OnlineStatus == null) return;
+			    var cmd = string.Format("cga 1 \"{0}\"", Config.OnlineStatus);
+			    _dsp.SendLine(cmd);
 			}
 			catch (Exception e)
 			{
@@ -173,20 +172,18 @@ namespace QscQsysDspPlugin
 		/// <param name="absoluteValue"></param>
 		public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
 		{
-
-			// Check for valid subscription response
+		    // Check for valid subscription response
 			Debug.Console(1, this, "CameraOnline {0} Response: '{1}'", customName, value);
 
-			if (value == "true")
-			{
-				Online = true;
-
-			}
-			else if (value == "false")
-			{
-				Online = false;
-			}
-
+		    switch (value)
+		    {
+		        case "true":
+		            Online = true;
+		            break;
+		        case "false":
+		            Online = false;
+		            break;
+		    }
 		}
 
 
@@ -207,6 +204,119 @@ namespace QscQsysDspPlugin
         }
 
         #endregion
+
+        #region IHasCameraPtzControl Members
+
+        public void PositionHome()
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region IHasCameraPanControl Members
+
+        public void PanLeft()
+        {
+            MoveCamera(eCameraPtzControls.PanLeft);
+        }
+
+        public void PanRight()
+        {
+            MoveCamera(eCameraPtzControls.PanRight);
+        }
+
+        public void PanStop()
+        {
+            MoveCamera(eCameraPtzControls.Stop);
+        }
+
+        #endregion
+
+        #region IHasCameraTiltControl Members
+
+        public void TiltDown()
+        {
+            MoveCamera(eCameraPtzControls.TiltDown);
+        }
+
+        public void TiltStop()
+        {
+            MoveCamera(eCameraPtzControls.Stop);
+        }
+
+        public void TiltUp()
+        {
+            MoveCamera(eCameraPtzControls.TiltUp);
+        }
+
+        #endregion
+
+        #region IHasCameraZoomControl Members
+
+        public void ZoomIn()
+        {
+            MoveCamera(eCameraPtzControls.ZoomIn);
+        }
+
+        public void ZoomOut()
+        {
+            MoveCamera(eCameraPtzControls.ZoomOut);
+        }
+
+        public void ZoomStop()
+        {
+            MoveCamera(eCameraPtzControls.Stop);
+        }
+
+        #endregion
+
+        #region IHasCameraPresets Members
+
+        public void PresetSelect(int preset)
+        {
+            RecallPreset((ushort)preset);
+        }
+
+        public void PresetStore(int preset, string description)
+        {
+            SavePreset((ushort) preset);
+            WritePresetName(description, (ushort) preset);
+        }
+
+        public List<CameraPreset> Presets
+        {
+
+            get { return GetPresets(); }
+        }
+
+	    private List<CameraPreset> GetPresets()
+	    {
+	        var presets = new List<CameraPreset>();
+	        var iterator = 1;
+	        foreach (var preset in Config.Presets)
+	        {
+	            var thisPreset = preset.Value;
+                var cameraPreset = new CameraPreset(iterator, thisPreset.Label, true, true);
+                presets.Add(cameraPreset);
+	            iterator++;
+
+	        }
+	        return presets;
+	    }
+
+        public event EventHandler<EventArgs> PresetsListHasChanged;
+
+        private void OnPresetsListHasChanged()
+	    {
+	        var handler = PresetsListHasChanged;
+            if(handler != null)
+                handler.Invoke(this, EventArgs.Empty);
+	    }
+
+        #endregion
+
+
     }
 
 	/// <summary>
@@ -220,6 +330,7 @@ namespace QscQsysDspPlugin
 		TiltUp,
 		TiltDown,
 		ZoomIn,
-		ZoomOut
+		ZoomOut,
+        Home
 	}
 }
