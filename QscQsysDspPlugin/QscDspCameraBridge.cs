@@ -48,8 +48,8 @@ namespace QscQsysDspPlugin
                 trilist.SetSigTrueAction(joinMap.PresetStoreStart.JoinNumber + temp + 1, () => camera.SavePreset(temp));
                 trilist.SetStringSigAction(joinMap.PresetNamesStart.JoinNumber + temp, (s) => camera.WritePresetName(s, (ushort)(temp + 1)));
                 // from Plugin > to SiMPL
-                preset.Value.LabelFeedback.LinkInputSig(trilist.StringInput[joinMap.PresetNamesStart.JoinNumber + temp]);
-
+                preset.Value.LabelFeedback.LinkInputSig(trilist.StringInput[joinMap.PresetNamesStart.JoinNumber + temp + 1]);
+                trilist.SetString(joinMap.PresetNamesStart.JoinNumber + temp + 1, preset.Value.Label);
                 x++;
             }
 
@@ -266,7 +266,7 @@ namespace QscQsysDspPlugin
         public JoinDataComplete PresetNamesStart = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 2,
+                JoinNumber = 10,
                 JoinSpan = 20
             },
             new JoinMetadata

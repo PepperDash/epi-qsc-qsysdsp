@@ -48,13 +48,24 @@ namespace QscQsysDspPlugin
             trilist.SetStringSigAction(joinMap.SimTxRx.JoinNumber, DspDevice.ProcessSimulatedRx);
 
 			foreach (var channel in DspDevice.LevelControlPoints)
-			{
-				//var QscChannel = channel.Value as QSC.DSP.EPI.QscDspLevelControl;
-				Debug.Console(2, "QscChannel {0} connect", x);
+            {
+                if (channel.Key == DspDevice.AutoTrackingKey)
+                {
+                    Debug.Console(2, DspDevice, "Found autotracking... skipping");
+                    var actualChannel = channel.Value;
+                    trilist.SetSigTrueAction(joinMap.AutoTracking.JoinNumber, actualChannel.MuteToggle);
+                    actualChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoTracking.JoinNumber]);
+                    continue;
+                }
 
+				//var QscChannel = channel.Value as QSC.DSP.EPI.QscDspLevelControl;
+			    Debug.Console(2, DspDevice, "QscChannel {0} connect", x);
+                
 				var genericChannel = channel.Value as IBasicVolumeWithFeedback;
 				if (channel.Value.Enabled)
-				{
+                {
+                    Debug.Console(2, DspDevice, "Linking Level Control:{0} at index:{1}", channel.Key, x);
+
 					// from SiMPL > to Plugin
                     trilist.StringInput[joinMap.ChannelName.JoinNumber + x].StringValue = channel.Value.LevelCustomName;
                     trilist.UShortInput[joinMap.ChannelType.JoinNumber + x].UShortValue = (ushort)channel.Value.Type;
@@ -558,6 +569,19 @@ namespace QscQsysDspPlugin
             {
                 Description = "Device Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("AutoTracking")]
+        public JoinDataComplete AutoTracking = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 10,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "AutoTracking Enable Disable",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Serial
             });
 
