@@ -177,7 +177,7 @@ namespace QscQsysDspPlugin
 			// Check for valid subscription response
 			Debug.Console(1, this, "CameraOnline {0} Response: '{1}'", customName, value);
 
-			if (value == "true")
+			if (value == "true" || value == "OK")
 			{
 				Online = true;
 
