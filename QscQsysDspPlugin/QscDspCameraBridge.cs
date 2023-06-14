@@ -46,7 +46,7 @@ namespace QscQsysDspPlugin
                 // from SiMPL > to Plugin
                 trilist.SetSigTrueAction(joinMap.PresetRecallStart.JoinNumber + temp + 1, () => camera.RecallPreset(temp));
                 trilist.SetSigTrueAction(joinMap.PresetStoreStart.JoinNumber + temp + 1, () => camera.SavePreset(temp));
-                trilist.SetStringSigAction(joinMap.PresetNamesStart.JoinNumber + temp, (s) => camera.WritePresetName(s, (ushort)(temp + 1)));
+                trilist.SetStringSigAction(joinMap.PresetNamesStart.JoinNumber + temp + 1, (s) => camera.WritePresetName(s, (ushort)(temp + 1)));
                 // from Plugin > to SiMPL
                 preset.Value.LabelFeedback.LinkInputSig(trilist.StringInput[joinMap.PresetNamesStart.JoinNumber + temp + 1]);
                 trilist.SetString(joinMap.PresetNamesStart.JoinNumber + temp + 1, preset.Value.Label);
