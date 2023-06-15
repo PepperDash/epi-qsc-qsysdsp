@@ -145,6 +145,28 @@ namespace QscQsysDspPlugin
 
 		}
 
+        public void SetPanSpeed(ushort speed)
+        {
+            var newSpeed = Scale(speed);
+            var cmdToSend = string.Format("csv \"{0}\" {1}", Config.PanSpeedTag, newSpeed);
+            _Dsp.SendLine(cmdToSend);
+        }
+
+        public void SetTiltSpeed(ushort speed)
+        {
+            var newSpeed = Scale(speed);
+            var cmdToSend = string.Format("csv \"{0}\" {1}", Config.TiltSpeedTag, newSpeed);
+            _Dsp.SendLine(cmdToSend);
+        }
+
+        public void SetZoomSpeed(ushort speed)
+        {
+            var newSpeed = Scale(speed);
+            var cmdToSend = string.Format("csv \"{0}\" {1}", Config.ZoomSpeedTag, newSpeed);
+            _Dsp.SendLine(cmdToSend);
+        }
+
+
 		/// <summary>
 		/// Adds the command to the change group
 		/// </summary>
@@ -188,6 +210,17 @@ namespace QscQsysDspPlugin
 			}
 
 		}
+
+        double Scale(double input)
+        {
+            Debug.Console(1, this, "Scaling (double) input '{0}'", input);
+
+            var output = (input / 65535);
+
+            Debug.Console(1, this, "Scaled output '{0}'", output);
+
+            return output;
+        }
 
 
 	    public BoolFeedback IsOnline { get; private set; }

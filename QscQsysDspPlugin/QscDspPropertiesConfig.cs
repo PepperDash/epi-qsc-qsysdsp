@@ -282,10 +282,13 @@ namespace QscQsysDspPlugin
 	///		"camera-1": {
 	///			"panLeftTag": "CAM01_LEFT",
 	///         "panRightTag": "CAM01_RIGHT",
+    ///         "panSpeedTag": "CAM01_PANSPEED",
 	///			"tiltUpTag": "CAM01_UP",
-	///			"tiltDownTag": "CAM01_DOWN",
+    ///			"tiltDownTag": "CAM01_DOWN",
+    ///         "tiltSpeedTag": "CAM01_TILTSPEED",
 	///			"zoomInTag": "CAM01_ZOOMIN",
-	///			"zoomOutTag": "CAM01_ZOOMOUT",
+    ///			"zoomOutTag": "CAM01_ZOOMOUT",
+    ///         "zoomSpeedTag": "CAM01_ZOOMSPEED",
 	///			"privacy": "CAM01_PRIVACY",
 	///			"onlineStatus": "CAM01_STATUS",
 	///			"presets": {
@@ -319,19 +322,28 @@ namespace QscQsysDspPlugin
 		public string PanLeftTag { get; set; }
 
 		[JsonProperty("panRightTag")]
-		public string PanRightTag { get; set; }
+        public string PanRightTag { get; set; }
+
+        [JsonProperty("panSpeedTag")]
+        public string PanSpeedTag { get; set; }
 
 		[JsonProperty("tiltUpTag")]
 		public string TiltUpTag { get; set; }
 
 		[JsonProperty("tiltDownTag")]
-		public string TiltDownTag { get; set; }
+        public string TiltDownTag { get; set; }
+
+        [JsonProperty("tiltSpeedTag")]
+        public string TiltSpeedTag { get; set; }
 
 		[JsonProperty("zoomInTag")]
 		public string ZoomInTag { get; set; }
 
 		[JsonProperty("zoomOutTag")]
-		public string ZoomOutTag { get; set; }
+        public string ZoomOutTag { get; set; }
+
+        [JsonProperty("zoomSpeedTag")]
+        public string ZoomSpeedTag { get; set; }
 
 		[JsonProperty("presetBankTag")]
 		public string PresetBankTag { get; set; }
