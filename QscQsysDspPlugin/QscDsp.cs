@@ -223,6 +223,7 @@ namespace QscQsysDspPlugin
                 prefix = props.Prefix;
             }
 
+            /*
             AutoTrackingKey = string.Format("{0}-{1}", Key, "Auto-Tracking");
 
             LevelControlPoints.Add(AutoTrackingKey, new QscDspLevelControl("Auto-Tracking", new QscDspLevelControlBlockConfig
@@ -231,6 +232,7 @@ namespace QscQsysDspPlugin
                                                                                                 Label = AutoTrackingKey,
                                                                                                 MuteInstanceTag = "CAM_TRACK" //todo make configurable
                                                                                             }, this));
+            */
 
             if (props.LevelControlBlocks != null)
             {
