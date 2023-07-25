@@ -209,7 +209,7 @@ namespace QscQsysDspPlugin
 
         public void PositionHome()
         {
-            throw new NotImplementedException();
+            MoveCamera(eCameraPtzControls.Home);
         }
 
         #endregion
