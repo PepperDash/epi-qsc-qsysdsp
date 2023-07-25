@@ -14,7 +14,7 @@ namespace QscQsysDspPlugin
 	/// </summary>
     public class QscDspCamera : Device, ICommunicationMonitor, IBridgeAdvanced, IOnline, IHasCameraPtzControl, IHasCameraPresets
 	{
-	    readonly QscDsp _dsp;
+        readonly QscDsp _dsp;
 		public QscDspCameraConfig Config { get; private set; }
 		string _lastCmd;
 		private bool _online;
@@ -146,6 +146,28 @@ namespace QscQsysDspPlugin
 		    OnPresetsListHasChanged();
 		}
 
+        public void SetPanSpeed(ushort speed)
+        {
+            var newSpeed = Scale(speed);
+            var cmdToSend = string.Format("csv \"{0}\" {1}", Config.PanSpeedTag, newSpeed);
+            _dsp.SendLine(cmdToSend);
+        }
+
+        public void SetTiltSpeed(ushort speed)
+        {
+            var newSpeed = Scale(speed);
+            var cmdToSend = string.Format("csv \"{0}\" {1}", Config.TiltSpeedTag, newSpeed);
+            _dsp.SendLine(cmdToSend);
+        }
+
+        public void SetZoomSpeed(ushort speed)
+        {
+            var newSpeed = Scale(speed);
+            var cmdToSend = string.Format("csv \"{0}\" {1}", Config.ZoomSpeedTag, newSpeed);
+            _dsp.SendLine(cmdToSend);
+        }
+
+
 		/// <summary>
 		/// Adds the command to the change group
 		/// </summary>
@@ -175,16 +197,27 @@ namespace QscQsysDspPlugin
 		    // Check for valid subscription response
 			Debug.Console(1, this, "CameraOnline {0} Response: '{1}'", customName, value);
 
-		    switch (value)
-		    {
-		        case "true":
-		            Online = true;
-		            break;
-		        case "false":
-		            Online = false;
-		            break;
-		    }
+			if (value == "true" || value == "OK")
+			{
+				Online = true;
+
+			}
+			else if (value == "false")
+			{
+				Online = false;
+			}
 		}
+
+        double Scale(double input)
+        {
+            Debug.Console(1, this, "Scaling (double) input '{0}'", input);
+
+            var output = (input / 65535);
+
+            Debug.Console(1, this, "Scaled output '{0}'", output);
+
+            return output;
+        }
 
 
 	    public BoolFeedback IsOnline { get; private set; }

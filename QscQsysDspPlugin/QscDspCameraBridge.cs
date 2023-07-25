@@ -46,7 +46,7 @@ namespace QscQsysDspPlugin
                 // from SiMPL > to Plugin
                 trilist.SetSigTrueAction(joinMap.PresetRecallStart.JoinNumber + temp + 1, () => camera.RecallPreset(temp));
                 trilist.SetSigTrueAction(joinMap.PresetStoreStart.JoinNumber + temp + 1, () => camera.SavePreset(temp));
-                trilist.SetStringSigAction(joinMap.PresetNamesStart.JoinNumber + temp, (s) => camera.WritePresetName(s, (ushort)(temp + 1)));
+                trilist.SetStringSigAction(joinMap.PresetNamesStart.JoinNumber + temp + 1, (s) => camera.WritePresetName(s, (ushort)(temp + 1)));
                 // from Plugin > to SiMPL
                 preset.Value.LabelFeedback.LinkInputSig(trilist.StringInput[joinMap.PresetNamesStart.JoinNumber + temp + 1]);
                 trilist.SetString(joinMap.PresetNamesStart.JoinNumber + temp + 1, preset.Value.Label);
@@ -54,6 +54,9 @@ namespace QscQsysDspPlugin
             }
 
             // from SiMPL > to Plugin
+            trilist.SetUShortSigAction(joinMap.PanSpeed.JoinNumber, (a) => camera.SetPanSpeed(a));
+            trilist.SetUShortSigAction(joinMap.TiltSpeed.JoinNumber, (a) => camera.SetTiltSpeed(a));
+            trilist.SetUShortSigAction(joinMap.ZoomSpeed.JoinNumber, (a) => camera.SetZoomSpeed(a));
             trilist.SetSigTrueAction(joinMap.PrivacyOn.JoinNumber, camera.PrivacyOn);
             trilist.SetSigTrueAction(joinMap.PrivacyOff.JoinNumber, camera.PrivacyOff);
 
@@ -77,7 +80,10 @@ namespace QscQsysDspPlugin
 		public uint PresetStoreStart { get; set; }
 		public uint PresetNamesStart { get; set; }
 		public uint PrivacyOn { get; set; }
-		public uint PrivacyOff { get; set; }
+        public uint PrivacyOff { get; set; }
+        public uint PanSpeed { get; set; }
+        public uint TiltSpeed { get; set; }
+        public uint ZoomSpeed { get; set; }
 
 		public QscDspCameraDeviceJoinMap()
 		{
@@ -94,6 +100,9 @@ namespace QscQsysDspPlugin
 			PresetNamesStart = 2;
 			PrivacyOn = 48;
 			PrivacyOff = 49;
+            PanSpeed = 1;
+            TiltSpeed = 2;
+            ZoomSpeed = 3;
 		}
 
 		public override void OffsetJoinNumbers(uint joinStart)
@@ -110,7 +119,10 @@ namespace QscQsysDspPlugin
 			PresetStoreStart = PresetStoreStart + joinOffset;
 			PrivacyOn = PrivacyOn + joinOffset;
 			PrivacyOff = PrivacyOff + joinOffset;
-			Online = Online + joinOffset;
+            Online = Online + joinOffset;
+            PanSpeed = PanSpeed + joinOffset;
+            TiltSpeed = TiltSpeed + joinOffset;
+            ZoomSpeed = ZoomSpeed + joinOffset;
 		}
 	}
 
@@ -274,6 +286,54 @@ namespace QscQsysDspPlugin
                 Description = "Preset Names",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
+            });
+
+        [JoinName("PanSpeed")]
+        public JoinDataComplete PanSpeed = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 1,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Camera pan speed",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        /// <summary>
+        /// Camera tilt speed
+        /// </summary>
+        [JoinName("TiltSpeed")]
+        public JoinDataComplete TiltSpeed = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Camera tilt speed",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        /// <summary>
+        /// Camera zoom speed
+        /// </summary>
+        [JoinName("ZoomSpeed")]
+        public JoinDataComplete ZoomSpeed = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 3,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Camera zoom speed",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Analog
             });
 
 

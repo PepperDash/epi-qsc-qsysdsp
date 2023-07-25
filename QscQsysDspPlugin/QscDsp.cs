@@ -223,6 +223,7 @@ namespace QscQsysDspPlugin
                 prefix = props.Prefix;
             }
 
+            /*
             AutoTrackingKey = string.Format("{0}-{1}", Key, "Auto-Tracking");
 
             LevelControlPoints.Add(AutoTrackingKey, new QscDspLevelControl("Auto-Tracking", new QscDspLevelControlBlockConfig
@@ -231,6 +232,7 @@ namespace QscQsysDspPlugin
                                                                                                 Label = AutoTrackingKey,
                                                                                                 MuteInstanceTag = "CAM_TRACK" //todo make configurable
                                                                                             }, this));
+            */
 
             if (props.LevelControlBlocks != null)
             {
@@ -265,10 +267,13 @@ namespace QscQsysDspPlugin
 
                     value.PanLeftTag = FormatTag(prefix, value.PanLeftTag);
                     value.PanRightTag = FormatTag(prefix, value.PanRightTag);
+                    value.PanSpeedTag = FormatTag(prefix, value.PanSpeedTag);
                     value.TiltUpTag = FormatTag(prefix, value.TiltUpTag);
                     value.TiltDownTag = FormatTag(prefix, value.TiltDownTag);
+                    value.TiltSpeedTag = FormatTag(prefix, value.TiltSpeedTag);
                     value.ZoomInTag = FormatTag(prefix, value.ZoomInTag);
                     value.ZoomOutTag = FormatTag(prefix, value.ZoomOutTag);
+                    value.ZoomSpeedTag = FormatTag(prefix, value.ZoomSpeedTag);
                     value.PresetBankTag = FormatTag(prefix, value.PresetBankTag);
                     value.Privacy = FormatTag(prefix, value.Privacy);
                     value.OnlineStatus = FormatTag(prefix, value.OnlineStatus);
