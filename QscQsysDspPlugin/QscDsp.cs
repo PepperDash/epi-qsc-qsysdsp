@@ -74,7 +74,7 @@ namespace QscQsysDspPlugin
 
         public BoolFeedback IsPrimaryFeedback;
         public BoolFeedback IsActiveFeedback;
-
+       
         private DeviceConfig _Dc;
 
         private CrestronQueue CommandQueue;
@@ -515,7 +515,7 @@ namespace QscQsysDspPlugin
                         if (changedInstance == controlPoint.Value.LevelInstanceTag)
                         {
                             controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[4],
-                                changeMessage[3]);
+                                changeMessage[3], changeMessage[2].Replace("\"", ""));
                             foundItFlag = true;
                             return;
                         }
@@ -523,7 +523,7 @@ namespace QscQsysDspPlugin
                         else if (changedInstance == controlPoint.Value.MuteInstanceTag)
                         {
                             controlPoint.Value.ParseSubscriptionMessage(changedInstance,
-                                changeMessage[2].Replace("\"", ""), null);
+                                changeMessage[2].Replace("\"", ""), null, null);
                             foundItFlag = true;
                             return;
                         }

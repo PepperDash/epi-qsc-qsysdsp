@@ -9,10 +9,13 @@ namespace QscQsysDspPlugin
 	{
 		bool _isMuted;
 		ushort _volumeLevel;
+	    string _gainLevel;
 
-        const ushort _rampResetTime = 100;
+        const ushort _rampResetTime = 250;
 
 		public BoolFeedback MuteFeedback { get; private set; }
+
+        public StringFeedback GainFeedback { get; private set; }
 
 		public IntFeedback VolumeLevelFeedback { get; private set; }
 
@@ -133,6 +136,7 @@ namespace QscQsysDspPlugin
 			MuteFeedback = new BoolFeedback(() => _isMuted);
 
 			VolumeLevelFeedback = new IntFeedback(() => _volumeLevel);
+		    GainFeedback = new StringFeedback(() => _gainLevel);
 
 			_volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
 			_volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
@@ -172,7 +176,7 @@ namespace QscQsysDspPlugin
 		/// <param name="customName"></param>
 		/// <param name="value"></param>
 		/// <param name="absoluteValue"></param>
-		public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
+		public void ParseSubscriptionMessage(string customName, string value, string absoluteValue, string gain)
 		{
 			// Check for valid subscription response
 			Debug.Console(1, this, "Level {0} Response: '{1}'", customName, value);
@@ -202,12 +206,15 @@ namespace QscQsysDspPlugin
                 && !UseAbsoluteValue)
 			{
 				var parsedValue = Double.Parse(value);
-
+                
                 _volumeLevel = (ushort)(parsedValue * 65535);
 				Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", customName, _volumeLevel);
 				_levelIsSubscribed = true;
 
 				VolumeLevelFeedback.FireUpdate();
+
+                _gainLevel = gain;
+                GainFeedback.FireUpdate();
 			}
 			else if (
                 !String.IsNullOrEmpty(LevelInstanceTag)

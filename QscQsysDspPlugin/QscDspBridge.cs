@@ -49,10 +49,10 @@ namespace QscQsysDspPlugin
 
 			foreach (var channel in DspDevice.LevelControlPoints)
             {
+                var actualChannel = channel.Value;               
                 if (channel.Key == DspDevice.AutoTrackingKey)
                 {
                     Debug.Console(2, DspDevice, "Found autotracking... skipping");
-                    var actualChannel = channel.Value;
                     trilist.SetSigTrueAction(joinMap.AutoTracking.JoinNumber, actualChannel.MuteToggle);
                     actualChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoTracking.JoinNumber]);
                     continue;
@@ -75,6 +75,7 @@ namespace QscQsysDspPlugin
                     genericChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.ChannelMuteToggle.JoinNumber + x]);
                     genericChannel.MuteFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.ChannelMuteOff.JoinNumber + x]);
                     genericChannel.VolumeLevelFeedback.LinkInputSig(trilist.UShortInput[joinMap.ChannelVolume.JoinNumber + x]);
+                    actualChannel.GainFeedback.LinkInputSig(trilist.StringInput[joinMap.ChannelGain.JoinNumber + x]);
 
 					// from SiMPL > to Plugin
                     trilist.SetSigTrueAction(joinMap.ChannelMuteToggle.JoinNumber + x, () => genericChannel.MuteToggle());
@@ -360,6 +361,19 @@ namespace QscQsysDspPlugin
                 Description = "Fader Channel Volume Set / Get",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Analog
+            });
+        [JoinName("ChannelGain")]
+        public JoinDataComplete ChannelGain = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 401,
+                JoinSpan = 200
+            },
+            new JoinMetadata
+            {
+                Description = "Fader Channel Gain FB",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
             });
         [JoinName("ChannelVolumeUp")]
         public JoinDataComplete ChannelVolumeUp = new JoinDataComplete(
