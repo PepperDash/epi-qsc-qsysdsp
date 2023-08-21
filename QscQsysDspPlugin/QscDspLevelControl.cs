@@ -182,12 +182,18 @@ namespace QscQsysDspPlugin
 			{
 			    switch (value)
 			    {
-			        case "true":
+                    case "true":
+                        _isMuted = true;
+                        _muteIsSubscribed = true;
+                        break;
 			        case "muted":
 			            _isMuted = true;
 			            _muteIsSubscribed = true;
 			            break;
-			        case "false":
+                    case "false":
+                        _isMuted = false;
+                        _muteIsSubscribed = true;
+                        break;
 			        case "unmuted":
 			            _isMuted = false;
 			            _muteIsSubscribed = true;
