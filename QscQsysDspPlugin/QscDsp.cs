@@ -404,7 +404,9 @@ namespace QscQsysDspPlugin
         {
             HeartbeatTracker++;
             SendLine("cgp 2");
-            CrestronEnvironment.Sleep(1000);
+            CrestronEnvironment.Sleep(500);
+            StatusGet(true);
+            CrestronEnvironment.Sleep(500);
 
             if (HeartbeatTracker > 0)
             {
