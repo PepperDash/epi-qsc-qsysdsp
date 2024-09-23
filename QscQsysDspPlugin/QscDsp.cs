@@ -310,7 +310,7 @@ namespace QscQsysDspPlugin
                     value.KeypadClearTag = FormatTag(prefix, value.KeypadClearTag);
                     value.KeypadPoundTag = FormatTag(prefix, value.KeypadPoundTag);
                     value.KeypadStarTag = FormatTag(prefix, value.KeypadStarTag);
-                    this.Dialers.Add(key, new QscDspDialer(value, this));
+                    this.Dialers.Add(key, new QscDspDialer(key, value, this));
                     Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
                 }
             }

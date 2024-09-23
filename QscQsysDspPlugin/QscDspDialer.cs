@@ -19,6 +19,11 @@ namespace QscQsysDspPlugin
 		public QscDsp Parent { get; private set; }
 
 		/// <summary>
+		/// This dialer key
+		/// </summary>
+		public string Key { get; private set; }
+
+		/// <summary>
 		/// Dialer block configuration 
 		/// </summary>
 		public QscDialerConfig Tags;
@@ -147,17 +152,18 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		/// <param name="config">configuration object</param>
 		/// <param name="parent">parent dsp instance</param>
-		public QscDspDialer(QscDialerConfig config, QscDsp parent)
+		public QscDspDialer(string key, QscDialerConfig config, QscDsp parent)
 		{
 			Tags = config;
 			Parent = parent;
+			Key = key;
 
 			IncomingCallFeedback = new BoolFeedback(() => { return IncomingCall; });
 			DialStringFeedback = new StringFeedback(() => { return DialString; });
 			OffHookFeedback = new BoolFeedback(() => { return OffHook; });
 			AutoAnswerFeedback = new BoolFeedback(() => { return AutoAnswerState; });
 			DoNotDisturbFeedback = new BoolFeedback(() => { return DoNotDisturbState; });
-			CallerIdNumberFeedback = new StringFeedback(() => { return CallerIdNumber; });
+			CallerIdNumberFeedback = new StringFeedback(() => { return CallerIdNumber; });			
 		}
 
 		/// <summary>
@@ -175,6 +181,28 @@ namespace QscQsysDspPlugin
 			var handler = CallStatusChange;
 			if (handler == null) return;
 			CallStatusChange(this, args);
+		}
+
+		private void UpdateCallStatusChange(eCodecCallStatus status, eCodecCallDirection direction, string name, string number)
+		{
+			var callItem = new CodecActiveCallItem
+			{
+				Id = Key,
+				Name = name,
+				Number = number,
+				Direction = direction,
+				Status = status,
+				Type = eCodecCallType.Audio
+			};
+
+			var args = new CodecCallStatusItemChangeEventArgs(callItem);
+			
+			OnCallStatusChange(args);
+		}
+
+		private void UpdateCallStatusChange(eCodecCallStatus status, eCodecCallDirection direction)
+		{
+			UpdateCallStatusChange(status, direction, "", "");
 		}
 
 		/// <summary>
@@ -243,16 +271,20 @@ namespace QscQsysDspPlugin
 				if (value == "Incoming")
 				{
 					this.IncomingCall = true;
+										
+					UpdateCallStatusChange(eCodecCallStatus.Ringing, eCodecCallDirection.Incoming);
 				}
 				else if (value.Contains("Ringing"))
 				{
-					this.IncomingCall = false;
+					this.IncomingCall = false;					
 					this.OffHook = true;
 					var splitString = value.Split(' ');
 					if (splitString.Count() >= 2)
 					{
 						CallerIdNumber = splitString[1];
 					}
+
+					UpdateCallStatusChange(eCodecCallStatus.Ringing, eCodecCallDirection.Outgoing, "", CallerIdNumber);
 				}
 				else if (value.Contains("Dialing") || value.Contains("Connected"))
 				{
@@ -262,6 +294,11 @@ namespace QscQsysDspPlugin
 					{
 						CallerIdNumber = splitString[1];
 					}
+
+					if(value.Contains("Dialing"))
+						UpdateCallStatusChange(eCodecCallStatus.Dialing, eCodecCallDirection.Outgoing, "", CallerIdNumber);
+					if(value.Contains("Connected"))
+						UpdateCallStatusChange(eCodecCallStatus.Connected, eCodecCallDirection.Outgoing, "", CallerIdNumber);
 				}
 				else if (value == "Disconnected")
 				{
@@ -272,6 +309,8 @@ namespace QscQsysDspPlugin
 					{
 						SendKeypad(EKeypadKeys.Clear);
 					}
+
+					UpdateCallStatusChange(eCodecCallStatus.Disconnected, eCodecCallDirection.Outgoing, "", CallerIdNumber);
 				}
 				else if (value == "Idle")
 				{
@@ -282,6 +321,8 @@ namespace QscQsysDspPlugin
 					{
 						SendKeypad(EKeypadKeys.Clear);
 					}
+
+					UpdateCallStatusChange(eCodecCallStatus.Idle, eCodecCallDirection.Outgoing, "", CallerIdNumber);
 				}
 			}
 			else if (customName == Tags.AutoAnswerTag)
