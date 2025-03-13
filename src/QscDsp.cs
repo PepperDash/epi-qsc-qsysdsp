@@ -223,18 +223,18 @@ namespace QscQsysDspPlugin
 
             AutoTrackingKey = string.Format("{0}-{1}", Key, "Auto-Tracking");
 
-            LevelControlPoints.Add(AutoTrackingKey, new QscDspLevelControl("Auto-Tracking", new QscDspLevelControlBlockConfig
-                                                                                            {
-                                                                                                HasMute = true,
-                                                                                                Label = AutoTrackingKey,
-                                                                                                MuteInstanceTag = "CAM_TRACK" //todo make configurable
-                                                                                            }, this));
+            LevelControlPoints.Add(AutoTrackingKey, new QscDspLevelControl(AutoTrackingKey, new QscDspLevelControlBlockConfig
+            {
+                HasMute = true,
+                Label = AutoTrackingKey,
+                MuteInstanceTag = "CAM_TRACK" //todo make configurable
+            }, this));
 
             if (props.LevelControlBlocks != null)
             {
                 foreach (KeyValuePair<string, QscDspLevelControlBlockConfig> block in props.LevelControlBlocks)
                 {
-                    string key = string.Format("{0}{1}", prefix, block.Key);
+                    string key = string.Format("{0}-{1}{2}", Key, prefix, block.Key);
                     var value = block.Value;
                     value.LevelInstanceTag = FormatTag(prefix, value.LevelInstanceTag);
                     value.MuteInstanceTag = FormatTag(prefix, value.MuteInstanceTag);
@@ -402,7 +402,7 @@ namespace QscQsysDspPlugin
             if (HeartbeatTracker > 0)
             {
                 Debug.Console(1, this, "Heartbeat missed, count {0}", HeartbeatTracker);
-                if (HeartbeatTracker%5 == 0)
+                if (HeartbeatTracker % 5 == 0)
                 {
                     Debug.Console(1, this, "Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
                     if (HeartbeatTracker == 5)
@@ -489,7 +489,7 @@ namespace QscQsysDspPlugin
                     Debug.Console(1, this, "Status Response received");
 
                     var statusMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-                        //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
+                    //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
 
                     if (statusMessage.Length != 5) return;
 
@@ -503,7 +503,7 @@ namespace QscQsysDspPlugin
                 else if (args.Text.IndexOf("cv") > -1)
                 {
                     var changeMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-                        //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
+                    //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
 
                     string changedInstance = changeMessage[1].Replace("\"", "");
                     Debug.Console(2, this, "cv parse Instance: {0}", changedInstance);
@@ -638,12 +638,12 @@ namespace QscQsysDspPlugin
             CommandQueueInProgress = true;
             if (CommandQueue.Peek() is QueuedCommand)
             {
-                var nextCommand = (QueuedCommand) CommandQueue.Peek();
+                var nextCommand = (QueuedCommand)CommandQueue.Peek();
                 SendLine(nextCommand.Command);
             }
             else
             {
-                var nextCommand = (string) CommandQueue.Peek();
+                var nextCommand = (string)CommandQueue.Peek();
                 SendLine(nextCommand);
             }
         }

@@ -77,79 +77,70 @@ namespace QscQsysDspPlugin
 		bool _muteIsSubscribed;
 		bool _levelIsSubscribed;
 
-		//public TesiraForteLevelControl(string label, string id, int index1, int index2, bool hasMute, bool hasLevel, BiampTesiraForteDsp parent)
-		//    : base(id, index1, index2, parent)
-		//{
-		//    Initialize(label, hasMute, hasLevel);
-		//}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="key">instance key</param>
-		/// <param name="config">level control block configuration object</param>
-		/// <param name="parent">dsp parent isntance</param>
-		public QscDspLevelControl(string key, QscDspLevelControlBlockConfig config, QscDsp parent)
-			: base(config.LevelInstanceTag, config.MuteInstanceTag, parent)
-		{
-		    _parent = parent;
-		    if (config.Disabled) 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="key">instance key</param>
+        /// <param name="config">level control block configuration object</param>
+        /// <param name="parent">dsp parent isntance</param>
+        public QscDspLevelControl(string key, QscDspLevelControlBlockConfig config, QscDsp parent)
+            : base(key, config.LevelInstanceTag, config.MuteInstanceTag, parent)
+        {
+            _parent = parent;
+            if (config.Disabled)
                 return;
 
-		    parent.CommunicationMonitor.IsOnlineFeedback.OutputChange += (sender, args) =>
-		        {
-		            if (!args.BoolValue)
-		                return;
+            parent.CommunicationMonitor.IsOnlineFeedback.OutputChange += (sender, args) =>
+            {
+                if (!args.BoolValue)
+                    return;
 
-                    CrestronInvoke.BeginInvoke(o =>
-		                {
-		                    if (!String.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
-                                _parent.SendLine(String.Format("cg \"{0}\"", config.LevelInstanceTag));
+                CrestronInvoke.BeginInvoke(o =>
+                {
+                    if (!String.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
+                        _parent.SendLine(String.Format("cg \"{0}\"", config.LevelInstanceTag));
 
-		                    if (!String.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
-                                _parent.SendLine(String.Format("cg \"{0}\"", config.MuteInstanceTag));
-		                });
-		        };
+                    if (!String.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
+                        _parent.SendLine(String.Format("cg \"{0}\"", config.MuteInstanceTag));
+                });
+            };
 
-			Initialize(key, config);
-		}
+            Initialize(config);
+        }
 
-		/// <summary>
-		/// Initializes this attribute based on config values and generates subscriptions commands and adds commands to the parent's queue.
-		/// </summary>
-		/// <param name="key">instance key</param>
-		/// <param name="config">level control block configuration object</param>
-		public void Initialize(string key, QscDspLevelControlBlockConfig config)
-		{
-			Key = string.Format("{0}-{1}", Parent.Key, key);
-			Enabled = true;
-			DeviceManager.AddDevice(this);
-			Type = config.IsMic ? ePdtLevelTypes.Microphone : ePdtLevelTypes.Speaker;
+        /// <summary>
+        /// Initializes this attribute based on config values and generates subscriptions commands and adds commands to the parent's queue.
+        /// </summary>
+        /// <param name="key">instance key</param>
+        /// <param name="config">level control block configuration object</param>
+        public void Initialize(QscDspLevelControlBlockConfig config)
+        {            
+            Enabled = true;
+            DeviceManager.AddDevice(this);
+            Type = config.IsMic ? ePdtLevelTypes.Microphone : ePdtLevelTypes.Speaker;
 
-			Debug.Console(2, this, "Adding LevelControl '{0}'", Key);
+            Debug.Console(2, this, "Adding LevelControl '{0}'", Key);
 
-			this.IsSubscribed = false;
+            this.IsSubscribed = false;
 
-			MuteFeedback = new BoolFeedback(() => _isMuted);
+            MuteFeedback = new BoolFeedback(() => _isMuted);
 
-			VolumeLevelFeedback = new IntFeedback(() => _volumeLevel);
+            VolumeLevelFeedback = new IntFeedback(() => _volumeLevel);
 
-			_volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
-			_volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
+            _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
+            _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
 
             _volumeRampDelay = new CTimer(VolumeRampStop, Timeout.Infinite);
-			LevelCustomName = config.Label;
-			HasMute = config.HasMute;
-			HasLevel = config.HasLevel;
-			UseAbsoluteValue = config.UseAbsoluteValue;
+            LevelCustomName = config.Label;
+            HasMute = config.HasMute;
+            HasLevel = config.HasLevel;
+            UseAbsoluteValue = config.UseAbsoluteValue;
+        }
 
-            
-		}
-
-		/// <summary>
-		/// Subscribes this level control object as configured
-		/// </summary>
-		public void Subscribe()
+        /// <summary>
+        /// Subscribes this level control object as configured
+        /// </summary>
+        public void Subscribe()
 		{
 			// Do subscriptions and blah blah
 			// Subscribe to mute

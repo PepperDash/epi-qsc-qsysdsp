@@ -4,31 +4,31 @@ namespace QscQsysDspPlugin
 {
 	public abstract class QscDspControlPoint : DspControlPoint
 	{
-		public string Key { get; protected set; }
-
 		public string LevelInstanceTag { get; set; }
 		public string MuteInstanceTag { get; set; }
 		public QscDsp Parent { get; private set; }
 
 		public bool IsSubscribed { get; protected set; }
 
-        /// <summary>
+		/// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="key">level key</param>
         /// <param name="levelInstanceTag">level named control/instance tag</param>
         /// <param name="muteInstanceTag">mute named control/instance tag</param>
         /// <param name="parent">parent DSP instance</param>
-        protected QscDspControlPoint(string levelInstanceTag, string muteInstanceTag, QscDsp parent)
-		{
-			LevelInstanceTag = levelInstanceTag;
-			MuteInstanceTag = muteInstanceTag;
-			Parent = parent; 
-		}
+        protected QscDspControlPoint(string key, string levelInstanceTag, string muteInstanceTag, QscDsp parent)
+            : base(key)
+        {            
+            LevelInstanceTag = levelInstanceTag;
+            MuteInstanceTag = muteInstanceTag;
+            Parent = parent;
+        }
 
-		/// <summary>
-		/// Initializes the plugin
-		/// </summary>
-		virtual public void Initialize()
+        /// <summary>
+        /// Initializes the plugin
+        /// </summary>
+        virtual public void Initialize()
 		{
 		}
 

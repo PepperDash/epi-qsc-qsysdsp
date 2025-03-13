@@ -19,6 +19,12 @@
 		<PackageProjectUrl>https://github.com/PepperDash/epi-qsc-qsysdsp</PackageProjectUrl>
 		<PackageTags>crestron 4series qsc qsys</PackageTags>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <DefineConstants>$(DefineConstants);SERIES4</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <DefineConstants>$(DefineConstants);SERIES4</DefineConstants>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<Compile Remove="Properties\**" />
