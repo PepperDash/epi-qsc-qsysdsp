@@ -4,9 +4,9 @@
     <InformationalVersion>$(Version)</InformationalVersion>
     <Authors>PepperDash Technologies</Authors>
     <Company>PepperDash Technologies</Company>
-    <Product>PepperDash 1Beyond AutomateVX</Product>
-    <Copyright>Copyright ©  2024</Copyright>
-    <RepositoryUrl>https://github.com/PepperDash/epi-1beyond-automate-vx</RepositoryUrl>
+    <Product>PepperDash QSC DSP</Product>
+    <Copyright>Copyright © 2025</Copyright>
+    <RepositoryUrl>https://github.com/PepperDash/epi-qsc-qsysdsp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>Crestron; 4series</PackageTags>
     <PackageOutputPath>../output</PackageOutputPath>
