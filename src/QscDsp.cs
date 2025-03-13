@@ -28,29 +28,6 @@ namespace QscQsysDspPlugin
     public class QscDsp : ReconfigurableDevice, IBridgeAdvanced, IOnline, ICommunicationMonitor
     {
         /// <summary>
-        /// Loads plugin using the factory
-        /// </summary>
-        public static void LoadPlugin()
-        {
-            DeviceFactory.AddFactoryForType("qscdsp", QscDsp.BuildDevice);
-        }
-
-        /// <summary>
-        /// Builds the device using the configuration object
-        /// </summary>
-        /// <param name="dc">DeviceConfig</param>
-        /// <returns>Device instance</returns>
-        public static QscDsp BuildDevice(DeviceConfig dc)
-        {
-            Debug.Console(2, "QscDsp config is null: {0}", dc == null);
-            var comm = CommFactory.CreateCommForDevice(dc);
-            Debug.Console(2, "QscDsp comm is null: {0}", comm == null);
-            var newMe = new QscDsp(dc.Key, dc.Name, comm, dc);
-
-            return newMe;
-        }
-
-        /// <summary>
         /// Communication object
         /// </summary>
         public IBasicCommunication Communication { get; private set; }
