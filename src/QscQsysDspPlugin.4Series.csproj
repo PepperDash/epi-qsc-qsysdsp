@@ -10,7 +10,7 @@
 		<Company>PepperDash Technologies</Company>
 		<Description>This software is a plugin designed to work as a part of PepperDash Essentials for Crestron control processors. This plugin allows for control of QSC Q-SYS DSP.</Description>
 		<Copyright>Copyright 2025</Copyright>
-		<Version>1.0.0-local</Version>
+		<Version>2.2.0-local</Version>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 		<InformationalVersion>$(Version)</InformationalVersion>
 		<OutputPath>4Series\bin\$(Configuration)\</OutputPath>
