@@ -5,7 +5,7 @@ using PepperDash.Essentials.Core;
 
 namespace QscQsysDspPlugin
 {
-	public class QscDspLevelControl : QscDspControlPoint, IBasicVolumeWithFeedback, IKeyed
+	public class QscDspLevelControl : QscDspControlPoint, IBasicVolumeWithFeedback, IKeyName
 	{
 		bool _isMuted;
 		ushort _volumeLevel;
@@ -74,7 +74,9 @@ namespace QscQsysDspPlugin
 		public bool HasMute { get; private set; }
 		public bool HasLevel { get; private set; }
 
-		bool _muteIsSubscribed;
+        public string Name => Key;
+
+        bool _muteIsSubscribed;
 		bool _levelIsSubscribed;
 
         /// <summary>
