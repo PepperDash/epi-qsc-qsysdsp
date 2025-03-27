@@ -1,4 +1,6 @@
-# QSC Q-Sys DSP Essentials Plugin (c) 2021
+![PepperDash Logo](/images/essentials-plugin-blue.png)
+
+# QSC Q-Sys DSP Essentials Plugin for 4-Series (c) 2025
 
 ## License
 
@@ -207,18 +209,16 @@ Presets can be handled two ways:
 
 To control from SIMPL, use the analog level input and output on the object. Triggering any analog value above 0 will active the preset. Feedback is 0=inactive, 1=half-state, 2=active.
 
-```
-    "levelControlBlocks":
-    {
-	"preset-1":
-	{
+```json
+"levelControlBlocks":  {
+	"preset-1":	{
 	    "label": "Default Levels",
 	    "levelInstanceTag": "DEFAULT",
 	    "disabled": false,
 	    "hasLevel": true,
 	    "useAbsoluteValue": true
 	}
-    }
+}
 ```
 
 ### Plugin Dialer Control Blocks
