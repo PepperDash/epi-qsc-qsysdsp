@@ -10,20 +10,20 @@
 		<Company>PepperDash Technologies</Company>
 		<Description>This software is a plugin designed to work as a part of PepperDash Essentials for Crestron control processors. This plugin allows for control of QSC Q-SYS DSP.</Description>
 		<Copyright>Copyright 2025</Copyright>
-		<Version>2.2.0-local</Version>
+		<Version>3.0.0-local</Version>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 		<InformationalVersion>$(Version)</InformationalVersion>
-		<OutputPath>4Series\bin\$(Configuration)\</OutputPath>
+		<OutputPath>bin\$(Configuration)\</OutputPath>
 		<Authors>PepperDash Technologies</Authors>
-		<PackageId>PepperDash.Essentials.Plugins.Qsc.QsysDsp</PackageId>		
+		<PackageId>PepperDash.Essentials.Plugins.Qsc.QsysDsp</PackageId>
 		<PackageProjectUrl>https://github.com/PepperDash/epi-qsc-qsysdsp</PackageProjectUrl>
 		<PackageTags>crestron 4series qsc qsys</PackageTags>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <DefineConstants>$(DefineConstants);SERIES4</DefineConstants>
+		<DefineConstants>$(DefineConstants);SERIES4</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <DefineConstants>$(DefineConstants);SERIES4</DefineConstants>
+		<DefineConstants>$(DefineConstants);SERIES4</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -38,7 +38,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="PepperDashEssentials" Version="2.0.0-hotfix-2610" />
+		<PackageReference Include="PepperDashEssentials" Version="2.1.0" >
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 </Project>
