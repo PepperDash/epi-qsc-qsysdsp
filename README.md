@@ -390,3 +390,158 @@ When instantiating multiple dialers joins start @ 3100 and use digital/analog/se
 |                           | 200 - 399 | Fader [n] Name Feedback            |
 |                           | 3100      | Dialer 1 Dial String Feedback      |
 |                           | 3104      | Dialer 1 Caller ID Number Feedback |
+<!-- START Minimum Essentials Framework Versions -->
+### Minimum Essentials Framework Versions
+
+- 2.0.0
+<!-- END Minimum Essentials Framework Versions -->
+<!-- START Config Example -->
+### Config Example
+
+```json
+{
+    "key": "GeneratedKey",
+    "uid": 1,
+    "name": "GeneratedName",
+    "type": "QscDialer",
+    "group": "Group",
+    "properties": {
+        "ClearOnHangup": true,
+        "incomingCallRingerTag": "SampleString",
+        "dialStringTag": "SampleString",
+        "disconnectTag": "SampleString",
+        "connectTag": "SampleString",
+        "callStatusTag": "SampleString",
+        "hookStatusTag": "SampleString",
+        "doNotDisturbTag": "SampleString",
+        "autoAnswerTag": "SampleString",
+        "keypadBackspaceTag": "SampleString",
+        "keypadClearTag": "SampleString",
+        "keypad1Tag": "SampleString",
+        "keypad2Tag": "SampleString",
+        "keypad3Tag": "SampleString",
+        "keypad4Tag": "SampleString",
+        "keypad5Tag": "SampleString",
+        "keypad6Tag": "SampleString",
+        "keypad7Tag": "SampleString",
+        "keypad8Tag": "SampleString",
+        "keypad9Tag": "SampleString",
+        "keypad0Tag": "SampleString",
+        "keypadPoundTag": "SampleString",
+        "keypadStarTag": "SampleString"
+    }
+}
+```
+<!-- END Config Example -->
+<!-- START Supported Types -->
+
+<!-- END Supported Types -->
+<!-- START Join Maps -->
+
+<!-- END Join Maps -->
+<!-- START Interfaces Implemented -->
+### Interfaces Implemented
+
+- IHasDialer
+- IBridgeAdvanced
+- IOnline
+- ICommunicationMonitor
+- IBasicVolumeWithFeedback
+- IKeyName
+<!-- END Interfaces Implemented -->
+<!-- START Base Classes -->
+### Base Classes
+
+- ReconfigurableDevice
+- Device
+- JoinMapBase
+- DspControlPoint
+- QscDspControlPoint
+<!-- END Base Classes -->
+<!-- START Public Methods -->
+### Public Methods
+
+- public void OnCallStatusChange(CodecCallStatusItemChangeEventArgs args)
+- public void Subscribe()
+- public void ParseSubscriptionMessage(string customName, string value)
+- public void DoNotDisturbToggle()
+- public void DoNotDisturbOn()
+- public void DoNotDisturbOff()
+- public void AutoAnswerToggle()
+- public void AutoAnswerOn()
+- public void AutoAnswerOff()
+- public void SendKeypad(EKeypadKeys button)
+- public void SendSubscriptionCommand(string instanceTag)
+- public void Dial()
+- public void Dial(string number)
+- public void EndCall(CodecActiveCallItem item)
+- public void EndAllCalls()
+- public void AcceptCall()
+- public void AcceptCall(CodecActiveCallItem item)
+- public void RejectCall()
+- public void RejectCall(CodecActiveCallItem item)
+- public void SendDtmf(string digit)
+- public void CreateDspObjects()
+- public void SetIpAddress(string hostname)
+- public void SetPrefix(string prefix)
+- public void StatusGet(bool enable)
+- public void WriteConfig()
+- public void ProcessSimulatedRx(string s)
+- public void SendLine(string s)
+- public void EnqueueCommand(QueuedCommand commandToEnqueue)
+- public void EnqueueCommand(string command)
+- public void AddPreset(QscDspPresets s)
+- public void RunPresetNumber(ushort n)
+- public void RunPreset(string name)
+- public void SavePresetNumber(ushort n)
+- public void SavePreset(string name)
+- public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
+- public void MoveCamera(eCameraPtzControls button)
+- public void PrivacyOn()
+- public void PrivacyOff()
+- public void RecallPreset(ushort presetNumber)
+- public void SavePreset(ushort presetNumber)
+- public void WritePresetName(string newLabel, ushort presetNumber)
+- public void Subscribe()
+- public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
+- public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
+- public void Initialize()
+- public void ParseGetMessage(string attributeCode, string message)
+- public void Initialize(QscDspLevelControlBlockConfig config)
+- public void Subscribe()
+- public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
+- public void MuteOff()
+- public void MuteOn()
+- public void SetVolume(ushort level)
+- public void MuteToggle()
+- public void VolumeUpRepeat(object callbackObject)
+- public void VolumeDownRepeat(object callbackObject)
+- public void VolumeDown(bool press)
+- public void VolumeUp(bool press)
+- public void VolumeRampStop(object callbackObject)
+<!-- END Public Methods -->
+<!-- START Bool Feedbacks -->
+### Bool Feedbacks
+
+- OffHookFeedback
+- AutoAnswerFeedback
+- DoNotDisturbFeedback
+- IncomingCallFeedback
+- IsPrimaryFeedback
+- IsActiveFeedback
+- IsOnline
+- IsOnline
+- MuteFeedback
+<!-- END Bool Feedbacks -->
+<!-- START Int Feedbacks -->
+### Int Feedbacks
+
+- VolumeLevelFeedback
+<!-- END Int Feedbacks -->
+<!-- START String Feedbacks -->
+### String Feedbacks
+
+- DialStringFeedback
+- CallerIdNumberFeedback
+- LabelFeedback
+<!-- END String Feedbacks -->
