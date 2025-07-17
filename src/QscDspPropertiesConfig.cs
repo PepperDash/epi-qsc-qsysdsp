@@ -166,7 +166,10 @@ namespace QscQsysDspPlugin
 
 		[JsonProperty("unmuteOnVolChange")]
 		public bool UnmuteOnVolChange { get; set; }
-	}
+
+        [JsonProperty("incrementAmount")]
+        public int IncrementAmount { get; set; } = 2; // Default to 2 step
+        }
 
 
 

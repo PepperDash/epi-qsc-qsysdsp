@@ -71,7 +71,8 @@ Update the configuration object as needed for the plugin being developed.
 }
 ```
 
-### Plugin Level Control Configuration Object
+### Plugin Level Control Configuration Object  Note: "incrementAmount" is set to 2 by default        
+
 
 ```json
 "properties": {
@@ -85,7 +86,8 @@ Update the configuration object as needed for the plugin being developed.
 			"hasMute": true,
 			"isMic": false,
 			"useAbsoluteValue": false,
-			"unmuteOnVolChange": true
+			"unmuteOnVolChange": true,
+			"incrementAmount": 1        
 		},
 		"fader-program": {
 			"label": "Program",
@@ -96,7 +98,8 @@ Update the configuration object as needed for the plugin being developed.
 			"hasMute": true,
 			"isMic": false,
 			"useAbsoluteValue": false,
-			"unmuteOnVolChange": true
+			"unmuteOnVolChange": true,
+			"incrementAmount": 1
 		},
 		"fader-speech": {
 			"label": "Speech",
@@ -107,7 +110,8 @@ Update the configuration object as needed for the plugin being developed.
 			"hasMute": true,
 			"isMic": false,
 			"useAbsoluteValue": false,
-			"unmuteOnVolChange": true
+			"unmuteOnVolChange": true,
+			"incrementAmount": 1
 		},
 		"fader-phone-call": {
 			"label": "Phone Call",
@@ -118,7 +122,8 @@ Update the configuration object as needed for the plugin being developed.
 			"hasMute": true,
 			"isMic": false,
 			"useAbsoluteValue": false,
-			"unmuteOnVolChange": true
+			"unmuteOnVolChange": true,
+			"incrementAmount": 1
 		},
 		"fader-video-call": {
 			"label": "Video Call",
@@ -129,7 +134,8 @@ Update the configuration object as needed for the plugin being developed.
 			"hasMute": true,
 			"isMic": false,
 			"useAbsoluteValue": false,
-			"unmuteOnVolChange": true
+			"unmuteOnVolChange": true,
+			"incrementAmount": 1
 		},
 		"fader-privacy": {
 			"label": "Privacy",
@@ -140,7 +146,8 @@ Update the configuration object as needed for the plugin being developed.
 			"hasMute": true,
 			"isMic": true,
 			"useAbsoluteValue": false,
-			"unmuteOnVolChange": true
+			"unmuteOnVolChange": true,
+			"incrementAmount": 1
 		},
 		"fader-wireless-mics": {
 			"label": "Wireless Mics",
@@ -151,7 +158,8 @@ Update the configuration object as needed for the plugin being developed.
 			"hasMute": true,
 			"isMic": true,
 			"useAbsoluteValue": false,
-			"unmuteOnVolChange": true
+			"unmuteOnVolChange": true,
+			"incrementAmount": 1
 		},
 		"fader-8": {
 			"label": "Fader 8",

@@ -16,7 +16,9 @@ namespace QscQsysDspPlugin
 
 		public IntFeedback VolumeLevelFeedback { get; private set; }
 
-		public bool Enabled { get; set; }
+        private int _incrementAmount = 1; // Default value
+
+        public bool Enabled { get; set; }
 		public bool UseAbsoluteValue { get; set; }
 
 		public ePdtLevelTypes Type;
@@ -131,8 +133,9 @@ namespace QscQsysDspPlugin
 
             _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
             _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
-
             _volumeRampDelay = new CTimer(VolumeRampStop, Timeout.Infinite);
+            _incrementAmount = config.IncrementAmount > 0 ? config.IncrementAmount : 1;
+
             LevelCustomName = config.Label;
             HasMute = config.HasMute;
             HasLevel = config.HasLevel;
@@ -294,9 +297,9 @@ namespace QscQsysDspPlugin
                 _volumeUpRepeatTimer.Stop();
 
                 _volumeDownRepeatTimer.Reset(_rampResetTime);
-				SendFullCommand("css ", this.LevelInstanceTag, "--");
-			}
-			else
+                SendFullCommand("css ", this.LevelInstanceTag, new string('-', _incrementAmount));
+                }
+            else
 			{
                 _volumeRampTracker = false;
 				_volumeDownRepeatTimer.Stop();
@@ -317,9 +320,9 @@ namespace QscQsysDspPlugin
                 _volumeDownRepeatTimer.Stop();
 
                 _volumeUpRepeatTimer.Reset(_rampResetTime);
-				SendFullCommand("css ", this.LevelInstanceTag, "++");
+                SendFullCommand("css ", this.LevelInstanceTag, new string('+', _incrementAmount));
 
-				if (AutomaticUnmuteOnVolumeUp && !_isMuted) MuteOff();
+                if (AutomaticUnmuteOnVolumeUp && !_isMuted) MuteOff();
 			}
 			else
 			{
