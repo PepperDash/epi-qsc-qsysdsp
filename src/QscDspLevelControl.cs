@@ -134,7 +134,7 @@ namespace QscQsysDspPlugin
             _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
             _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
             _volumeRampDelay = new CTimer(VolumeRampStop, Timeout.Infinite);
-            _incrementAmount = config.IncrementAmount > 0 ? config.IncrementAmount : 1;
+            _incrementAmount = config.IncrementAmount > 0 ? config.IncrementAmount : 2;
 
             LevelCustomName = config.Label;
             HasMute = config.HasMute;
