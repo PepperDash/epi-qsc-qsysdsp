@@ -6,6 +6,7 @@ using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
@@ -25,7 +26,7 @@ namespace QscQsysDspPlugin
     /// ! "publishToken":"name" "value":-77.0
     /// ! "myLevelName" -77
     /// </remarks>
-    public class QscDsp : ReconfigurableDevice, IBridgeAdvanced, IOnline, ICommunicationMonitor
+    public class QscDsp : ReconfigurableDevice, IDspPresets, IBridgeAdvanced, IOnline, ICommunicationMonitor
     {
         /// <summary>
         /// Communication object
@@ -46,6 +47,8 @@ namespace QscQsysDspPlugin
         public Dictionary<string, QscDspDialer> Dialers { get; set; }
         public Dictionary<string, QscDspCamera> Cameras { get; set; }
         public List<QscDspPresets> PresetList = new List<QscDspPresets>();
+
+        public Dictionary<string, IKeyName> Presets { get; set; }
 
         public BoolFeedback IsPrimaryFeedback;
         public BoolFeedback IsActiveFeedback;
@@ -134,6 +137,7 @@ namespace QscQsysDspPlugin
             LevelControlPoints = new Dictionary<string, QscDspLevelControl>();
             Dialers = new Dictionary<string, QscDspDialer>();
             Cameras = new Dictionary<string, QscDspCamera>();
+            Presets = new Dictionary<string, IKeyName>();
             CreateDspObjects();
 
             DeviceManager.AllDevicesActivated += (sender, args) =>
@@ -226,8 +230,17 @@ namespace QscQsysDspPlugin
                 foreach (KeyValuePair<string, QscDspPresets> preset in props.Presets)
                 {
                     var value = preset.Value;
+                    var qsysPreset = new QsysPreset(preset.Key)
+                    {
+                        Label = value.Label,
+                        Bank = value.Bank,
+                        Preset = value.Preset,
+                        Number = value.Number,
+                        LabelFeedback = value.LabelFeedback
+                    };
                     value.Preset = string.Format("{0}{1}", prefix, value.Preset);
                     this.AddPreset(value);
+                    Presets.Add(preset.Key, qsysPreset);
                     Debug.Console(2, this, "Added Preset {0} {1}", value.Label, value.Preset);
                 }
             }
@@ -653,6 +666,23 @@ namespace QscQsysDspPlugin
             SendLine("cgp 1");
         }
 
+        public void RecallPreset(string key)
+        {
+            var preset = Presets[key] as QscDspPresets;
+            this.LogInformation("Running preset {0}", preset.Label);
+            if (preset == null) return;
+
+            this.LogInformation("Checking Preset {0} | presetIndex {1}",
+                preset.Label, preset.Preset);
+            // - changed string check reference from 'tesiraPreset.PresetName' to 'tesiraPreset.PreetData.PresetName'
+            if (string.IsNullOrEmpty(preset.Preset))
+            {
+                this.LogInformation("Preset {0} is not valid", preset.Label);
+                return;
+            }
+            RunPreset(preset.Preset);
+        }
+
         /// <summary>
         /// Saves the preset with the number provided
         /// </summary>
@@ -708,5 +738,17 @@ namespace QscQsysDspPlugin
         }
 
         #endregion
+        
+        //added for compatibility with IDspPreset and Mobile Control/Room Plugin frameworks
+        public class QsysPreset : QscDspPresets, IKeyName
+        {
+            public string Key { get; private set; }
+            public string Name => base.Label;
+
+            public QsysPreset(string key) : base()
+            {
+                Key = key;
+            }
+        }
     }
 }
