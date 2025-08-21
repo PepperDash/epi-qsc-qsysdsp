@@ -668,7 +668,9 @@ namespace QscQsysDspPlugin
 
         public void RecallPreset(string key)
         {
-            var preset = Presets[key] as QscDspPresets;
+            if (!Presets.ContainsKey(key))
+                return;
+            var preset = Presets[key] as QsysPreset;
             this.LogInformation("Running preset {0}", preset.Label);
             if (preset == null) return;
 
