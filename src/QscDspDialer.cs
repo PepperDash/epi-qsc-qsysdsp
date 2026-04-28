@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Crestron.SimplSharp.Reflection;
+using System.Reflection;
+using Serilog.Events;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
@@ -187,23 +188,23 @@ namespace QscQsysDspPlugin
 				// Do subscriptions and blah blah
 				// This would be better using reflection JTA 2018-08-28
 				//PropertyInfo[] properties = Tags.GetType().GetCType().GetProperties();
-				var properties = Tags.GetType().GetCType().GetProperties();
+				var properties = Tags.GetType().GetProperties();
 				//GetPropertyValues(Tags);
 
-				Debug.Console(2, "QscDspDialer Subscribe");
+				Debug.LogMessage(LogEventLevel.Debug, "QscDspDialer Subscribe");
 				foreach (var prop in properties)
 				{
                     if (prop.Name.Contains("Tag") && !prop.Name.ToLower().Contains("keypad"))
 					{
 						var propValue = prop.GetValue(Tags, null) as string;
-						Debug.Console(2, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, propValue);
+						Debug.LogMessage(LogEventLevel.Debug, "Property {TypeName}, {PropName}, {Value}\n", null, prop.GetType().Name, prop.Name, propValue);
 						SendSubscriptionCommand(propValue);
 					}
 				}
 			}
 			catch (Exception e)
 			{
-				Debug.Console(2, "QscDspDialer Subscription Error: '{0}'\n", e);
+				Debug.LogMessage(LogEventLevel.Debug, "QscDspDialer Subscription Error: '{Error}'\n", null, e);
 			}
 
 			// SendSubscriptionCommand(, "1");
@@ -218,10 +219,10 @@ namespace QscQsysDspPlugin
 		public void ParseSubscriptionMessage(string customName, string value)
 		{
 			// Check for valid subscription response
-			Debug.Console(0, "ParseMessage customName: {0} value: '{1}'", customName, value);
+			Debug.LogMessage(LogEventLevel.Information, "ParseMessage customName: {CustomName} value: '{Value}'", null, customName, value);
 			if (customName == Tags.DialStringTag)
 			{
-				Debug.Console(0, "ParseMessage customName: {0} == Tags.DialStringTag: {1} | value: {2}", customName, Tags.DialStringTag, value);
+				Debug.LogMessage(LogEventLevel.Information, "ParseMessage customName: {CustomName} == Tags.DialStringTag: {DialStringTag} | value: {Value}", null, customName, Tags.DialStringTag, value);
 				DialString = value;
 				DialStringFeedback.FireUpdate();
 			}

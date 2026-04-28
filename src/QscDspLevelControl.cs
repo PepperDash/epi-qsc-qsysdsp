@@ -1,6 +1,7 @@
 ﻿using System;
 using Crestron.SimplSharp;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
 namespace QscQsysDspPlugin
@@ -121,7 +122,7 @@ namespace QscQsysDspPlugin
             DeviceManager.AddDevice(this);
             Type = config.IsMic ? ePdtLevelTypes.Microphone : ePdtLevelTypes.Speaker;
 
-            Debug.Console(2, this, "Adding LevelControl '{0}'", Key);
+            this.LogDebug("Adding LevelControl '{Key}'", Key);
 
             this.IsSubscribed = false;
 
@@ -168,7 +169,7 @@ namespace QscQsysDspPlugin
 		public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
 		{
 			// Check for valid subscription response
-			Debug.Console(1, this, "Level {0} Response: '{1}'", customName, value);
+			this.LogInformation("Level {CustomName} Response: '{Value}'", customName, value);
 			if (
                 !String.IsNullOrEmpty(MuteInstanceTag) 
                 && customName.Equals(MuteInstanceTag, StringComparison.OrdinalIgnoreCase))
@@ -197,7 +198,7 @@ namespace QscQsysDspPlugin
 				var parsedValue = Double.Parse(value);
 
                 _volumeLevel = (ushort)(parsedValue * 65535);
-				Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", customName, _volumeLevel);
+				this.LogInformation("Level {CustomName} VolumeLevel: '{VolumeLevel}'", customName, _volumeLevel);
 				_levelIsSubscribed = true;
 
 				VolumeLevelFeedback.FireUpdate();
@@ -209,7 +210,7 @@ namespace QscQsysDspPlugin
 			{
 
 				_volumeLevel = ushort.Parse(absoluteValue);
-				Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", customName, _volumeLevel);
+				this.LogInformation("Level {CustomName} VolumeLevel: '{VolumeLevel}'", customName, _volumeLevel);
 				_levelIsSubscribed = true;
 
 				VolumeLevelFeedback.FireUpdate();
@@ -238,7 +239,7 @@ namespace QscQsysDspPlugin
 		/// <param name="level"></param>
 		public void SetVolume(ushort level)
 		{
-			Debug.Console(1, this, "volume: {0}", level);
+				this.LogInformation("volume: {Level}", level);
 			// Unmute volume if new level is higher than existing
 			if (AutomaticUnmuteOnVolumeUp && _isMuted)
 			{
@@ -247,7 +248,7 @@ namespace QscQsysDspPlugin
 			if (!UseAbsoluteValue)
 			{
 				var newLevel = Scale(level);
-				Debug.Console(1, this, "newVolume: {0}", newLevel);
+				this.LogInformation("newVolume: {NewLevel}", newLevel);
 				SendFullCommand("csp", this.LevelInstanceTag, string.Format("{0}", newLevel));
 			}
 			else
@@ -344,11 +345,11 @@ namespace QscQsysDspPlugin
 		/// <returns></returns>
 		double Scale(double input)
 		{
-			Debug.Console(1, this, "Scaling (double) input '{0}'", input);
+			this.LogInformation("Scaling (double) input '{Input}'", input);
 
 			var output = (input / 65535);
 
-			Debug.Console(1, this, "Scaled output '{0}'", output);
+			this.LogInformation("Scaled output '{Output}'", output);
 
 			return output;
 		}
