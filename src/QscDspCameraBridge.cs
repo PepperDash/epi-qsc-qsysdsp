@@ -1,5 +1,6 @@
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -24,7 +25,7 @@ namespace QscQsysDspPlugin
             //if (joinMap == null)
             //    joinMap = new QscDspCameraDeviceJoinMap();
 
-            Debug.Console(1, camera, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            camera.LogInformation("Linking to Trilist '{TrilistId}'", trilist.ID.ToString("X"));
 
             // from Plugin > to SiMPL
             camera.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.Online.JoinNumber]);

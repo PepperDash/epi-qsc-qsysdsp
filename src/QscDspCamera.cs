@@ -2,6 +2,7 @@
 using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -104,7 +105,7 @@ namespace QscQsysDspPlugin
 		/// <param name="presetNumber">ushort</param>
 		public void RecallPreset(ushort presetNumber)
 		{
-			Debug.Console(2, this, "Recall Camera Preset {0}", presetNumber);
+			this.LogDebug("Recall Camera Preset {PresetNumber}", presetNumber);
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
@@ -160,7 +161,7 @@ namespace QscQsysDspPlugin
 			}
 			catch (Exception e)
 			{
-				Debug.Console(2, "QscDspCamera Subscription Error: '{0}'\n", e);
+				Debug.LogMessage(Serilog.Events.LogEventLevel.Debug, "QscDspCamera Subscription Error: '{Error}'\n", null, e);
 			}
 		}
 
@@ -174,7 +175,7 @@ namespace QscQsysDspPlugin
 		{
 
 			// Check for valid subscription response
-			Debug.Console(1, this, "CameraOnline {0} Response: '{1}'", customName, value);
+			this.LogInformation("CameraOnline {CustomName} Response: '{Value}'", customName, value);
 
 			if (value == "true")
 			{
