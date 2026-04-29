@@ -239,7 +239,7 @@ namespace QscQsysDspPlugin
 		/// <param name="level"></param>
 		public void SetVolume(ushort level)
 		{
-				this.LogInformation("volume: {Level}", level);
+			this.LogInformation("volume: {Level}", level);
 			// Unmute volume if new level is higher than existing
 			if (AutomaticUnmuteOnVolumeUp && _isMuted)
 			{
