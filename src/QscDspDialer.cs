@@ -204,7 +204,7 @@ namespace QscQsysDspPlugin
 			}
 			catch (Exception e)
 			{
-				Debug.LogMessage(LogEventLevel.Debug, "QscDspDialer Subscription Error: '{Error}'\n", null, e);
+				Debug.LogMessage(LogEventLevel.Debug, e, "QscDspDialer Subscription Error");
 			}
 
 			// SendSubscriptionCommand(, "1");

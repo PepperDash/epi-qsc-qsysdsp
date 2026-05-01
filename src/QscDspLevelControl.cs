@@ -169,7 +169,7 @@ namespace QscQsysDspPlugin
 		public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
 		{
 			// Check for valid subscription response
-			this.LogInformation("Level {CustomName} Response: '{Value}'", customName, value);
+			this.LogDebug("Level {CustomName} Response: '{Value}'", customName, value);
 			if (
                 !String.IsNullOrEmpty(MuteInstanceTag) 
                 && customName.Equals(MuteInstanceTag, StringComparison.OrdinalIgnoreCase))
@@ -198,7 +198,7 @@ namespace QscQsysDspPlugin
 				var parsedValue = Double.Parse(value);
 
                 _volumeLevel = (ushort)(parsedValue * 65535);
-				this.LogInformation("Level {CustomName} VolumeLevel: '{VolumeLevel}'", customName, _volumeLevel);
+				this.LogDebug("Level {CustomName} VolumeLevel: '{VolumeLevel}'", customName, _volumeLevel);
 				_levelIsSubscribed = true;
 
 				VolumeLevelFeedback.FireUpdate();
@@ -210,7 +210,7 @@ namespace QscQsysDspPlugin
 			{
 
 				_volumeLevel = ushort.Parse(absoluteValue);
-				this.LogInformation("Level {CustomName} VolumeLevel: '{VolumeLevel}'", customName, _volumeLevel);
+				this.LogDebug("Level {CustomName} VolumeLevel: '{VolumeLevel}'", customName, _volumeLevel);
 				_levelIsSubscribed = true;
 
 				VolumeLevelFeedback.FireUpdate();
@@ -239,7 +239,7 @@ namespace QscQsysDspPlugin
 		/// <param name="level"></param>
 		public void SetVolume(ushort level)
 		{
-			this.LogInformation("volume: {Level}", level);
+			this.LogDebug("volume: {Level}", level);
 			// Unmute volume if new level is higher than existing
 			if (AutomaticUnmuteOnVolumeUp && _isMuted)
 			{
@@ -248,7 +248,7 @@ namespace QscQsysDspPlugin
 			if (!UseAbsoluteValue)
 			{
 				var newLevel = Scale(level);
-				this.LogInformation("newVolume: {NewLevel}", newLevel);
+				this.LogDebug("newVolume: {NewLevel}", newLevel);
 				SendFullCommand("csp", this.LevelInstanceTag, string.Format("{0}", newLevel));
 			}
 			else
@@ -345,11 +345,11 @@ namespace QscQsysDspPlugin
 		/// <returns></returns>
 		double Scale(double input)
 		{
-			this.LogInformation("Scaling (double) input '{Input}'", input);
+			this.LogDebug("Scaling (double) input '{Input}'", input);
 
 			var output = (input / 65535);
 
-			this.LogInformation("Scaled output '{Output}'", output);
+			this.LogDebug("Scaled output '{Output}'", output);
 
 			return output;
 		}

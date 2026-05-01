@@ -318,7 +318,7 @@ namespace QscQsysDspPlugin
         {
             try
             {
-                if (hostname.Length > 2 &
+                if (hostname.Length > 2 &&
                     _Dc.Properties["control"]["tcpSshProperties"]["address"].ToString() != hostname)
                 {
                     this.LogDebug("Changing IPAddress: {Hostname}", hostname);

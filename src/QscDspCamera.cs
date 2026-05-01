@@ -161,7 +161,7 @@ namespace QscQsysDspPlugin
 			}
 			catch (Exception e)
 			{
-				Debug.LogMessage(Serilog.Events.LogEventLevel.Debug, "QscDspCamera Subscription Error: '{Error}'\n", null, e);
+				Debug.LogMessage(Serilog.Events.LogEventLevel.Debug, e, "QscDspCamera Subscription Error");
 			}
 		}
 
