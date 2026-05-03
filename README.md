@@ -389,7 +389,8 @@ When instantiating multiple dialers joins start @ 3100 and use digital/analog/se
 | ------------------------- | --------- | ---------------------------------- |
 | DSP IP Address            | 1         |                                    |
 | DSP Prefix                | 2         |                                    |
-| Save Preset by Name       | 92        |                                    |
+| Recall Preset Index       | 91        |                                    |
+| Save Preset Index         | 92        |                                    |
 | Run Preset by Name        | 100       |                                    |
 |                           | 101 - 300 | Preset [n] Name Feedback           |
 |                           | 200 - 399 | Fader [n] Name Feedback            |

@@ -96,7 +96,8 @@ namespace QscQsysDspPlugin
 			x = 0;
 			// from SiMPL > to Plugin
             trilist.SetStringSigAction(joinMap.PresetsByName.JoinNumber, DspDevice.RunPreset);
-            trilist.SetStringSigAction(joinMap.SelectedPresetSaveByName.JoinNumber, DspDevice.SavePreset);
+            trilist.SetStringSigAction(joinMap.RecallPresetIndex.JoinNumber, DspDevice.RunPreset);
+            trilist.SetStringSigAction(joinMap.SavePresetIndex.JoinNumber, DspDevice.SavePreset);
             trilist.SetUShortSigAction(joinMap.SelectedPresetRecallIndex.JoinNumber, value => selectedPresetToRecall = value);
             trilist.SetUShortSigAction(joinMap.SelectedPresetSaveIndex.JoinNumber, value => selectedPresetToSave = value);
             trilist.SetSigTrueAction(joinMap.SelectedPresetRecall.JoinNumber, () =>
@@ -498,6 +499,20 @@ namespace QscQsysDspPlugin
                 JoinType = eJoinType.Analog
             });
 
+        [JoinName("RecallPresetIndex")]
+        public JoinDataComplete RecallPresetIndex = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 91,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Recall preset by index (bank number format)",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
         [JoinName("SelectedPresetSave")]
         public JoinDataComplete SelectedPresetSave = new JoinDataComplete(
             new JoinData
@@ -526,8 +541,8 @@ namespace QscQsysDspPlugin
                 JoinType = eJoinType.Analog
             });
 
-        [JoinName("SelectedPresetSaveByName")]
-        public JoinDataComplete SelectedPresetSaveByName = new JoinDataComplete(
+        [JoinName("SavePresetIndex")]
+        public JoinDataComplete SavePresetIndex = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 92,
@@ -535,7 +550,7 @@ namespace QscQsysDspPlugin
             },
             new JoinMetadata
             {
-                Description = "Save preset by name",
+                Description = "Save preset by index (bank number format)",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Serial
             });
