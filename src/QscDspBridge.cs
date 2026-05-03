@@ -28,6 +28,8 @@ namespace QscQsysDspPlugin
             //    joinMap = new QscDspCameraDeviceJoinMap();
             Debug.Console(1, DspDevice, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 			ushort x = 0;
+            ushort selectedPresetToRecall = 0;
+            ushort selectedPresetToSave = 0;
 			var comm = DspDevice as ICommunicationMonitor;
 
 			// from Plugin > to SiMPL
@@ -94,6 +96,25 @@ namespace QscQsysDspPlugin
 			x = 0;
 			// from SiMPL > to Plugin
             trilist.SetStringSigAction(joinMap.PresetsByName.JoinNumber, DspDevice.RunPreset);
+            trilist.SetStringSigAction(joinMap.SelectedPresetSaveByName.JoinNumber, DspDevice.SavePreset);
+            trilist.SetUShortSigAction(joinMap.SelectedPresetRecallIndex.JoinNumber, value => selectedPresetToRecall = value);
+            trilist.SetUShortSigAction(joinMap.SelectedPresetSaveIndex.JoinNumber, value => selectedPresetToSave = value);
+            trilist.SetSigTrueAction(joinMap.SelectedPresetRecall.JoinNumber, () =>
+            {
+                ushort presetIndex;
+                if (TryGetPresetIndex(DspDevice, selectedPresetToRecall, "recall", out presetIndex))
+                {
+                    DspDevice.RunPresetNumber(presetIndex);
+                }
+            });
+            trilist.SetSigTrueAction(joinMap.SelectedPresetSave.JoinNumber, () =>
+            {
+                ushort presetIndex;
+                if (TryGetPresetIndex(DspDevice, selectedPresetToSave, "save", out presetIndex))
+                {
+                    DspDevice.SavePresetNumber(presetIndex);
+                }
+            });
 			foreach (var preset in DspDevice.PresetList)
 			{
 				var temp = x;
@@ -101,7 +122,6 @@ namespace QscQsysDspPlugin
 				// from SiMPL > to Plugin
 				trilist.StringInput[presetNum].StringValue = preset.Label;
 				trilist.SetSigTrueAction(presetNum, () => DspDevice.RunPresetNumber(temp));
-                // trilist.SetSigHeldAction(presetNum, 5000, () => DspDevice.SavePresetNumber(temp), () => DspDevice.RunPresetNumber(temp));
 				x++;
 			}
 
@@ -168,6 +188,27 @@ namespace QscQsysDspPlugin
 				lineOffset = lineOffset + 50;
 			}
 		}
+
+        private static bool TryGetPresetIndex(QscDsp dspDevice, ushort selectedPreset, string action, out ushort presetIndex)
+        {
+            presetIndex = 0;
+
+            if (selectedPreset == 0)
+            {
+                Debug.Console(1, dspDevice, "Ignoring preset {0}; selected preset index is 0 and must be one-based", action);
+                return false;
+            }
+
+            if (selectedPreset > dspDevice.PresetList.Count)
+            {
+                Debug.Console(1, dspDevice, "Ignoring preset {0}; selected preset index {1} is outside the available range 1-{2}",
+                    action, selectedPreset, dspDevice.PresetList.Count);
+                return false;
+            }
+
+            presetIndex = (ushort)(selectedPreset - 1);
+            return true;
+        }
 	}
 
 #if SERIES3
@@ -424,9 +465,79 @@ namespace QscQsysDspPlugin
             },
             new JoinMetadata
             {
-                Description = "Trigger / Save presets and Preset Name",
+                Description = "Recall presets and preset names",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.DigitalSerial
+            });
+
+        [JoinName("SelectedPresetRecall")]
+        public JoinDataComplete SelectedPresetRecall = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 91,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Trigger recall of selected preset",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("SelectedPresetRecallIndex")]
+        public JoinDataComplete SelectedPresetRecallIndex = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 91,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Preset index to recall",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        [JoinName("SelectedPresetSave")]
+        public JoinDataComplete SelectedPresetSave = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 92,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Trigger save of selected preset",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("SelectedPresetSaveIndex")]
+        public JoinDataComplete SelectedPresetSaveIndex = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 92,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Preset index to save",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        [JoinName("SelectedPresetSaveByName")]
+        public JoinDataComplete SelectedPresetSaveByName = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 92,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Save preset by name",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Serial
             });
 
         [JoinName("PresetsByName")]
