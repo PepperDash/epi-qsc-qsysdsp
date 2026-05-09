@@ -653,7 +653,13 @@ namespace QscQsysDspPlugin
         /// <param name="n">ushort</param>
         public void RunPresetNumber(ushort n)
         {
-            RunPreset(PresetList[n].Preset);
+            var preset = PresetList[n];
+            if (string.IsNullOrEmpty(preset.Preset))
+            {
+                this.LogError("Cannot recall preset at index {0}: preset name is not defined", n);
+                return;
+            }
+            RunPreset(preset.Preset);
         }
 
         /// <summary>
@@ -691,10 +697,21 @@ namespace QscQsysDspPlugin
         /// <param name="n">ushort</param>
         public void SavePresetNumber(ushort n)
         {
-            // assuming the preset configuration is "SNAPSsHOT_BANK SNAPSHOT_NUM FLOTATING_POINT_NUM"
-            // we need to revome the floating point number parameter when saving
+            var preset = PresetList[n];
+            if (string.IsNullOrEmpty(preset.Preset))
+            {
+                this.LogError("Cannot save preset at index {0}: preset name is not defined", n);
+                return;
+            }
+            // assuming the preset configuration is "SNAPSHOT_BANK SNAPSHOT_NUM FLOATING_POINT_NUM"
+            // we need to remove the floating point number parameter when saving
             // split the preset on ' ' (\x20) and only use the 1st two indexes which should be the SNAPSHOT_BANK and SNAPSHOT_NUM
-            var cmd = PresetList[n].Preset.Split(' ');
+            var cmd = preset.Preset.Split(' ');
+            if (cmd.Length < 2)
+            {
+                this.LogError("Cannot save preset at index {0}: preset name '{1}' is not in the expected 'BANK NUMBER' format", n, preset.Preset);
+                return;
+            }
             SavePreset(string.Format("{0} {1}", cmd[0], cmd[1]));
         }
 
