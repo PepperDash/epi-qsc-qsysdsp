@@ -96,11 +96,10 @@ namespace QscQsysDspPlugin
 			x = 0;
 			// from SiMPL > to Plugin
             trilist.SetStringSigAction(joinMap.PresetsByName.JoinNumber, DspDevice.RunPreset);
-            trilist.SetStringSigAction(joinMap.RecallPresetIndex.JoinNumber, DspDevice.RunPreset);
-            trilist.SetStringSigAction(joinMap.SavePresetIndex.JoinNumber, DspDevice.SavePreset);
-            trilist.SetUShortSigAction(joinMap.SelectedPresetRecallIndex.JoinNumber, value => selectedPresetToRecall = value);
-            trilist.SetUShortSigAction(joinMap.SelectedPresetSaveIndex.JoinNumber, value => selectedPresetToSave = value);
-            trilist.SetSigTrueAction(joinMap.SelectedPresetRecall.JoinNumber, () =>
+            trilist.SetStringSigAction(joinMap.SavePresetsByName.JoinNumber, DspDevice.SavePreset);
+            trilist.SetUShortSigAction(joinMap.PresetRecallNumber.JoinNumber, value => selectedPresetToRecall = value);
+            trilist.SetUShortSigAction(joinMap.PresetSaveNumber.JoinNumber, value => selectedPresetToSave = value);
+            trilist.SetSigTrueAction(joinMap.RecallPresetByNumber.JoinNumber, () =>
             {
                 ushort presetIndex;
                 if (TryGetPresetIndex(DspDevice, selectedPresetToRecall, "recall", out presetIndex))
@@ -108,7 +107,7 @@ namespace QscQsysDspPlugin
                     DspDevice.RunPresetNumber(presetIndex);
                 }
             });
-            trilist.SetSigTrueAction(joinMap.SelectedPresetSave.JoinNumber, () =>
+            trilist.SetSigTrueAction(joinMap.SavePresetByNumber.JoinNumber, () =>
             {
                 ushort presetIndex;
                 if (TryGetPresetIndex(DspDevice, selectedPresetToSave, "save", out presetIndex))
@@ -471,8 +470,8 @@ namespace QscQsysDspPlugin
                 JoinType = eJoinType.DigitalSerial
             });
 
-        [JoinName("SelectedPresetRecall")]
-        public JoinDataComplete SelectedPresetRecall = new JoinDataComplete(
+        [JoinName("RecallPresetByNumber")]
+        public JoinDataComplete RecallPresetByNumber = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 91,
@@ -480,13 +479,13 @@ namespace QscQsysDspPlugin
             },
             new JoinMetadata
             {
-                Description = "Trigger recall of selected preset",
+                Description = "Recall the preset by number",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("SelectedPresetRecallIndex")]
-        public JoinDataComplete SelectedPresetRecallIndex = new JoinDataComplete(
+        [JoinName("PresetRecallNumber")]
+        public JoinDataComplete PresetRecallNumber = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 91,
@@ -494,27 +493,13 @@ namespace QscQsysDspPlugin
             },
             new JoinMetadata
             {
-                Description = "Preset index to recall",
+                Description = "Preset number to recall",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Analog
             });
 
-        [JoinName("RecallPresetIndex")]
-        public JoinDataComplete RecallPresetIndex = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 91,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Recall preset by index (bank number format)",
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        [JoinName("SelectedPresetSave")]
-        public JoinDataComplete SelectedPresetSave = new JoinDataComplete(
+        [JoinName("SavePresetByNumber")]
+        public JoinDataComplete SavePresetByNumber = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 92,
@@ -522,13 +507,13 @@ namespace QscQsysDspPlugin
             },
             new JoinMetadata
             {
-                Description = "Trigger save of selected preset",
+                Description = "Save the preset by number",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("SelectedPresetSaveIndex")]
-        public JoinDataComplete SelectedPresetSaveIndex = new JoinDataComplete(
+        [JoinName("PresetSaveNumber")]
+        public JoinDataComplete PresetSaveNumber = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 92,
@@ -536,13 +521,13 @@ namespace QscQsysDspPlugin
             },
             new JoinMetadata
             {
-                Description = "Preset index to save",
+                Description = "Preset number to save",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Analog
             });
 
-        [JoinName("SavePresetIndex")]
-        public JoinDataComplete SavePresetIndex = new JoinDataComplete(
+        [JoinName("SavePresetsByName")]
+        public JoinDataComplete SavePresetsByName = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 92,
@@ -550,7 +535,7 @@ namespace QscQsysDspPlugin
             },
             new JoinMetadata
             {
-                Description = "Save preset by index (bank number format)",
+                Description = "Save presets by name",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Serial
             });

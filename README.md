@@ -339,9 +339,9 @@ When instantiating multiple dialers joins start @ 3100 and use digital/analog/se
 | dig-o (Input/Triggers)         | I/O         | dig-i (Feedback)                        |
 | ------------------------------ | ----------- | --------------------------------------- |
 |                                | 1           | Is Online Feedback                      |
-| Recall Selected Preset Index   | 91          |                                         |
-| Save Selected Preset Index     | 92          |                                         |
-| Run Preset by Number           | 101 - 300   |                                         |
+| Recall Preset by Number        | 91          |                                         |
+| Save Preset by Number          | 92          |                                         |
+| Recall Preset                  | 101 - 300   |                                         |
 |                                | 200 - 399   | Fader [n] Visible Feedback              |
 | Fader [n] Mute Toggle          | 400 - 599   | Fader [n] Mute Toggle Feedback          |
 | Fader [n] Mute On              | 600 - 799   | Fader [n] Mute On Feedback              |
@@ -376,12 +376,12 @@ When instantiating multiple dialers joins start @ 3100 and use digital/analog/se
 
 #### **Analogs**
 
-| an_o (Input/Triggers)        | I/O       | an_i (Feedback)          |
-| ---------------------------- | --------- | ------------------------ |
-| Recall Selected Preset Index | 91        |                          |
-| Save Selected Preset Index   | 92        |                          |
-| Fader [n] Level Set          | 200 - 399 | Fader [n] Level Feedback |
-|                              | 400 - 599 | Fader [n] Type Feedback  |
+| an_o (Input/Triggers)        | I/O       | an_i (Feedback)     |
+| ----------------------- | --------- | ------------------------ |
+| Recall Preset Number    | 91        |                          |
+| Save Preset Number      | 92        |                          |
+| Fader [n] Level Set     | 200 - 399 | Fader [n] Level Feedback |
+|                         | 400 - 599 | Fader [n] Type Feedback  |
 
 #### **Serials**
 
@@ -389,9 +389,8 @@ When instantiating multiple dialers joins start @ 3100 and use digital/analog/se
 | ------------------------- | --------- | ---------------------------------- |
 | DSP IP Address            | 1         |                                    |
 | DSP Prefix                | 2         |                                    |
-| Recall Preset Index       | 91        |                                    |
-| Save Preset Index         | 92        |                                    |
-| Run Preset by Name        | 100       |                                    |
+| Save Preset by Name       | 92        |                                    |
+| Recall Preset by Name     | 100       |                                    |
 |                           | 101 - 300 | Preset [n] Name Feedback           |
 |                           | 200 - 399 | Fader [n] Name Feedback            |
 |                           | 3100      | Dialer 1 Dial String Feedback      |
