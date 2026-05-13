@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
-using Crestron.SimplSharp.Reflection;
+using System.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
@@ -104,7 +104,7 @@ namespace QscQsysDspPlugin
         {
             _Dc = dc;
             var props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
-            Debug.Console(2, this, "Made it to device constructor");
+            this.LogDebug("Made it to device constructor");
 
             CommandQueue = new CrestronQueue(100);
             Communication = comm;
@@ -151,7 +151,7 @@ namespace QscQsysDspPlugin
         /// CustomActivate Override
         /// </summary>
         /// <returns></returns>
-        public override bool CustomActivate()
+        protected override bool CustomActivate()
         {
             CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "",
@@ -221,7 +221,7 @@ namespace QscQsysDspPlugin
                     value.MuteInstanceTag = FormatTag(prefix, value.MuteInstanceTag);
 
                     this.LevelControlPoints.Add(key, new QscDspLevelControl(key, value, this));
-                    Debug.Console(2, this, "Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key,
+                    this.LogDebug("Added LevelControlPoint {Key} LevelTag: {LevelTag} MuteTag: {MuteTag}", key,
                         value.LevelInstanceTag, value.MuteInstanceTag);
                 }
             }
@@ -241,7 +241,7 @@ namespace QscQsysDspPlugin
                     value.Preset = string.Format("{0}{1}", prefix, value.Preset);
                     this.AddPreset(value);
                     Presets.Add(preset.Key, qsysPreset);
-                    Debug.Console(2, this, "Added Preset {0} {1}", value.Label, value.Preset);
+                    this.LogDebug("Added Preset {Label} {Preset}", value.Label, value.Preset);
                 }
             }
             if (props.CameraControlBlocks != null)
@@ -266,7 +266,7 @@ namespace QscQsysDspPlugin
                     }
 
                     Cameras.Add(key, new QscDspCamera(this, key, key, value));
-                    Debug.Console(2, this, "Added Camera {0}\n {1}", key, value);
+                    this.LogDebug("Added Camera {Key}\n {Value}", key, value);
                 }
             }
             if (props.DialerControlBlocks != null)
@@ -299,7 +299,7 @@ namespace QscQsysDspPlugin
                     value.KeypadPoundTag = FormatTag(prefix, value.KeypadPoundTag);
                     value.KeypadStarTag = FormatTag(prefix, value.KeypadStarTag);
                     this.Dialers.Add(key, new QscDspDialer(value, this));
-                    Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
+                    this.LogDebug("Added Dialer {Key}\n {Value}", key, value);
                 }
             }
             SubscribeToAttributes();
@@ -318,10 +318,10 @@ namespace QscQsysDspPlugin
         {
             try
             {
-                if (hostname.Length > 2 &
+                if (hostname.Length > 2 &&
                     _Dc.Properties["control"]["tcpSshProperties"]["address"].ToString() != hostname)
                 {
-                    Debug.Console(2, this, "Changing IPAddress: {0}", hostname);
+                    this.LogDebug("Changing IPAddress: {Hostname}", hostname);
                     Communication.Disconnect();
 
                     (Communication as GenericTcpIpClient).Hostname = hostname;
@@ -333,8 +333,7 @@ namespace QscQsysDspPlugin
             }
             catch (Exception e)
             {
-                if (Debug.Level == 2)
-                    Debug.Console(2, this, "Error SetIpAddress: '{0}'", e);
+                this.LogDebug(e, "Error SetIpAddress");
             }
         }
 
@@ -349,8 +348,7 @@ namespace QscQsysDspPlugin
                 _Dc.Properties["prefix"] = prefix;
                 CustomSetConfig(_Dc);
                 // CreateDspObjects();
-                Debug.ConsoleWithLog(0, this,
-                    "The Dsp Prefix has changed to {0} the program will automaticly restart in 60 seconds", prefix);
+                this.LogInformation("The Dsp Prefix has changed to {Prefix} the program will automatically restart in 60 seconds", prefix);
                 string notUsed = "";
                 CTimer restart =
                     new CTimer(
@@ -391,19 +389,18 @@ namespace QscQsysDspPlugin
 
             if (HeartbeatTracker > 0)
             {
-                Debug.Console(1, this, "Heartbeat missed, count {0}", HeartbeatTracker);
+                this.LogInformation("Heartbeat missed, count {HeartbeatTracker}", HeartbeatTracker);
                 if (HeartbeatTracker % 5 == 0)
                 {
-                    Debug.Console(1, this, "Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
+                    this.LogInformation("Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
                     if (HeartbeatTracker == 5)
-                        Debug.LogError(Debug.ErrorLogLevel.Warning,
-                            "Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
+                        this.LogWarning("Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
                     SubscribeToAttributes();
                 }
             }
             else
             {
-                Debug.Console(2, this, "Heartbeat okay");
+                this.LogDebug("Heartbeat okay");
             }
         }
 
@@ -461,7 +458,7 @@ namespace QscQsysDspPlugin
                 {
                     if (string.IsNullOrEmpty(_username) || string.IsNullOrEmpty(_password))
                     {
-                        Debug.Console(0, this, "DEVICE REQUIRES LOGIN CREDENTIALS");
+                        this.LogError("DEVICE REQUIRES LOGIN CREDENTIALS");
                         return;
                     }
 
@@ -471,12 +468,12 @@ namespace QscQsysDspPlugin
 
                 if (args.Text.EndsWith("cgpa\r"))
                 {
-                    Debug.Console(2, this, "Found poll response");
+                    this.LogDebug("Found poll response");
                     HeartbeatTracker = 0;
                 }
                 if (args.Text.IndexOf("sr ") > -1)
                 {
-                    Debug.Console(1, this, "Status Response received");
+                    this.LogInformation("Status Response received");
 
                     var statusMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
                     //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
@@ -487,7 +484,7 @@ namespace QscQsysDspPlugin
                     IsPrimary = statusMessage[3].Contains("1") ? true : false;
                     IsActive = statusMessage[4].Contains("1") ? true : false;
 
-                    Debug.Console(1, this, "IsPrimary = {0}{1}:: IsActive = {2}{3}", statusMessage[3], IsPrimary,
+                    this.LogInformation("IsPrimary = {PrimaryMsg}{IsPrimary}:: IsActive = {ActiveMsg}{IsActive}", statusMessage[3], IsPrimary,
                         statusMessage[4], IsActive);
                 }
                 else if (args.Text.IndexOf("cv") > -1)
@@ -496,7 +493,7 @@ namespace QscQsysDspPlugin
                     //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
 
                     string changedInstance = changeMessage[1].Replace("\"", "");
-                    Debug.Console(2, this, "cv parse Instance: {0}", changedInstance);
+                    this.LogDebug("cv parse Instance: {Instance}", changedInstance);
                     bool foundItFlag = false;
                     foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
                     {
@@ -520,7 +517,7 @@ namespace QscQsysDspPlugin
                     {
                         foreach (var dialer in Dialers)
                         {
-                            PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
+                            PropertyInfo[] properties = dialer.Value.Tags.GetType().GetProperties();
                             foreach (var prop in properties)
                             {
                                 var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
@@ -551,7 +548,7 @@ namespace QscQsysDspPlugin
                     {
                         foreach (var camera in Cameras)
                         {
-                            Debug.Console(2, this, "DSP Camera Status Compare: {0} ==? {1}", changedInstance,
+                            this.LogDebug("DSP Camera Status Compare: {Instance} ==? {OnlineStatus}", changedInstance,
                                 camera.Value.Config.OnlineStatus);
                             if (changedInstance == camera.Value.Config.OnlineStatus)
                             {
@@ -570,8 +567,7 @@ namespace QscQsysDspPlugin
             }
             catch (Exception e)
             {
-                if (Debug.Level == 2)
-                    Debug.Console(2, this, "Port_LineRecieved Exception: '{0}'\n{1}", args.Text, e);
+                this.LogDebug(e, "Port_LineReceived Exception: '{Text}'", args.Text);
             }
         }
 

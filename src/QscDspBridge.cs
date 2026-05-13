@@ -1,8 +1,8 @@
 using System.Linq;
-using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -26,7 +26,7 @@ namespace QscQsysDspPlugin
             }
             //if (joinMap == null)
             //    joinMap = new QscDspCameraDeviceJoinMap();
-            Debug.Console(1, DspDevice, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            DspDevice.LogInformation("Linking to Trilist '{TrilistId}'", trilist.ID.ToString("X"));
 			ushort x = 0;
             ushort selectedPresetToRecall = 0;
             ushort selectedPresetToSave = 0;
@@ -53,7 +53,7 @@ namespace QscQsysDspPlugin
             {
                 if (channel.Key == DspDevice.AutoTrackingKey)
                 {
-                    Debug.Console(2, DspDevice, "Found autotracking... skipping");
+                    DspDevice.LogDebug("Found autotracking... skipping");
                     var actualChannel = channel.Value;
                     trilist.SetSigTrueAction(joinMap.AutoTracking.JoinNumber, actualChannel.MuteToggle);
                     actualChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoTracking.JoinNumber]);
@@ -61,12 +61,12 @@ namespace QscQsysDspPlugin
                 }
 
 				//var QscChannel = channel.Value as QSC.DSP.EPI.QscDspLevelControl;
-			    Debug.Console(2, DspDevice, "QscChannel {0} connect", x);
+			DspDevice.LogDebug("QscChannel {Index} connect", x);
                 
 				var genericChannel = channel.Value as IBasicVolumeWithFeedback;
 				if (channel.Value.Enabled)
                 {
-                    Debug.Console(2, DspDevice, "Linking Level Control:{0} at index:{1}", channel.Key, x);
+                    DspDevice.LogDebug("Linking Level Control:{Key} at index:{Index}", channel.Key, x);
 
 					// from SiMPL > to Plugin
                     trilist.StringInput[joinMap.ChannelName.JoinNumber + x].StringValue = channel.Value.LevelCustomName;
@@ -132,7 +132,7 @@ namespace QscQsysDspPlugin
 				var dialer = line;
 
 				var dialerLineOffset = lineOffset;
-				Debug.Console(0, "AddingDialerBridge {0} {1} Offset", dialer.Key, dialerLineOffset);
+				Debug.LogMessage(Serilog.Events.LogEventLevel.Information, "AddingDialerBridge {Key} {Offset} Offset", null, dialer.Key, dialerLineOffset);
 				
 				// from SiMPL > to Plugin
                 trilist.SetSigTrueAction((joinMap.Keypad0.JoinNumber + dialerLineOffset), () => DspDevice.Dialers[dialer.Key].SendKeypad(QscDspDialer.EKeypadKeys.Num0));
@@ -210,132 +210,6 @@ namespace QscQsysDspPlugin
             return true;
         }
 	}
-
-#if SERIES3
-
-    /// <summary>
-    /// QSC DSP Join Map
-    /// </summary>
-    public class QscDspDeviceJoinMap : JoinMapBase
-	{
-		public uint IsOnline { get; set; }
-        public uint IsPrimary { get; set; }
-        public uint IsSecondary { get; set; }
-        public uint IsActive { get; set; }
-        public uint SimTxRx { get; set; }
-        public uint IsInactive { get; set; }
-        public uint GetStatus { get; set; }
-        public uint DspName { get; set; }
-		public uint Address { get; set; }
-		public uint Prefix { get; set; }
-		public uint ChannelMuteToggle { get; set; }
-		public uint ChannelMuteOn { get; set; }
-		public uint ChannelMuteOff { get; set; }
-		public uint ChannelVolume { get; set; }
-		public uint ChannelType { get; set; }
-		public uint ChannelName { get; set; }
-		public uint ChannelVolumeUp { get; set; }
-		public uint ChannelVolumeDown { get; set; }
-		public uint Presets { get; set; }
-		public uint DialStringCmd { get; set; }
-		public uint IncomingCall { get; set; }
-		public uint Keypad0 { get; set; }
-		public uint Keypad1 { get; set; }
-		public uint Keypad2 { get; set; }
-		public uint Keypad3 { get; set; }
-		public uint Keypad4 { get; set; }
-		public uint Keypad5 { get; set; }
-		public uint Keypad6 { get; set; }
-		public uint Keypad7 { get; set; }
-		public uint Keypad8 { get; set; }
-		public uint Keypad9 { get; set; }
-		public uint KeypadStar { get; set; }
-		public uint KeypadPound { get; set; }
-		public uint KeypadClear { get; set; }
-		public uint KeypadBackspace { get; set; }
-		public uint Dial { get; set; }
-		public uint DoNotDisturbToggle { get; set; }
-		public uint DoNotDisturbOn { get; set; }
-		public uint DoNotDisturbOff { get; set; }
-		public uint AutoAnswerToggle { get; set; }
-		public uint AutoAnswerOn { get; set; }
-		public uint AutoAnswerOff { get; set; }
-		public uint OffHook { get; set; }
-		public uint OnHook { get; set; }
-		public uint ChannelVisible { get; set; }
-		public uint CallerIdNumberFb { get; set; }
-		public uint EndCall { get; set; }
-		public uint IncomingCallAccept { get; set; }
-		public uint IncomingCallReject { get; set; }
-
-		public QscDspDeviceJoinMap()
-		{
-			// Arrays
-			ChannelName = 200;
-			ChannelMuteToggle = 400;
-			ChannelMuteOn = 600;
-			ChannelMuteOff = 800;
-			ChannelVolume = 200;
-			ChannelVolumeUp = 1000;
-			ChannelVolumeDown = 1200;
-			ChannelType = 400;
-			Presets = 100;
-			ChannelVisible = 200;
-
-			// SIngleJoins
-			IsOnline = 1;
-            IsPrimary = 2;
-            IsSecondary = 3;
-            IsActive = 4;
-            IsInactive = 5;
-            SimTxRx = 6;
-            GetStatus = 2;
-			Prefix = 2;
-			Address = 1;
-            DspName = 3;
-			Presets = 100;
-			DialStringCmd = 3100;
-			IncomingCall = 3100;
-			EndCall = 3107;
-			Keypad0 = 3110;
-			Keypad1 = 3111;
-			Keypad2 = 3112;
-			Keypad3 = 3113;
-			Keypad4 = 3114;
-			Keypad5 = 3115;
-			Keypad6 = 3116;
-			Keypad7 = 3117;
-			Keypad8 = 3118;
-			Keypad9 = 3119;
-			KeypadStar = 3120;
-			KeypadPound = 3121;
-			KeypadClear = 3122;
-			KeypadBackspace = 3123;
-			DoNotDisturbToggle = 3132;
-			DoNotDisturbOn = 3133;
-			DoNotDisturbOff = 3134;
-			AutoAnswerToggle = 3127;
-			AutoAnswerOn = 3125;
-			AutoAnswerOff = 3126;
-			Dial = 3124;
-			OffHook = 3130;
-			OnHook = 3129;
-			CallerIdNumberFb = 3104;
-			IncomingCallAccept = 3136;
-			IncomingCallReject = 3137;
-		}
-
-		public override void OffsetJoinNumbers(uint joinStart)
-		{
-			var joinOffset = joinStart - 1;
-			var properties = this.GetType().GetCType().GetProperties().Where(o => o.PropertyType == typeof(uint)).ToList();
-			foreach (var property in properties)
-			{
-				property.SetValue(this, (uint)property.GetValue(this, null) + joinOffset, null);
-			}
-		}
-	}
-#endif
 
     public class QscDspDeviceJoinMapAdvanced : JoinMapBaseAdvanced
     {

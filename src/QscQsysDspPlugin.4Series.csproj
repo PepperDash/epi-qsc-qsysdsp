@@ -3,13 +3,13 @@
 		<ProjectType>ProgramLibrary</ProjectType>
 	</PropertyGroup>
 	<PropertyGroup>
-		<TargetFramework>net472</TargetFramework>
+		<TargetFramework>net8</TargetFramework>
 		<RootNamespace>QscQsysDspPlugin</RootNamespace>
 		<Deterministic>false</Deterministic>
 		<AssemblyTitle>epi-qsc-qsys</AssemblyTitle>
 		<Company>PepperDash Technologies</Company>
 		<Description>This software is a plugin designed to work as a part of PepperDash Essentials for Crestron control processors. This plugin allows for control of QSC Q-SYS DSP.</Description>
-		<Copyright>Copyright 2025</Copyright>
+		<Copyright>Copyright 2026</Copyright>
 		<Version>3.0.0-local</Version>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 		<InformationalVersion>$(Version)</InformationalVersion>
@@ -17,13 +17,7 @@
 		<Authors>PepperDash Technologies</Authors>
 		<PackageId>PepperDash.Essentials.Plugins.Qsc.QsysDsp</PackageId>
 		<PackageProjectUrl>https://github.com/PepperDash/epi-qsc-qsysdsp</PackageProjectUrl>
-		<PackageTags>crestron 4series qsc qsys</PackageTags>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DefineConstants>$(DefineConstants);SERIES4</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DefineConstants>$(DefineConstants);SERIES4</DefineConstants>
+		<PackageTags>crestron 4series net8 qsc qsys</PackageTags>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -38,7 +32,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="PepperDashEssentials" Version="2.13.1" >
+		<PackageReference Include="PepperDashEssentials" Version="3.0.0-dev-v3-testing.13" >
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
 	</ItemGroup>
