@@ -173,7 +173,7 @@ namespace QscQsysDspPlugin
                 !String.IsNullOrEmpty(MuteInstanceTag) 
                 && customName.Equals(MuteInstanceTag, StringComparison.OrdinalIgnoreCase))
 			{
-			    switch (value)
+			    switch (value.Trim().ToLowerInvariant())
 			    {
 			        case "true":
 					case "enabled":
