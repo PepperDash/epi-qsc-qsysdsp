@@ -173,14 +173,16 @@ namespace QscQsysDspPlugin
                 !String.IsNullOrEmpty(MuteInstanceTag) 
                 && customName.Equals(MuteInstanceTag, StringComparison.OrdinalIgnoreCase))
 			{
-			    switch (value)
+			    switch (value.Trim().ToLowerInvariant())
 			    {
 			        case "true":
+					case "enabled":
 			        case "muted":
 			            _isMuted = true;
 			            _muteIsSubscribed = true;
 			            break;
 			        case "false":
+					case "disabled":
 			        case "unmuted":
 			            _isMuted = false;
 			            _muteIsSubscribed = true;
