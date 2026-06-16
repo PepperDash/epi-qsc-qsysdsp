@@ -40,8 +40,8 @@
                         "deviceReadyResponsePattern": "",
                         "tcpSshProperties": {
                             "address": "",
-                            "port": 23,
-                            "username": "crestron",
+                            "port": 1710,
+                            "username": "",
                             "password": "",
                             "autoReconnect": true,
                             "autoReconnectIntervalMs": 5000
@@ -212,6 +212,24 @@
                                     "number": 4
                                 }
                             }
+                        }
+                    },
+                    "componentControlBlocks": {
+                        "cafeOut1": {
+                            "label": "1st Floor Cafe Output 1 Select",
+                            "componentName": "Router",
+                            "controlName": "select.1",
+                            "hasFeedback": true,
+                            "valueType": "integer",
+                            "disabled": false
+                        },
+                        "cafeOut2": {
+                            "label": "1st Floor Cafe Output 2 Select",
+                            "componentName": "Router",
+                            "controlName": "select.2",
+                            "hasFeedback": true,
+                            "valueType": "integer",
+                            "disabled": false
                         }
                     }
                 }

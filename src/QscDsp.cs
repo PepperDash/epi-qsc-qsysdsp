@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PepperDash.Core;
 using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
@@ -14,40 +15,17 @@ using PepperDash.Essentials.Core.Devices;
 
 namespace QscQsysDspPlugin
 {
-    /// <summary>
-    /// DSP Device
-    /// </summary>
-    /// <remarks>
-    /// Questions:
-    /// 1. When subscribing, jsut use the Instance ID for custom name?
-    /// 2. Verbose on subscription?
-    ///
-    /// - Example subscription feedback responses:
-    /// ! "publishToken":"name" "value":-77.0
-    /// ! "myLevelName" -77
-    /// </remarks>
     public class QscDsp : ReconfigurableDevice, IDspPresets, IBridgeAdvanced, IOnline, ICommunicationMonitor
     {
-        /// <summary>
-        /// Communication object
-        /// </summary>
         public IBasicCommunication Communication { get; private set; }
-
-        /// <summary>
-        /// Gather object
-        /// </summary>
         public CommunicationGather PortGather { get; private set; }
-
-        /// <summary>
-        /// Communication monitor object
-        /// </summary>
         public StatusMonitorBase CommunicationMonitor { get; private set; }
 
         public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
         public Dictionary<string, QscDspDialer> Dialers { get; set; }
         public Dictionary<string, QscDspCamera> Cameras { get; set; }
+        public Dictionary<string, QscDspComponentControl> ComponentControlPoints { get; private set; }
         public List<QscDspPresets> PresetList = new List<QscDspPresets>();
-
         public Dictionary<string, IKeyName> Presets { get; set; }
 
         public BoolFeedback IsPrimaryFeedback;
@@ -55,50 +33,33 @@ namespace QscQsysDspPlugin
 
         private DeviceConfig _Dc;
 
-        private CrestronQueue CommandQueue;
+        private const string _changeGroupId = "essentials-cg";
+        private readonly List<string> _changeGroupControls = new List<string>();
+        private int _requestIdCounter = 0;
+        private int _statusGetId = -1;
+        private bool _heartbeatReceived = false;
 
-        private bool CommandQueueInProgress = false;
         private bool _IsPrimary;
-
         public bool IsPrimary
         {
             get { return _IsPrimary; }
-            private set
-            {
-                _IsPrimary = value;
-                IsPrimaryFeedback.FireUpdate();
-            }
+            private set { _IsPrimary = value; IsPrimaryFeedback.FireUpdate(); }
         }
 
         private bool _IsActive;
-
         public bool IsActive
         {
             get { return _IsActive; }
-            private set
-            {
-                _IsActive = value;
-                IsActiveFeedback.FireUpdate();
-            }
+            private set { _IsActive = value; IsActiveFeedback.FireUpdate(); }
         }
 
         private uint HeartbeatTracker = 0;
         public bool ShowHexResponse { get; set; }
-
         private string _username;
         private string _password;
         public string DspName { get; private set; }
-
         public string AutoTrackingKey { get; set; }
 
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="key">String</param>
-        /// <param name="name">String</param>
-        /// <param name="comm">IBasicCommunication</param>
-        /// <param name="dc">DeviceConfig</param>
         public QscDsp(string key, string name, IBasicCommunication comm, DeviceConfig dc)
             : base(dc)
         {
@@ -106,56 +67,39 @@ namespace QscQsysDspPlugin
             var props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
             Debug.Console(2, this, "Made it to device constructor");
 
-            CommandQueue = new CrestronQueue(100);
             Communication = comm;
-
             DspName = name;
 
             var socket = comm as ISocketStatus;
             if (socket != null)
-            {
-                // This instance uses IP control
                 socket.ConnectionChange += socket_ConnectionChange;
-            }
-            else
-            {
-                // This instance uses RS-232 control
-            }
 
-            PortGather = new CommunicationGather(Communication, "\x0a");
-            PortGather.LineReceived += this.Port_LineReceived;
+            PortGather = new CommunicationGather(Communication, "\x00");
+            PortGather.LineReceived += this.Qrc_MessageReceived;
 
-            // Custom monitoring, will check the heartbeat tracker count every 20s and reset. Heartbeat sbould be coming in every 20s if subscriptions are valid
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000,
                 CheckSubscriptions);
 
-            // Failover feedback, IsPrimary - will indicate dsp is either standalone or primary Core of a redundant pair
-            // IsActive - indicates this core is the active unit of a redundant pair.
             IsPrimaryFeedback = new BoolFeedback(() => IsPrimary);
             IsActiveFeedback = new BoolFeedback(() => IsActive);
 
             LevelControlPoints = new Dictionary<string, QscDspLevelControl>();
             Dialers = new Dictionary<string, QscDspDialer>();
             Cameras = new Dictionary<string, QscDspCamera>();
+            ComponentControlPoints = new Dictionary<string, QscDspComponentControl>();
             Presets = new Dictionary<string, IKeyName>();
             CreateDspObjects();
 
             DeviceManager.AllDevicesActivated += (sender, args) =>
             {
-                if (comm != null)
-                    comm.Connect();
+                if (comm != null) comm.Connect();
             };
         }
 
-        /// <summary>
-        /// CustomActivate Override
-        /// </summary>
-        /// <returns></returns>
         public override bool CustomActivate()
         {
             CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
-            CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "",
-                ConsoleAccessLevelEnum.AccessOperator);
+            CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             return true;
         }
 
@@ -163,24 +107,27 @@ namespace QscQsysDspPlugin
         {
             if (e.Client.IsConnected)
             {
-                SubscribeToAttributes();
+                CrestronInvoke.BeginInvoke(o =>
+                {
+                    if (!string.IsNullOrEmpty(_username) && !string.IsNullOrEmpty(_password))
+                    {
+                        SendQrc("Logon", new { User = _username, Password = _password });
+                        CrestronEnvironment.Sleep(200);
+                    }
+                    SubscribeToAttributes();
+                });
             }
             else
             {
-                // Cleanup items from this session
-                CommandQueue.Clear();
-                CommandQueueInProgress = false;
+                _changeGroupControls.Clear();
             }
         }
 
         private string FormatTag(string prefix, string tag)
         {
-            if (prefix == null)
-                prefix = "";
-            if (tag == null)
-                return null;
-            else
-                return string.Format("{0}{1}", prefix, tag);
+            if (prefix == null) prefix = "";
+            if (tag == null) return null;
+            return string.Format("{0}{1}", prefix, tag);
         }
 
         public void CreateDspObjects()
@@ -195,20 +142,15 @@ namespace QscQsysDspPlugin
             Dialers.Clear();
             Cameras.Clear();
 
-            // Check for prefix
             string prefix = "";
-            if (props.Prefix != null)
-            {
-                prefix = props.Prefix;
-            }
+            if (props.Prefix != null) prefix = props.Prefix;
 
             AutoTrackingKey = string.Format("{0}-{1}", Key, "Auto-Tracking");
-
             LevelControlPoints.Add(AutoTrackingKey, new QscDspLevelControl(AutoTrackingKey, new QscDspLevelControlBlockConfig
             {
                 HasMute = true,
                 Label = AutoTrackingKey,
-                MuteInstanceTag = "CAM_TRACK" //todo make configurable
+                MuteInstanceTag = "CAM_TRACK"
             }, this));
 
             if (props.LevelControlBlocks != null)
@@ -219,10 +161,8 @@ namespace QscQsysDspPlugin
                     var value = block.Value;
                     value.LevelInstanceTag = FormatTag(prefix, value.LevelInstanceTag);
                     value.MuteInstanceTag = FormatTag(prefix, value.MuteInstanceTag);
-
                     this.LevelControlPoints.Add(key, new QscDspLevelControl(key, value, this));
-                    Debug.Console(2, this, "Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key,
-                        value.LevelInstanceTag, value.MuteInstanceTag);
+                    Debug.Console(2, this, "Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key, value.LevelInstanceTag, value.MuteInstanceTag);
                 }
             }
             if (props.Presets != null)
@@ -250,7 +190,6 @@ namespace QscQsysDspPlugin
                 {
                     var value = camera.Value;
                     var key = camera.Key;
-
                     value.PanLeftTag = FormatTag(prefix, value.PanLeftTag);
                     value.PanRightTag = FormatTag(prefix, value.PanRightTag);
                     value.TiltUpTag = FormatTag(prefix, value.TiltUpTag);
@@ -261,10 +200,7 @@ namespace QscQsysDspPlugin
                     value.Privacy = FormatTag(prefix, value.Privacy);
                     value.OnlineStatus = FormatTag(prefix, value.OnlineStatus);
                     foreach (var preset in value.Presets)
-                    {
                         value.Presets[preset.Key].Bank = FormatTag(prefix, value.Presets[preset.Key].Bank);
-                    }
-
                     Cameras.Add(key, new QscDspCamera(this, key, key, value));
                     Debug.Console(2, this, "Added Camera {0}\n {1}", key, value);
                 }
@@ -302,6 +238,20 @@ namespace QscQsysDspPlugin
                     Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
                 }
             }
+
+            ComponentControlPoints.Clear();
+            if (props.ComponentControlBlocks != null)
+            {
+                foreach (var block in props.ComponentControlBlocks)
+                {
+                    var value = block.Value;
+                    if (value.Disabled) continue;
+                    var key = string.Format("{0}-{1}", Key, block.Key);
+                    ComponentControlPoints.Add(key, new QscDspComponentControl(key, value, this));
+                    Debug.Console(2, this, "Added ComponentControlPoint {0} Component: {1} Control: {2}", key, value.ComponentName, value.ControlName);
+                }
+            }
+
             SubscribeToAttributes();
         }
 
@@ -310,10 +260,6 @@ namespace QscQsysDspPlugin
             ConfigWriter.UpdateDeviceConfig(config);
         }
 
-        /// <summary>
-        /// Sets the IP address used by the plugin
-        /// </summary>
-        /// <param name="hostname">string</param>
         public void SetIpAddress(string hostname)
         {
             try
@@ -323,9 +269,7 @@ namespace QscQsysDspPlugin
                 {
                     Debug.Console(2, this, "Changing IPAddress: {0}", hostname);
                     Communication.Disconnect();
-
                     (Communication as GenericTcpIpClient).Hostname = hostname;
-
                     _Dc.Properties["control"]["tcpSshProperties"]["address"] = hostname;
                     CustomSetConfig(_Dc);
                     Communication.Connect();
@@ -334,323 +278,204 @@ namespace QscQsysDspPlugin
             catch (Exception e)
             {
                 if (Debug.Level == 2)
-                    Debug.Console(2, this, "Error SetIpAddress: '{0}'", e);
+                    Debug.Console(2, this, "Exception Message: {0}", e.Message);
             }
         }
 
-        /// <summary>
-        /// Sets the DSP prefix
-        /// </summary>
-        /// <param name="prefix">string</param>
         public void SetPrefix(string prefix)
         {
             if (_Dc.Properties["prefix"].ToString() != prefix && prefix.Length > 0)
             {
                 _Dc.Properties["prefix"] = prefix;
                 CustomSetConfig(_Dc);
-                // CreateDspObjects();
-                Debug.ConsoleWithLog(0, this,
-                    "The Dsp Prefix has changed to {0} the program will automaticly restart in 60 seconds", prefix);
+                Debug.ConsoleWithLog(0, this, "The Dsp Prefix has changed to {0} the program will automaticly restart in 60 seconds", prefix);
                 string notUsed = "";
-                CTimer restart =
-                    new CTimer(
-                        (object notused) =>
-                        {
-                            CrestronConsole.SendControlSystemCommand(
-                                string.Format("progres -p:{0}", Global.ControlSystem.ProgramNumber), ref notUsed);
-                        },
-                        60000);
+                CTimer restart = new CTimer(
+                    (object notused) =>
+                    {
+                        CrestronConsole.SendControlSystemCommand(
+                            string.Format("progres -p:{0}", Global.ControlSystem.ProgramNumber), ref notUsed);
+                    }, 60000);
             }
         }
 
-        /// <summary>
-        /// Issue a Status Get ("sg") to Core.
-        /// </summary>
-        /// <param name="prefix">string</param>
         public void StatusGet(bool enable)
         {
-            if (enable) SendLine("sg");
+            if (enable)
+            {
+                _statusGetId = ++_requestIdCounter;
+                var request = new QrcRequest { Id = _statusGetId, Method = "StatusGet", Params = 0 };
+                Communication.SendText(JsonConvert.SerializeObject(request) + "\x00");
+            }
         }
 
-        /// <summary>
-        /// Writes the config
-        /// </summary>
         public void WriteConfig()
         {
             CustomSetConfig(_Dc);
         }
 
-        /// <summary>
-        /// Checks the subscription health, should be called by comm monitor only. If no heartbeat has been detected recently, will resubscribe and log error.
-        /// </summary>
         private void CheckSubscriptions()
         {
-            HeartbeatTracker++;
-            SendLine("cgp 2");
+            SendQrc("NoOp", new object());
             CrestronEnvironment.Sleep(1000);
 
-            if (HeartbeatTracker > 0)
+            if (!_heartbeatReceived)
             {
-                Debug.Console(1, this, "Heartbeat missed, count {0}", HeartbeatTracker);
+                HeartbeatTracker++;
+                Debug.Console(1, this, "QRC heartbeat missed, count {0}", HeartbeatTracker);
                 if (HeartbeatTracker % 5 == 0)
                 {
-                    Debug.Console(1, this, "Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
+                    Debug.Console(1, this, "QRC heartbeat missed 5 times, resubscribing");
                     if (HeartbeatTracker == 5)
-                        Debug.LogError(Debug.ErrorLogLevel.Warning,
-                            "Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
+                        Debug.LogError(Debug.ErrorLogLevel.Warning, "QRC heartbeat missed 5 times - attempting resubscribe.");
                     SubscribeToAttributes();
                 }
             }
             else
             {
-                Debug.Console(2, this, "Heartbeat okay");
+                HeartbeatTracker = 0;
+                Debug.Console(2, this, "QRC heartbeat okay");
             }
+            _heartbeatReceived = false;
         }
 
-        /// <summary>
-        /// Initiates the subscription process to the DSP
-        /// </summary>
         private void SubscribeToAttributes()
         {
-            // Change Group destroy
-            SendLine("cgd 1");
-            SendLine("cgd 2");
+            SendQrc("ChangeGroup.Destroy", new { Id = _changeGroupId });
+            _changeGroupControls.Clear();
 
-            // Change Group create
-            SendLine("cgc 1");
-            SendLine("cgc 2");
+            foreach (var level in LevelControlPoints) level.Value.Subscribe();
+            foreach (var dialer in Dialers) dialer.Value.Subscribe();
+            foreach (var camera in Cameras) camera.Value.Subscribe();
 
-            // Change group subscribe to feedback with no ack (updates every 1000 ms)
-            SendLine("cgsna 1 1000");
-
-            foreach (KeyValuePair<string, QscDspLevelControl> level in LevelControlPoints)
+            if (_changeGroupControls.Count > 0)
             {
-                level.Value.Subscribe();
+                SendQrc("ChangeGroup.AddControl", new
+                {
+                    Id = _changeGroupId,
+                    Controls = _changeGroupControls.ToArray()
+                });
             }
 
-            foreach (var dialer in Dialers)
+            foreach (var comp in ComponentControlPoints)
             {
-                dialer.Value.Subscribe();
+                if (!comp.Value.HasFeedback) continue;
+                SendQrc("ChangeGroup.AddComponentControl", new
+                {
+                    Id = _changeGroupId,
+                    Component = new
+                    {
+                        Name = comp.Value.ComponentName,
+                        Controls = new[] { new { Name = comp.Value.ControlName } }
+                    }
+                });
             }
 
-            foreach (var camera in Cameras)
-            {
-                camera.Value.Subscribe();
-            }
+            SendQrc("ChangeGroup.AutoPoll", new { Id = _changeGroupId, Rate = 1.0 });
 
-            if (CommunicationMonitor != null)
-            {
-                CommunicationMonitor.Start();
-            }
+            _statusGetId = ++_requestIdCounter;
+            var statusReq = new QrcRequest { Id = _statusGetId, Method = "StatusGet", Params = 0 };
+            Communication.SendText(JsonConvert.SerializeObject(statusReq) + "\x00");
 
-            if (!CommandQueueInProgress)
-                SendNextQueuedCommand();
+            if (CommunicationMonitor != null) CommunicationMonitor.Start();
         }
 
-        /// <summary>
-        /// Handles a response message from the DSP
-        /// </summary>
-        /// <param name="dev"></param>
-        /// <param name="args"></param>
-        private void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
+        private void Qrc_MessageReceived(object dev, GenericCommMethodReceiveTextArgs args)
         {
-            //Debug.Console(2, this, "RX: '{0}'", args.Text);
+            if (string.IsNullOrEmpty(args.Text)) return;
             try
             {
-                if (args.Text.Contains("login_required"))
-                {
-                    if (string.IsNullOrEmpty(_username) || string.IsNullOrEmpty(_password))
-                    {
-                        Debug.Console(0, this, "DEVICE REQUIRES LOGIN CREDENTIALS");
-                        return;
-                    }
+                var msg = JsonConvert.DeserializeObject<QrcResponse>(args.Text);
+                if (msg == null) return;
 
-                    SendLine(String.Format("login \"{0}\" \"{1}\"", _username, _password));
+                _heartbeatReceived = true;
+
+                if (string.Equals(msg.Method, "EngineStatus", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (msg.Params != null)
+                    {
+                        var p = msg.Params.ToObject<QrcEngineStatusParams>();
+                        UpdateEngineStatus(p.State, p.IsRedundant);
+                    }
                     return;
                 }
 
-                if (args.Text.EndsWith("cgpa\r"))
+                if (string.Equals(msg.Method, "AccessDenied", StringComparison.OrdinalIgnoreCase))
                 {
-                    Debug.Console(2, this, "Found poll response");
-                    HeartbeatTracker = 0;
+                    if (!string.IsNullOrEmpty(_username) && !string.IsNullOrEmpty(_password))
+                        SendQrc("Logon", new { User = _username, Password = _password });
+                    return;
                 }
-                if (args.Text.IndexOf("sr ") > -1)
+
+                if (string.Equals(msg.Method, "ChangeGroup.Poll", StringComparison.OrdinalIgnoreCase))
                 {
-                    Debug.Console(1, this, "Status Response received");
-
-                    var statusMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-                    //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
-
-                    if (statusMessage.Length != 5) return;
-
-
-                    IsPrimary = statusMessage[3].Contains("1") ? true : false;
-                    IsActive = statusMessage[4].Contains("1") ? true : false;
-
-                    Debug.Console(1, this, "IsPrimary = {0}{1}:: IsActive = {2}{3}", statusMessage[3], IsPrimary,
-                        statusMessage[4], IsActive);
+                    if (msg.Params != null)
+                    {
+                        var p = msg.Params.ToObject<QrcChangeGroupPollParams>();
+                        if (p != null && p.Changes != null) RouteChangeGroupUpdates(p.Changes);
+                    }
+                    return;
                 }
-                else if (args.Text.IndexOf("cv") > -1)
+
+                if (msg.Error != null)
                 {
-                    var changeMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-                    //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
-
-                    string changedInstance = changeMessage[1].Replace("\"", "");
-                    Debug.Console(2, this, "cv parse Instance: {0}", changedInstance);
-                    bool foundItFlag = false;
-                    foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
+                    Debug.Console(1, this, "QRC error code {0}: {1}", msg.Error.Code, msg.Error.Message);
+                    var errMsg = msg.Error.Message ?? string.Empty;
+                    if (errMsg.IndexOf("login", StringComparison.OrdinalIgnoreCase) >= 0
+                        || errMsg.IndexOf("unauthorized", StringComparison.OrdinalIgnoreCase) >= 0
+                        || errMsg.IndexOf("access", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        if (changedInstance == controlPoint.Value.LevelInstanceTag)
-                        {
-                            controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[4],
-                                changeMessage[3]);
-                            foundItFlag = true;
-                            return;
-                        }
-
-                        else if (changedInstance == controlPoint.Value.MuteInstanceTag)
-                        {
-                            controlPoint.Value.ParseSubscriptionMessage(changedInstance,
-                                changeMessage[2].Replace("\"", ""), null);
-                            foundItFlag = true;
-                            return;
-                        }
+                        if (!string.IsNullOrEmpty(_username) && !string.IsNullOrEmpty(_password))
+                            SendQrc("Logon", new { User = _username, Password = _password });
                     }
-                    if (!foundItFlag)
+                    return;
+                }
+
+                if (msg.Result != null && msg.Id.HasValue && msg.Id.Value == _statusGetId)
+                {
+                    try
                     {
-                        foreach (var dialer in Dialers)
-                        {
-                            PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
-                            foreach (var prop in properties)
-                            {
-                                var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
-                                if (changedInstance == propValue)
-                                {
-                                    if (changeMessage[2].Contains("Dialing") || changeMessage[2].Contains("Connected"))
-                                    {
-                                        dialer.Value.ParseSubscriptionMessage(changedInstance,
-                                            changeMessage[2].Replace("\"", "") + " " +
-                                            changeMessage[4].Replace("\"", ""));
-                                    }
-                                    else
-                                    {
-                                        dialer.Value.ParseSubscriptionMessage(changedInstance,
-                                            changeMessage[2].Replace("\"", ""));
-                                    }
-                                    foundItFlag = true;
-                                    return;
-                                }
-                            }
-                            if (foundItFlag)
-                            {
-                                return;
-                            }
-                        }
+                        var result = msg.Result.ToObject<QrcEngineStatusParams>();
+                        UpdateEngineStatus(result.State, result.IsRedundant);
                     }
-                    if (!foundItFlag)
+                    catch (Exception ex)
                     {
-                        foreach (var camera in Cameras)
-                        {
-                            Debug.Console(2, this, "DSP Camera Status Compare: {0} ==? {1}", changedInstance,
-                                camera.Value.Config.OnlineStatus);
-                            if (changedInstance == camera.Value.Config.OnlineStatus)
-                            {
-                                camera.Value.ParseSubscriptionMessage(changedInstance,
-                                    changeMessage[2].Replace("\"", ""), null);
-                                foundItFlag = true;
-                                return;
-                            }
-                        }
-                        if (foundItFlag)
-                        {
-                            return;
-                        }
+                        Debug.Console(2, this, "StatusGet parse error: {0}", ex.Message);
                     }
                 }
             }
             catch (Exception e)
             {
-                if (Debug.Level == 2)
-                    Debug.Console(2, this, "Port_LineRecieved Exception: '{0}'\n{1}", args.Text, e);
+                Debug.Console(2, this, "Qrc_MessageReceived Exception: '{0}'\n{1}", args.Text, e);
             }
         }
 
         public void ProcessSimulatedRx(string s)
         {
-            GenericCommMethodReceiveTextArgs args = new GenericCommMethodReceiveTextArgs(s);
-
-            Port_LineReceived(this, args);
+            var args = new GenericCommMethodReceiveTextArgs(s);
+            Qrc_MessageReceived(this, args);
         }
 
-        /// <summary>
-        /// Sends a command to the DSP (with delimiter appended)
-        /// </summary>
-        /// <param name="s">Command to send</param>
         public void SendLine(string s)
         {
-            //Debug.Console(1, this, "TX: '{0}'", s);
-            Communication.SendText(s + "\x0a");
+            Communication.SendText(s + "\x00");
         }
 
-        /// <summary>
-        /// Adds a command from a child module to the queue
-        /// </summary>
-        /// <param name="commandToEnqueue">Command object from child module</param>
         public void EnqueueCommand(QueuedCommand commandToEnqueue)
         {
-            CommandQueue.Enqueue(commandToEnqueue);
-            //Debug.Console(1, this, "Command (QueuedCommand) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", commandToEnqueue.Command, CommandQueue.Count);
-
-            if (!CommandQueueInProgress)
-                SendNextQueuedCommand();
+            // QRC is stateless fire-and-forget; queuing is not required
         }
 
-        /// <summary>
-        /// Adds a raw string command to the queue
-        /// </summary>
-        /// <param name="command"></param>
         public void EnqueueCommand(string command)
         {
-            CommandQueue.Enqueue(command);
-            //Debug.Console(1, this, "Command (string) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", command, CommandQueue.Count);
-
-            if (!CommandQueueInProgress)
-                SendNextQueuedCommand();
+            // QRC is stateless fire-and-forget; queuing is not required
         }
 
-        /// <summary>
-        /// Sends the next queued command to the DSP
-        /// </summary>
-        private void SendNextQueuedCommand()
-        {
-            if (!Communication.IsConnected || CommandQueue.IsEmpty) return;
-
-            CommandQueueInProgress = true;
-            if (CommandQueue.Peek() is QueuedCommand)
-            {
-                var nextCommand = (QueuedCommand)CommandQueue.Peek();
-                SendLine(nextCommand.Command);
-            }
-            else
-            {
-                var nextCommand = (string)CommandQueue.Peek();
-                SendLine(nextCommand);
-            }
-        }
-
-        /// <summary>
-        /// Adds a presst
-        /// </summary>
-        /// <param name="s">QscDspPresets</param>
         public void AddPreset(QscDspPresets s)
         {
             PresetList.Add(s);
         }
 
-        /// <summary>
-        /// Runs the preset with the number provided
-        /// </summary>
-        /// <param name="n">ushort</param>
         public void RunPresetNumber(ushort n)
         {
             var preset = PresetList[n];
@@ -662,27 +487,22 @@ namespace QscQsysDspPlugin
             RunPreset(preset.Preset);
         }
 
-        /// <summary>
-        /// Sends a command to execute a preset
-        /// </summary>
-        /// <param name="name">Preset Name</param>
         public void RunPreset(string name)
         {
-            SendLine(string.Format("ssl {0}", name));
-            SendLine("cgp 1");
+            var parts = name.Trim().Split(new[] { ' ' }, 3);
+            int slotNumber;
+            if (parts.Length >= 2 && int.TryParse(parts[1], out slotNumber))
+                SendQrc("Snapshot.Load", new { Name = parts[0], Bank = slotNumber });
+            else
+                SendQrc("Snapshot.Load", new { Name = name, Bank = 1 });
         }
 
         public void RecallPreset(string key)
         {
-            if (!Presets.ContainsKey(key))
-                return;
+            if (!Presets.ContainsKey(key)) return;
             var preset = Presets[key] as QsysPreset;
             this.LogInformation("Running preset {0}", preset.Label);
             if (preset == null) return;
-
-            this.LogInformation("Checking Preset {0} | presetIndex {1}",
-                preset.Label, preset.Preset);
-            // - changed string check reference from 'tesiraPreset.PresetName' to 'tesiraPreset.PreetData.PresetName'
             if (string.IsNullOrEmpty(preset.Preset))
             {
                 this.LogInformation("Preset {0} is not valid", preset.Label);
@@ -691,10 +511,6 @@ namespace QscQsysDspPlugin
             RunPreset(preset.Preset);
         }
 
-        /// <summary>
-        /// Saves the preset with the number provided
-        /// </summary>
-        /// <param name="n">ushort</param>
         public void SavePresetNumber(ushort n)
         {
             var preset = PresetList[n];
@@ -703,9 +519,6 @@ namespace QscQsysDspPlugin
                 this.LogError("Cannot save preset at index {0}: preset name is not defined", n);
                 return;
             }
-            // assuming the preset configuration is "SNAPSHOT_BANK SNAPSHOT_NUM FLOATING_POINT_NUM"
-            // we need to remove the floating point number parameter when saving
-            // split the preset on ' ' (\x20) and only use the 1st two indexes which should be the SNAPSHOT_BANK and SNAPSHOT_NUM
             var cmd = preset.Preset.Split(' ');
             if (cmd.Length < 2)
             {
@@ -715,20 +528,16 @@ namespace QscQsysDspPlugin
             SavePreset(string.Format("{0} {1}", cmd[0], cmd[1]));
         }
 
-        /// <summary>
-        /// Sends a command to save a preset
-        /// </summary>
-        /// <param name="name"></param>
         public void SavePreset(string name)
         {
-            SendLine(string.Format("sss {0}", name));
-            SendLine("cgp 1");
+            var parts = name.Trim().Split(new[] { ' ' }, 2);
+            int slotNumber;
+            if (parts.Length >= 2 && int.TryParse(parts[1], out slotNumber))
+                SendQrc("Snapshot.Save", new { Name = parts[0], Bank = slotNumber });
+            else
+                SendQrc("Snapshot.Save", new { Name = name, Bank = 1 });
         }
 
-
-        /// <summary>
-        /// Queues Commands
-        /// </summary>
         public class QueuedCommand
         {
             public string Command { get; set; }
@@ -736,37 +545,176 @@ namespace QscQsysDspPlugin
             public QscDspControlPoint ControlPoint { get; set; }
         }
 
-
         public BoolFeedback IsOnline
         {
             get { return CommunicationMonitor.IsOnlineFeedback; }
         }
 
         #region IBridgeAdvanced Members
-
-        /// <summary>
-        /// Link to API
-        /// </summary>
-        /// <param name="trilist">BasicTrilist</param>
-        /// <param name="joinStart">uint</param>
-        /// <param name="joinMapKey">string</param>
-        /// <param name="bridge">EiscApiAdvanced</param>
         public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             this.LinkToApiExt(trilist, joinStart, joinMapKey, bridge);
         }
-
         #endregion
-        
-        //added for compatibility with IDspPreset and Mobile Control/Room Plugin frameworks
+
         public class QsysPreset : QscDspPresets, IKeyName
         {
             public string Key { get; private set; }
             public string Name => base.Label;
+            public QsysPreset(string key) : base() { Key = key; }
+        }
 
-            public QsysPreset(string key) : base()
+        // QRC JSON-RPC helper methods
+
+        public void SendQrc(string method, object @params)
+        {
+            var request = new QrcRequest
             {
-                Key = key;
+                Id = ++_requestIdCounter,
+                Method = method,
+                Params = @params
+            };
+            Communication.SendText(JsonConvert.SerializeObject(request) + "\x00");
+        }
+
+        public void AddControlToChangeGroup(string instanceTag)
+        {
+            if (!string.IsNullOrEmpty(instanceTag) && !_changeGroupControls.Contains(instanceTag))
+                _changeGroupControls.Add(instanceTag);
+        }
+
+        public void SendControlSetValue(string tag, double value, double ramp = 0.0)
+        {
+            SendQrc("Control.Set", new { Controls = new[] { new QrcControlSetItem { Name = tag, Value = value, Ramp = ramp } } });
+        }
+
+        public void SendControlSetPosition(string tag, double position, double ramp = 0.0)
+        {
+            SendQrc("Control.Set", new { Controls = new[] { new QrcControlSetItem { Name = tag, Position = position, Ramp = ramp } } });
+        }
+
+        public void SendControlSetString(string tag, string value)
+        {
+            SendQrc("Control.Set", new { Controls = new[] { new QrcControlSetItem { Name = tag, StringValue = value } } });
+        }
+
+        public void SendControlTrigger(string tag)
+        {
+            SendQrc("Control.Set", new { Controls = new[] { new QrcControlSetItem { Name = tag, Value = 1.0 } } });
+        }
+
+        public void SendControlGet(string tag)
+        {
+            SendQrc("Control.Get", new { Controls = new[] { tag } });
+        }
+
+        public void SendComponentSet(string componentName, string controlName, double value, double ramp = 0.0)
+        {
+            SendQrc("Component.Set", new
+            {
+                Name = componentName,
+                Controls = new[] { new QrcComponentControlSetItem { Name = controlName, Value = value, Ramp = ramp } }
+            });
+        }
+
+        public void SendComponentSet(string componentName, string controlName, string value)
+        {
+            SendQrc("Component.Set", new
+            {
+                Name = componentName,
+                Controls = new[] { new QrcComponentControlSetItem { Name = controlName, StringValue = value } }
+            });
+        }
+
+        private void UpdateEngineStatus(string state, bool isRedundant)
+        {
+            state = state ?? string.Empty;
+            IsPrimary = !string.Equals(state, "Standby", StringComparison.OrdinalIgnoreCase);
+            IsActive  = string.Equals(state, "Active",  StringComparison.OrdinalIgnoreCase);
+            Debug.Console(1, this, "EngineStatus: State={0} IsRedundant={1} -> IsPrimary={2} IsActive={3}",
+                state, isRedundant, IsPrimary, IsActive);
+        }
+        public void SendSnapshotLoad(string bank, int number)
+        {
+            SendQrc("Snapshot.Load", new { Name = bank, Bank = number });
+        }
+
+        public void SendSnapshotSave(string bank, int number)
+        {
+            SendQrc("Snapshot.Save", new { Name = bank, Bank = number });
+        }
+
+        private void RouteChangeGroupUpdates(List<QrcChangeValue> changes)
+        {
+            foreach (var change in changes)
+            {
+                if (!string.IsNullOrEmpty(change.Component))
+                {
+                    foreach (var comp in ComponentControlPoints)
+                    {
+                        if (string.Equals(comp.Value.ComponentName, change.Component, StringComparison.OrdinalIgnoreCase)
+                            && string.Equals(comp.Value.ControlName, change.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            comp.Value.ParseFeedback(change.Value, change.StringValue);
+                            break;
+                        }
+                    }
+                    continue;
+                }
+
+                var controlName = change.Name;
+                bool found = false;
+
+                foreach (var lcp in LevelControlPoints)
+                {
+                    if (string.Equals(controlName, lcp.Value.LevelInstanceTag, StringComparison.OrdinalIgnoreCase))
+                    {
+                        lcp.Value.ParseSubscriptionMessage(controlName, change.Position.ToString("R"), ((int)change.Value).ToString());
+                        found = true;
+                        break;
+                    }
+                    if (string.Equals(controlName, lcp.Value.MuteInstanceTag, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var muteStr = !string.IsNullOrEmpty(change.StringValue)
+                            ? change.StringValue
+                            : (change.Value > 0.5 ? "true" : "false");
+                        lcp.Value.ParseSubscriptionMessage(controlName, muteStr, null);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    foreach (var dialer in Dialers)
+                    {
+                        var properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
+                        foreach (var prop in properties)
+                        {
+                            var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
+                            if (string.Equals(controlName, propValue, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var val = !string.IsNullOrEmpty(change.StringValue) ? change.StringValue : change.Value.ToString("G");
+                                dialer.Value.ParseSubscriptionMessage(controlName, val);
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found) break;
+                    }
+                }
+
+                if (!found)
+                {
+                    foreach (var cam in Cameras)
+                    {
+                        if (string.Equals(controlName, cam.Value.Config.OnlineStatus, StringComparison.OrdinalIgnoreCase))
+                        {
+                            cam.Value.ParseSubscriptionMessage(controlName, change.Value > 0.5 ? "true" : "false", null);
+                            break;
+                        }
+                    }
+                }
             }
         }
     }

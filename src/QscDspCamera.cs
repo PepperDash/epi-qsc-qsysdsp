@@ -58,25 +58,21 @@ namespace QscQsysDspPlugin
 			{
 				case eCameraPtzControls.Stop:
 					{
-                        var cmdToSend = string.Format("csv \"{0}\" 0", LastCmd);
-						_Dsp.SendLine(cmdToSend);
+						_Dsp.SendControlSetValue(LastCmd, 0.0);
 						break;
 					}
-				case eCameraPtzControls.PanLeft: tag = Config.PanLeftTag; break;
+				case eCameraPtzControls.PanLeft:  tag = Config.PanLeftTag;  break;
 				case eCameraPtzControls.PanRight: tag = Config.PanRightTag; break;
-				case eCameraPtzControls.TiltUp: tag = Config.TiltUpTag; break;
+				case eCameraPtzControls.TiltUp:   tag = Config.TiltUpTag;   break;
 				case eCameraPtzControls.TiltDown: tag = Config.TiltDownTag; break;
-				case eCameraPtzControls.ZoomIn: tag = Config.ZoomInTag; break;
-				case eCameraPtzControls.ZoomOut: tag = Config.ZoomOutTag; break;
-
-
+				case eCameraPtzControls.ZoomIn:   tag = Config.ZoomInTag;   break;
+				case eCameraPtzControls.ZoomOut:  tag = Config.ZoomOutTag;  break;
 			}
+
 			if (tag != null)
 			{
-                var cmdToSend = string.Format("csv \"{0}\" 1", tag);
 				LastCmd = tag;
-				_Dsp.SendLine(cmdToSend);
-
+				_Dsp.SendControlSetValue(tag, 1.0);
 			}
 		}
 
@@ -85,8 +81,7 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void PrivacyOn()
 		{
-            var cmdToSend = string.Format("csv \"{0}\" 1", Config.Privacy);
-			_Dsp.SendLine(cmdToSend);
+			_Dsp.SendControlSetValue(Config.Privacy, 1.0);
 		}
 
 		/// <summary>
@@ -94,8 +89,7 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void PrivacyOff()
 		{
-            var cmdToSend = string.Format("csv \"{0}\" 0", Config.Privacy);
-			_Dsp.SendLine(cmdToSend);
+			_Dsp.SendControlSetValue(Config.Privacy, 0.0);
 		}
 
 		/// <summary>
@@ -108,8 +102,7 @@ namespace QscQsysDspPlugin
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
-				var cmdToSend = string.Format("ssl {0} {1} 0", preset.Bank, preset.Number);
-				_Dsp.SendLine(cmdToSend);
+				_Dsp.SendSnapshotLoad(preset.Bank, preset.Number);
 			}
 		}
 
@@ -122,8 +115,7 @@ namespace QscQsysDspPlugin
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
-				var cmdToSend = string.Format("sss {0} {1}", preset.Bank, preset.Number);
-				_Dsp.SendLine(cmdToSend);
+				_Dsp.SendSnapshotSave(preset.Bank, preset.Number);
 			}
 		}
 
@@ -145,17 +137,15 @@ namespace QscQsysDspPlugin
 		}
 
 		/// <summary>
-		/// Adds the command to the change group
+		/// Adds the camera online control to the QRC change group
 		/// </summary>
 		public void Subscribe()
 		{
 			try
 			{
-				// Do subscriptions and blah blah
-				if (Config.OnlineStatus != null)
+				if (!string.IsNullOrEmpty(Config.OnlineStatus))
 				{
-                    var cmd = string.Format("cga 1 \"{0}\"", Config.OnlineStatus);
-					_Dsp.SendLine(cmd);
+					_Dsp.AddControlToChangeGroup(Config.OnlineStatus);
 				}
 			}
 			catch (Exception e)

@@ -92,21 +92,8 @@ namespace QscQsysDspPlugin
             if (config.Disabled)
                 return;
 
-            parent.CommunicationMonitor.IsOnlineFeedback.OutputChange += (sender, args) =>
-            {
-                if (!args.BoolValue)
-                    return;
-
-                CrestronInvoke.BeginInvoke(o =>
-                {
-                    if (!String.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
-                        _parent.SendLine(String.Format("cg \"{0}\"", config.LevelInstanceTag));
-
-                    if (!String.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
-                        _parent.SendLine(String.Format("cg \"{0}\"", config.MuteInstanceTag));
-                });
-            };
-
+            // Initial state is delivered by the QRC ChangeGroup auto-poll on reconnect;
+            // no explicit cg get needed here.
             Initialize(config);
         }
 
@@ -160,11 +147,13 @@ namespace QscQsysDspPlugin
 
 
 		/// <summary>
-		/// Parses the response from the DspBase
+		/// Parses a ChangeGroup.Poll update routed from the parent device.
+		/// For QRC: customName = change.Name, value = Position string (0.0-1.0) for level controls,
+		/// or the "String" field for mute controls. absoluteValue = raw Value (dB / integer) string.
 		/// </summary>
-		/// <param name="customName"></param>
-		/// <param name="value"></param>
-		/// <param name="absoluteValue"></param>
+		/// <param name="customName">control tag name</param>
+		/// <param name="value">position string (0.0-1.0) for level, display string for mute</param>
+		/// <param name="absoluteValue">raw numeric value (dB for audio, integer for selects); null for mute</param>
 		public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
 		{
 			// Check for valid subscription response
@@ -285,49 +274,54 @@ namespace QscQsysDspPlugin
 		}
 
 		/// <summary>
-		/// Decrements volume level
+		/// Decrements volume level by one position step (1%) via QRC Control.Set
 		/// </summary>
 		/// <param name="press"></param>
 		public void VolumeDown(bool press)
 		{
 			if (press)
 			{
-                _volumeRampTracker = true;
-                _volumeUpRepeatTimer.Stop();
+				_volumeRampTracker = true;
+				_volumeUpRepeatTimer.Stop();
+				_volumeDownRepeatTimer.Reset(_rampResetTime);
 
-                _volumeDownRepeatTimer.Reset(_rampResetTime);
-				SendFullCommand("css ", this.LevelInstanceTag, "--");
+				// Step position down by 1% per timer tick
+				var currentPos = _volumeLevel / 65535.0;
+				var newPos = System.Math.Max(0.0, currentPos - 0.01);
+				_parent.SendControlSetPosition(this.LevelInstanceTag, newPos);
 			}
 			else
 			{
-                _volumeRampTracker = false;
+				_volumeRampTracker = false;
 				_volumeDownRepeatTimer.Stop();
-                _volumeRampDelay.Reset(200);
-				// VolumeDownRepeatTimer.Dispose();
+				_volumeRampDelay.Reset(200);
 			}
 		}
 
 		/// <summary>
-		/// Increments volume level
+		/// Increments volume level by one position step (1%) via QRC Control.Set
 		/// </summary>
 		/// <param name="press"></param>
 		public void VolumeUp(bool press)
 		{
 			if (press)
 			{
-                _volumeRampTracker = true;
-                _volumeDownRepeatTimer.Stop();
+				_volumeRampTracker = true;
+				_volumeDownRepeatTimer.Stop();
+				_volumeUpRepeatTimer.Reset(_rampResetTime);
 
-                _volumeUpRepeatTimer.Reset(_rampResetTime);
-				SendFullCommand("css ", this.LevelInstanceTag, "++");
+				// Step position up by 1% per timer tick
+				var currentPos = _volumeLevel / 65535.0;
+				var newPos = System.Math.Min(1.0, currentPos + 0.01);
+				_parent.SendControlSetPosition(this.LevelInstanceTag, newPos);
 
 				if (AutomaticUnmuteOnVolumeUp && !_isMuted) MuteOff();
 			}
 			else
 			{
-                _volumeRampTracker = false;
+				_volumeRampTracker = false;
 				_volumeUpRepeatTimer.Stop();
-                _volumeRampDelay.Reset(500);
+				_volumeRampDelay.Reset(500);
 			}
 		}
 

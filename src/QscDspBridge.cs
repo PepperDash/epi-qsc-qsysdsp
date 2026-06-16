@@ -187,6 +187,25 @@ namespace QscQsysDspPlugin
 
 				lineOffset = lineOffset + 50;
 			}
+
+			// Component-direct control points (QRC Component.Set/Get)
+			uint compIdx = 0;
+			foreach (var comp in DspDevice.ComponentControlPoints)
+			{
+				if (compIdx >= 200) break;
+				var idx = compIdx;
+				var c = comp.Value;
+
+				// from Plugin > to SiMPL
+				trilist.BooleanInput[joinMap.ComponentControlVisible.JoinNumber + idx].BoolValue = true;
+				trilist.StringInput[joinMap.ComponentControlName.JoinNumber + idx].StringValue = c.Name;
+				c.IntValueFeedback.LinkInputSig(trilist.UShortInput[joinMap.ComponentControlValue.JoinNumber + idx]);
+
+				// from SiMPL > to Plugin
+				trilist.SetUShortSigAction(joinMap.ComponentControlValue.JoinNumber + idx, u => c.SetValue((int)u));
+
+				compIdx++;
+			}
 		}
 
         private static bool TryGetPresetIndex(QscDsp dspDevice, ushort selectedPreset, string action, out ushort presetIndex)
@@ -1077,7 +1096,39 @@ namespace QscQsysDspPlugin
                 JoinType = eJoinType.Serial
             });
 
+        // ─── Component-direct control joins (QRC Component.Set/Get) ──────────────
+        // Range 4001-4200 (analog value, digital visible), 4201-4400 (serial label)
+        // Clear of all existing level (201-1400) and camera (3100-3137) joins
 
+        [JoinName("ComponentControlValue")]
+        public JoinDataComplete ComponentControlValue = new JoinDataComplete(
+            new JoinData { JoinNumber = 4001, JoinSpan = 200 },
+            new JoinMetadata
+            {
+                Description = "Component Control Value Set/Get (integer, e.g. router select index)",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        [JoinName("ComponentControlVisible")]
+        public JoinDataComplete ComponentControlVisible = new JoinDataComplete(
+            new JoinData { JoinNumber = 4001, JoinSpan = 200 },
+            new JoinMetadata
+            {
+                Description = "Component Control Visible",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("ComponentControlName")]
+        public JoinDataComplete ComponentControlName = new JoinDataComplete(
+            new JoinData { JoinNumber = 4201, JoinSpan = 200 },
+            new JoinMetadata
+            {
+                Description = "Component Control Label / Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
 
         public QscDspDeviceJoinMapAdvanced(uint joinStart) : base(joinStart, typeof(QscDspDeviceJoinMapAdvanced))
         {

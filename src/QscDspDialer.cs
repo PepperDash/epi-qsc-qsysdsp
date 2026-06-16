@@ -315,8 +315,7 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void DoNotDisturbToggle()
 		{
-			var dndStateInt = !DoNotDisturbState ? 1 : 0;
-			Parent.SendLine(string.Format("csv {0} {1}", Tags.DoNotDisturbTag, dndStateInt));
+			Parent.SendControlSetValue(Tags.DoNotDisturbTag, DoNotDisturbState ? 0.0 : 1.0);
 		}
 
 		/// <summary>
@@ -324,7 +323,7 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void DoNotDisturbOn()
 		{
-            Parent.SendLine(string.Format("csv \"{0}\" 1", Tags.DoNotDisturbTag));
+			Parent.SendControlSetValue(Tags.DoNotDisturbTag, 1.0);
 		}
 
 		/// <summary>
@@ -332,7 +331,7 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void DoNotDisturbOff()
 		{
-            Parent.SendLine(string.Format("csv \"{0}\" 0", Tags.DoNotDisturbTag));
+			Parent.SendControlSetValue(Tags.DoNotDisturbTag, 0.0);
 		}
 
 		/// <summary>
@@ -340,8 +339,7 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void AutoAnswerToggle()
 		{
-			int autoAnswerStateInt = !AutoAnswerState ? 1 : 0;
-            Parent.SendLine(string.Format("csv \"{0}\" {1}", Tags.AutoAnswerTag, autoAnswerStateInt));
+			Parent.SendControlSetValue(Tags.AutoAnswerTag, AutoAnswerState ? 0.0 : 1.0);
 		}
 
 		/// <summary>
@@ -349,7 +347,7 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void AutoAnswerOn()
 		{
-            Parent.SendLine(string.Format("csv \"{0}\" 1", Tags.AutoAnswerTag));
+			Parent.SendControlSetValue(Tags.AutoAnswerTag, 1.0);
 		}
 
 		/// <summary>
@@ -357,13 +355,13 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void AutoAnswerOff()
 		{
-            Parent.SendLine(string.Format("csv \"{0}\" 0", Tags.AutoAnswerTag));
+			Parent.SendControlSetValue(Tags.AutoAnswerTag, 0.0);
 		}
 
 		private void PollKeypad()
 		{
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.DialStringTag));
+			Parent.SendControlGet(Tags.DialStringTag);
 		}
 
 		/// <summary>
@@ -394,24 +392,19 @@ namespace QscQsysDspPlugin
 
 			if (keypadTag != null)
 			{
-                var cmdToSend = string.Format("ct \"{0}\"", keypadTag);
-				Parent.SendLine(cmdToSend);
+				Parent.SendControlTrigger(keypadTag);
 				PollKeypad();
 			}
 		}
 
 		/// <summary>
-		/// Sends the subscription command using the provided named control and change group
+		/// Sends the subscription command using the provided named control
+		/// Registers the tag with the parent's QRC change group.
 		/// </summary>
 		/// <param name="instanceTag">Named control/Instance tag</param>
-		/// <param name="changeGroup">Change group ID</param>
 		public void SendSubscriptionCommand(string instanceTag)
 		{
-			// Subscription string format: InstanceTag subscribe attributeCode Index1 customName responseRate
-			// Ex: "RoomLevel subscribe level 1 MyRoomLevel 500"
-
-            var cmd = string.Format("cga 1 \"{0}\"", instanceTag);
-			Parent.SendLine(cmd);
+			Parent.AddControlToChangeGroup(instanceTag);
 		}
 
 		/// <summary>
@@ -419,47 +412,43 @@ namespace QscQsysDspPlugin
 		/// </summary>
 		public void Dial()
 		{
-			Parent.SendLine(!this.OffHook
-                ? string.Format("ct \"{0}\"", Tags.ConnectTag)		// !this.OffHook
-                : string.Format("ct \"{0}\"", Tags.DisconnectTag));	// this.OffHook
-
+			Parent.SendControlTrigger(!this.OffHook ? Tags.ConnectTag : Tags.DisconnectTag);
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.CallStatusTag));
+			Parent.SendControlGet(Tags.CallStatusTag);
 		}
 
 		/// <summary>
-		/// Dial overload
-		/// Dials the number provided
+		/// Dial overload — sets the dial string then triggers connect
 		/// </summary>
 		/// <param name="number">Number to dial</param>
 		public void Dial(string number)
 		{
-            if (string.IsNullOrEmpty(number))
-                return;
-            
+			if (string.IsNullOrEmpty(number))
+				return;
+
 			if (OffHook) EndAllCalls();
 
-            Parent.SendLine(string.Format("css \"{0}\" \"{1}\"",Tags.DialStringTag, number));
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
-            Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.CallStatusTag));
+			Parent.SendControlSetString(Tags.DialStringTag, number);
+			Parent.SendControlTrigger(Tags.ConnectTag);
+			Thread.Sleep(50);
+			Parent.SendControlGet(Tags.CallStatusTag);
 		}
 
 		/// <summary>
-		/// Ends the current call with the provided Id
-		/// </summary>		
-		/// <param name="item">Use null as the parameter, use of CodecActiveCallItem is not implemented</param>
+		/// Ends the current call
+		/// </summary>
+		/// <param name="item">not used</param>
 		public void EndCall(CodecActiveCallItem item)
 		{
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
+			Parent.SendControlTrigger(Tags.DisconnectTag);
 		}
 
 		/// <summary>
-		/// Ends all connectted calls
+		/// Ends all connected calls
 		/// </summary>
 		public void EndAllCalls()
 		{
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
+			Parent.SendControlTrigger(Tags.DisconnectTag);
 		}
 
 		/// <summary>
@@ -468,21 +457,21 @@ namespace QscQsysDspPlugin
 		public void AcceptCall()
 		{
 			this.IncomingCall = false;
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
+			Parent.SendControlTrigger(Tags.ConnectTag);
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
+			Parent.SendControlGet(Tags.HookStatusTag);
 		}
 
 		/// <summary>
 		/// Accepts the incoming call overload
 		/// </summary>
-		/// <param name="item">Use "", use of CodecActiveCallItem is not implemented</param>
+		/// <param name="item">not used</param>
 		public void AcceptCall(CodecActiveCallItem item)
 		{
 			this.IncomingCall = false;
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
+			Parent.SendControlTrigger(Tags.ConnectTag);
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
+			Parent.SendControlGet(Tags.HookStatusTag);
 		}
 
 		/// <summary>
@@ -491,21 +480,21 @@ namespace QscQsysDspPlugin
 		public void RejectCall()
 		{
 			this.IncomingCall = false;
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
+			Parent.SendControlTrigger(Tags.DisconnectTag);
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
+			Parent.SendControlGet(Tags.HookStatusTag);
 		}
 
 		/// <summary>
 		/// Rejects the incoming call overload
 		/// </summary>
-		/// <param name="item"></param>
+		/// <param name="item">not used</param>
 		public void RejectCall(CodecActiveCallItem item)
 		{
 			this.IncomingCall = false;
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
+			Parent.SendControlTrigger(Tags.DisconnectTag);
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
+			Parent.SendControlGet(Tags.HookStatusTag);
 		}
 
 		/// <summary>

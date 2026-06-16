@@ -61,6 +61,54 @@ namespace QscQsysDspPlugin
 
 		[JsonProperty("cameraControlBlocks")]
 		public Dictionary<string, QscDspCameraConfig> CameraControlBlocks { get; set; }
+
+		/// <summary>
+		/// Component-direct control blocks — drive Q-Sys components by name over QRC JSON-RPC.
+		/// Requires the device to connect on TCP port 1710 (QRC protocol).
+		/// </summary>
+		[JsonProperty("componentControlBlocks")]
+		public Dictionary<string, QscDspComponentControlBlockConfig> ComponentControlBlocks { get; set; }
+	}
+
+	/// <summary>
+	/// Configuration for a single component-direct control block.
+	/// Maps to a named component and a specific control within it in the Q-Sys design.
+	/// </summary>
+	/// <code>
+	/// "componentControlBlocks": {
+	///   "cafeOut1": {
+	///     "label": "Cafe Output 1 Select",
+	///     "componentName": "Router",
+	///     "controlName": "select.1",
+	///     "hasFeedback": true,
+	///     "valueType": "integer",
+	///     "disabled": false
+	///   }
+	/// }
+	/// </code>
+	public class QscDspComponentControlBlockConfig
+	{
+		[JsonProperty("label")]
+		public string Label { get; set; }
+
+		/// <summary>Q-Sys component "Code Name" as set in the Q-Sys design</summary>
+		[JsonProperty("componentName")]
+		public string ComponentName { get; set; }
+
+		/// <summary>Control name within the component (e.g. "select.1", "gain", "mute")</summary>
+		[JsonProperty("controlName")]
+		public string ControlName { get; set; }
+
+		/// <summary>Whether to subscribe to feedback from this control via the change group</summary>
+		[JsonProperty("hasFeedback")]
+		public bool HasFeedback { get; set; }
+
+		/// <summary>"integer" (default) | "string"</summary>
+		[JsonProperty("valueType")]
+		public string ValueType { get; set; }
+
+		[JsonProperty("disabled")]
+		public bool Disabled { get; set; }
 	}
 
 	/// <summary>
