@@ -4,7 +4,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
-		<RootNamespace>QscQsysDspPlugin</RootNamespace>
+		<RootNamespace>PepperDash.Essentials.Plugins.Qsc.Qsys</RootNamespace>
 		<Deterministic>false</Deterministic>
 		<AssemblyTitle>epi-qsc-qsys</AssemblyTitle>
 		<Company>PepperDash Technologies</Company>

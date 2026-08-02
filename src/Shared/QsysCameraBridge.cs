@@ -1,19 +1,20 @@
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 {
 	/// <summary>
 	/// QSC DSP Camera api extensions
 	/// </summary>
-	public static class QscDspCameraDeviceApiExtensions
+	public static class QsysCameraDeviceApiExtensions
 	{
-        public static void LinkToApiExt(this QscDspCamera camera, BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
+        public static void LinkToApiExt(this QsysCamera camera, BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new QscDspCameraDeviceJoinMapAdvanced(joinStart);
-            var joinMapSerialized = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey); //as QscDspCameraDeviceJoinMap;
+            var joinMap = new QsysCameraDeviceJoinMapAdvanced(joinStart);
+            var joinMapSerialized = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey); //as QsysCameraDeviceJoinMap;
 
             if (joinMapSerialized != null)
                    joinMap.SetCustomJoinData(joinMapSerialized);
@@ -22,9 +23,9 @@ namespace QscQsysDspPlugin
                 bridge.AddJoinMap(camera.Key, joinMap);
             }
             //if (joinMap == null)
-            //    joinMap = new QscDspCameraDeviceJoinMap();
+            //    joinMap = new QsysCameraDeviceJoinMap();
 
-            Debug.Console(1, camera, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            camera.LogWarning("Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
             // from Plugin > to SiMPL
             camera.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.Online.JoinNumber]);
@@ -62,7 +63,7 @@ namespace QscQsysDspPlugin
 	/// <summary>
 	/// QSC DSP Camera control join map
 	/// </summary>
-	public class QscDspCameraDeviceJoinMap : JoinMapBase
+	public class QsysCameraDeviceJoinMap : JoinMapBase
 	{
 
 		public uint Up { get; set; }
@@ -78,7 +79,7 @@ namespace QscQsysDspPlugin
 		public uint PrivacyOn { get; set; }
 		public uint PrivacyOff { get; set; }
 
-		public QscDspCameraDeviceJoinMap()
+		public QsysCameraDeviceJoinMap()
 		{
 			// Arrays
 			Up = 1;
@@ -113,7 +114,7 @@ namespace QscQsysDspPlugin
 		}
 	}
     */
-    public class QscDspCameraDeviceJoinMapAdvanced : JoinMapBaseAdvanced
+    public class QsysCameraDeviceJoinMapAdvanced : JoinMapBaseAdvanced
     {
         [JoinName("Up")]
         public JoinDataComplete Up = new JoinDataComplete(
@@ -276,8 +277,8 @@ namespace QscQsysDspPlugin
             });
 
 
-        public QscDspCameraDeviceJoinMapAdvanced(uint joinStart)
-            : base(joinStart, typeof(QscDspCameraDeviceJoinMapAdvanced))
+        public QsysCameraDeviceJoinMapAdvanced(uint joinStart)
+            : base(joinStart, typeof(QsysCameraDeviceJoinMapAdvanced))
         {
         }
 

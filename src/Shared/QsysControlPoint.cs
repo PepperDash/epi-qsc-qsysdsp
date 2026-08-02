@@ -1,12 +1,12 @@
 using PepperDash.Essentials.Devices.Common.DSP;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 {
-	public abstract class QscDspControlPoint : DspControlPoint
+	public abstract class QsysControlPoint : DspControlPoint
 	{
 		public string LevelInstanceTag { get; set; }
 		public string MuteInstanceTag { get; set; }
-		public QscDsp Parent { get; private set; }
+		public ExternalControlProtocol.QsysEcpController Parent { get; private set; }
 
 		public bool IsSubscribed { get; protected set; }
 
@@ -17,7 +17,7 @@ namespace QscQsysDspPlugin
         /// <param name="levelInstanceTag">level named control/instance tag</param>
         /// <param name="muteInstanceTag">mute named control/instance tag</param>
         /// <param name="parent">parent DSP instance</param>
-        protected QscDspControlPoint(string key, string levelInstanceTag, string muteInstanceTag, QscDsp parent)
+        protected QsysControlPoint(string key, string levelInstanceTag, string muteInstanceTag, ExternalControlProtocol.QsysEcpController parent)
             : base(key)
         {            
             LevelInstanceTag = levelInstanceTag;

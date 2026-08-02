@@ -3,20 +3,26 @@ using System.Linq;
 using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Devices.Common.Codec;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 {
 	/// <summary>
 	/// QSC DSP Dialer class
 	/// </summary>
-	public class QscDspDialer : IHasDialer 
+	public class QsysDialer : IHasDialer 
 	{
 		/// <summary>
 		/// Parent DSP
 		/// </summary>
-		public QscDsp Parent { get; private set; }
+		public ExternalControlProtocol.QsysEcpController Parent { get; private set; }
+
+		/// <summary>
+		/// Dialer instance key
+		/// </summary>
+		public string Key { get; private set; }
 
 		/// <summary>
 		/// Dialer block configuration 
@@ -145,19 +151,23 @@ namespace QscQsysDspPlugin
 		/// <summary>
 		/// Constructor
 		/// </summary>
+		/// <param name="key">dialer instance key</param>
 		/// <param name="config">configuration object</param>
 		/// <param name="parent">parent dsp instance</param>
-		public QscDspDialer(QscDialerConfig config, QscDsp parent)
+		public QsysDialer(string key, QscDialerConfig config, ExternalControlProtocol.QsysEcpController parent)
 		{
+			Key = key;
 			Tags = config;
 			Parent = parent;
 
-			IncomingCallFeedback = new BoolFeedback(() => { return IncomingCall; });
-			DialStringFeedback = new StringFeedback(() => { return DialString; });
-			OffHookFeedback = new BoolFeedback(() => { return OffHook; });
-			AutoAnswerFeedback = new BoolFeedback(() => { return AutoAnswerState; });
-			DoNotDisturbFeedback = new BoolFeedback(() => { return DoNotDisturbState; });
-			CallerIdNumberFeedback = new StringFeedback(() => { return CallerIdNumber; });
+			var feedbackKey = Parent.Key + "-" + Key;
+
+			IncomingCallFeedback = new BoolFeedback(feedbackKey + "-IncomingCallFeedback", () => { return IncomingCall; });
+			DialStringFeedback = new StringFeedback(feedbackKey + "-DialStringFeedback", () => { return DialString; });
+			OffHookFeedback = new BoolFeedback(feedbackKey + "-OffHookFeedback", () => { return OffHook; });
+			AutoAnswerFeedback = new BoolFeedback(feedbackKey + "-AutoAnswerFeedback", () => { return AutoAnswerState; });
+			DoNotDisturbFeedback = new BoolFeedback(feedbackKey + "-DoNotDisturbFeedback", () => { return DoNotDisturbState; });
+			CallerIdNumberFeedback = new StringFeedback(feedbackKey + "-CallerIdNumberFeedback", () => { return CallerIdNumber; });
 		}
 
 		/// <summary>
@@ -190,20 +200,20 @@ namespace QscQsysDspPlugin
 				var properties = Tags.GetType().GetCType().GetProperties();
 				//GetPropertyValues(Tags);
 
-				Debug.Console(2, "QscDspDialer Subscribe");
+				Parent.LogVerbose("QsysDialer Subscribe");
 				foreach (var prop in properties)
 				{
                     if (prop.Name.Contains("Tag") && !prop.Name.ToLower().Contains("keypad"))
 					{
 						var propValue = prop.GetValue(Tags, null) as string;
-						Debug.Console(2, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, propValue);
+						Parent.LogVerbose("Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, propValue);
 						SendSubscriptionCommand(propValue);
 					}
 				}
 			}
 			catch (Exception e)
 			{
-				Debug.Console(2, "QscDspDialer Subscription Error: '{0}'\n", e);
+				Parent.LogVerbose(e, "QsysDialer Subscription Error");
 			}
 
 			// SendSubscriptionCommand(, "1");
@@ -218,10 +228,10 @@ namespace QscQsysDspPlugin
 		public void ParseSubscriptionMessage(string customName, string value)
 		{
 			// Check for valid subscription response
-			Debug.Console(0, "ParseMessage customName: {0} value: '{1}'", customName, value);
+			Parent.LogInformation("ParseMessage customName: {0} value: '{1}'", customName, value);
 			if (customName == Tags.DialStringTag)
 			{
-				Debug.Console(0, "ParseMessage customName: {0} == Tags.DialStringTag: {1} | value: {2}", customName, Tags.DialStringTag, value);
+				Parent.LogInformation("ParseMessage customName: {0} == Tags.DialStringTag: {1} | value: {2}", customName, Tags.DialStringTag, value);
 				DialString = value;
 				DialStringFeedback.FireUpdate();
 			}

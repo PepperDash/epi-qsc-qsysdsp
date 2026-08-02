@@ -2,18 +2,19 @@
 using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 {
 	/// <summary>
 	/// QSC DSP Camera class
 	/// </summary>
-    public class QscDspCamera : Device, IBridgeAdvanced, IOnline
+    public class QsysCamera : Device, IBridgeAdvanced, IOnline
 	{
-		QscDsp _Dsp;
-		public QscDspCameraConfig Config { get; private set; }
+		ExternalControlProtocol.QsysEcpController _Dsp;
+		public QsysCameraConfig Config { get; private set; }
 		string LastCmd;
 		private bool _Online;
 		public bool Online
@@ -32,16 +33,16 @@ namespace QscQsysDspPlugin
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="dsp">QscDsp</param>
+		/// <param name="dsp">Qsys</param>
 		/// <param name="key">string</param>
 		/// <param name="name">string</param>
-		/// <param name="dc">QscDspCameraConfig</param>
-		public QscDspCamera(QscDsp dsp, string key, string name, QscDspCameraConfig dc)
+		/// <param name="dc">QsysCameraConfig</param>
+		public QsysCamera(ExternalControlProtocol.QsysEcpController dsp, string key, string name, QsysCameraConfig dc)
 			: base(key, name)
 		{
 			_Dsp = dsp;
 			Config = dc;
-            IsOnline = new BoolFeedback(() => Online);
+            IsOnline = new BoolFeedback(dsp.Key + "-" + key + "-IsOnline", () => Online);
 			DeviceManager.AddDevice(this);
 
 		}
@@ -104,7 +105,7 @@ namespace QscQsysDspPlugin
 		/// <param name="presetNumber">ushort</param>
 		public void RecallPreset(ushort presetNumber)
 		{
-			Debug.Console(2, this, "Recall Camera Preset {0}", presetNumber);
+			this.LogVerbose("Recall Camera Preset {0}", presetNumber);
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
@@ -160,7 +161,7 @@ namespace QscQsysDspPlugin
 			}
 			catch (Exception e)
 			{
-				Debug.Console(2, "QscDspCamera Subscription Error: '{0}'\n", e);
+				this.LogVerbose(e, "QsysCamera Subscription Error");
 			}
 		}
 
@@ -174,7 +175,7 @@ namespace QscQsysDspPlugin
 		{
 
 			// Check for valid subscription response
-			Debug.Console(1, this, "CameraOnline {0} Response: '{1}'", customName, value);
+			this.LogWarning("CameraOnline {0} Response: '{1}'", customName, value);
 
 			if (value == "true")
 			{
