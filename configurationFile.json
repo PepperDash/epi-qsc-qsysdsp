@@ -217,6 +217,53 @@
                 }
             },
             {
+                "key": "dsp-2-qrc",
+                "uid": 5,
+                "name": "QSC Q-Sys QRC Essentials Plugin",
+                "type": "qscDspQrc",
+                "group": "plugin",
+                "properties": {
+                    "control": {
+                        "method": "tcpIp",
+                        "tcpSshProperties": {
+                            "address": "",
+                            "port": 1710,
+                            "username": "",
+                            "password": "",
+                            "autoReconnect": true,
+                            "autoReconnectIntervalMs": 5000
+                        }
+                    },
+                    "prefix": "",
+                    "levelControlBlocks": {
+                        "fader-1": {
+                            "label": "Room (Named Control)",
+                            "levelInstanceTag": "ROOM_VOL",
+                            "muteInstanceTag": "ROOM_MUTE",
+                            "disabled": false,
+                            "hasLevel": true,
+                            "hasMute": true,
+                            "isMic": false
+                        },
+                        "fader-2": {
+                            "label": "Program (Component Control)",
+                            "levelInstanceTag": "MainMixer#gain",
+                            "muteInstanceTag": "MainMixer#mute",
+                            "disabled": false,
+                            "hasLevel": true,
+                            "hasMute": true,
+                            "isMic": false
+                        }
+                    },
+                    "presets": {
+                        "preset-1": {
+                            "label": "System On",
+                            "preset": "PRESETS 1 0"
+                        }
+                    }
+                }
+            },
+            {
                 "key": "dsp-1-bridge",
                 "uid": 4,
                 "name": "QSC Q-Sys DSP Essentials Plugin Bridge",
@@ -235,6 +282,10 @@
                         {
                             "deviceKey": "dsp-1",
                             "joinStart": 1
+                        },
+                        {
+                            "deviceKey": "dsp-2-qrc",
+                            "joinStart": 3000
                         }
                     ]
                 }

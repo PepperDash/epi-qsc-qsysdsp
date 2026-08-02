@@ -12,6 +12,11 @@ Please refer to QSC Q-Sys plugin developer for questions and issues or use the "
 
 ## Protocols
 
+This plugin supports two QSC Q-Sys control protocols, implemented as separate device types that share the same level/dialer/camera/preset configuration and SiMPL bridge:
+
+- **External Control Protocol (ECP)** - `type: "qscdsp"` - ASCII line-based protocol over TCP port 1702 (default).
+- **Remote Control Protocol (QRC)** - `type: "qscDspQrc"` - JSON-RPC 2.0 protocol over TCP port 1710 (default), supports both flat Named Controls and Component Controls.
+
 [Q-SYS External Control Overview](https://help.qsys.com/q-sys_8.1/Content/External_Control/001_External_Control_Overview.htm?tocpath=External%20Control%7C_____0)
 
 [Q-SYS External Control Protocol (ECP)](https://help.qsys.com/q-sys_8.1/Content/External_Control/Q-SYS_External_Control/007_Q-SYS_External_Control_Protocol.htm)
@@ -22,7 +27,9 @@ Please refer to QSC Q-Sys plugin developer for questions and issues or use the "
 
 Update the below readme as needed to support documentation of the plugin
 
-### Communication Settings
+### External Control Protocol (ECP)
+
+#### Communication Settings
 
 Update the communication settings as needed for the plugin being developed.
 
@@ -42,7 +49,7 @@ Reference PepperDash Core eControlMethods Enum for valid values, (currently list
 Tcpip
 ```
 
-### Plugin Configuration Object
+#### Plugin Configuration Object
 
 Update the configuration object as needed for the plugin being developed.
 
@@ -79,7 +86,91 @@ Update the configuration object as needed for the plugin being developed.
 }
 ```
 
-### Plugin Level Control Configuration Object
+### Remote Control Protocol (QRC)
+
+#### Communication Settings
+
+QRC is a JSON-RPC 2.0 protocol; each message is a null-terminated JSON object rather than a newline-delimited string, so `endOfLineString` is not used.
+
+| Setting      | Value              |
+| ------------ | ------------------ |
+| Delimiter    | "\x00" (null byte)  |
+| Default IP   | NA                  |
+| Default Port | 1710                |
+| Username     | Optional (Logon)    |
+| Password     | Optional (Logon)    |
+
+#### Plugin Valid Communication methods
+
+```c#
+Tcpip
+```
+
+#### Plugin Configuration Object
+
+Same `properties` shape as ECP (`levelControlBlocks`, `presets`, `dialerControlBlock`, `cameraControlBlocks` below), only the `type` and `control` blocks differ.
+
+```json
+{
+  "devices": [
+    {
+      "key": "dsp-1",
+      "name": "QSC Q-Sys QRC Essentials Plugin",
+      "type": "qscDspQrc",
+      "group": "pluginDevices",
+      "properties": {
+        "control": {
+          "method": "tcpIp",
+          "tcpSshProperties": {
+            "address": "172.22.0.101",
+            "port": 1710,
+            "username": "",
+            "password": "",
+            "autoReconnect": true,
+            "autoReconnectIntervalMs": 5000
+          }
+        },
+        "prefix": "",
+        "levelControlBlocks": {},
+        "presets": {},
+        "dialerControlBlock": {},
+        "cameraControlBlocks": {}
+      }
+    }
+  ]
+}
+```
+
+#### Named Control vs. Component Control tags
+
+Every instance tag field below (`levelInstanceTag`, `muteInstanceTag`, dialer tags, camera tags, `bank`, etc.) supports two addressing modes under QRC:
+
+- **Named Control** - a flat string, e.g. `"MainGain"`
+- **Component Control** - `"ComponentName#ControlName"`, e.g. `"MainMixer#gain"`, split on `#`
+
+ECP always addresses flat Named Controls; the `#` convention only applies when the device `type` is `qscDspQrc`.
+
+```json
+"levelControlBlocks": {
+	"fader-room-qrc": {
+		"label": "Room (Component Control)",
+		"levelInstanceTag": "MainMixer#gain",
+		"muteInstanceTag": "MainMixer#mute",
+		"disabled": false,
+		"hasLevel": true,
+		"hasMute": true,
+		"isMic": false,
+		"useAbsoluteValue": false,
+		"unmuteOnVolChange": true
+	}
+}
+```
+
+### Shared Configuration (ECP & QRC)
+
+The level control, preset, dialer, and camera control block configuration, and the SiMPL bridge/join map below, are identical regardless of which protocol device type is used - both implementations share the same control point classes and bridge.
+
+#### Plugin Level Control Configuration Object
 
 ```json
 "properties": {
@@ -188,7 +279,7 @@ Update the configuration object as needed for the plugin being developed.
 }
 ```
 
-### Plugin Preset Configuration Object
+#### Plugin Preset Configuration Object
 
 Presets can be handled two ways:
 
@@ -229,7 +320,7 @@ To control from SIMPL, use the analog level input and output on the object. Trig
 }
 ```
 
-### Plugin Dialer Control Blocks
+#### Plugin Dialer Control Blocks
 
 ```json
 "properties": {
@@ -263,7 +354,7 @@ To control from SIMPL, use the analog level input and output on the object. Trig
 }
 ```
 
-### Plugin Camera Control Blocks
+#### Plugin Camera Control Blocks
 
 ```json
 "properties": {
@@ -304,7 +395,7 @@ To control from SIMPL, use the analog level input and output on the object. Trig
 }
 ```
 
-### Plugin Bridge Configuration Object
+#### Plugin Bridge Configuration Object
 
 Update the bridge configuration object as needed for the plugin being developed.
 
@@ -336,13 +427,13 @@ Update the bridge configuration object as needed for the plugin being developed.
 }
 ```
 
-### SiMPL EISC Bridge Map
+#### SiMPL EISC Bridge Map
 
 The selection below documents the digital, analog, and serial joins used by the SiMPL EISC. Update the bridge join maps as needed for the plugin being developed.
 
 When instantiating multiple dialers joins start @ 3100 and use digital/analog/serial joins in blocks of 50. For example, Dialer 2 would start @ 3150.
 
-#### **Digitals**
+##### **Digitals**
 
 | dig-o (Input/Triggers)         | I/O         | dig-i (Feedback)                        |
 | ------------------------------ | ----------- | --------------------------------------- |
@@ -382,7 +473,7 @@ When instantiating multiple dialers joins start @ 3100 and use digital/analog/se
 | Dialer 1 Do Not Disturb On     | 3133        | Dialer 1 Do Not Distrub On Feedback     |
 | Dialer 1 Do Not Disturb Off    | 3134        | Dialer 1 Do Not Distrub Off Feedback    |
 
-#### **Analogs**
+##### **Analogs**
 
 | an_o (Input/Triggers)        | I/O       | an_i (Feedback)     |
 | ----------------------- | --------- | ------------------------ |
@@ -391,7 +482,7 @@ When instantiating multiple dialers joins start @ 3100 and use digital/analog/se
 | Fader [n] Level Set     | 200 - 399 | Fader [n] Level Feedback |
 |                         | 400 - 599 | Fader [n] Type Feedback  |
 
-#### **Serials**
+##### **Serials**
 
 | serial-o (Input/Triggers) | I/O       | serial-i (Feedback)                |
 | ------------------------- | --------- | ---------------------------------- |
