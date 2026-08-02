@@ -834,13 +834,13 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
         /// </summary>
         public void RunPreset(string name)
         {
-            var parts = name.Split(' ');
-            if (parts.Length < 2)
+            string bank, number;
+            if (!TrySplitBankAndNumber(name, out bank, out number))
             {
                 this.LogError("Cannot recall preset '{0}': expected 'BANK NUMBER' format", name);
                 return;
             }
-            RecallSnapshot(parts[0], parts[1], "0");
+            RecallSnapshot(bank, number, "0");
         }
 
         public void RecallPreset(string key)
@@ -870,13 +870,13 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                 this.LogError("Cannot save preset at index {0}: preset name is not defined", n);
                 return;
             }
-            var cmd = preset.Preset.Split(' ');
-            if (cmd.Length < 2)
+            string bank, number;
+            if (!TrySplitBankAndNumber(preset.Preset, out bank, out number))
             {
                 this.LogError("Cannot save preset at index {0}: preset name '{1}' is not in the expected 'BANK NUMBER' format", n, preset.Preset);
                 return;
             }
-            SavePreset(string.Format("{0} {1}", cmd[0], cmd[1]));
+            SaveSnapshot(bank, number);
         }
 
         /// <summary>
@@ -884,13 +884,32 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
         /// </summary>
         public void SavePreset(string name)
         {
-            var parts = name.Split(' ');
-            if (parts.Length < 2)
+            string bank, number;
+            if (!TrySplitBankAndNumber(name, out bank, out number))
             {
                 this.LogError("Cannot save preset '{0}': expected 'BANK NUMBER' format", name);
                 return;
             }
-            SaveSnapshot(parts[0], parts[1]);
+            SaveSnapshot(bank, number);
+        }
+
+        /// <summary>
+        /// Splits a "BANK NUMBER" preset string on the last space, so bank names that themselves
+        /// contain spaces (e.g. "eq gf 1") keep the full bank name ("eq gf") with the trailing number ("1").
+        /// </summary>
+        private static bool TrySplitBankAndNumber(string name, out string bank, out string number)
+        {
+            var lastSpace = name != null ? name.LastIndexOf(' ') : -1;
+            if (lastSpace < 0 || lastSpace == name.Length - 1)
+            {
+                bank = null;
+                number = null;
+                return false;
+            }
+
+            bank = name.Substring(0, lastSpace);
+            number = name.Substring(lastSpace + 1);
+            return true;
         }
 
         public BoolFeedback IsOnline

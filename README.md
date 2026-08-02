@@ -15,7 +15,7 @@ Please refer to QSC Q-Sys plugin developer for questions and issues or use the "
 This plugin supports two QSC Q-Sys control protocols, implemented as separate device types that share the same level/dialer/camera/preset configuration and SiMPL bridge:
 
 - **External Control Protocol (ECP)** - `type: "qscdsp"` - ASCII line-based protocol over TCP port 1702 (default).
-- **Remote Control Protocol (QRC)** - `type: "qscDspQrc"` - JSON-RPC 2.0 protocol over TCP port 1710 (default), supports both flat Named Controls and Component Controls.
+- **Remote Control Protocol (QRC)** - `type: "qscQsysQrc"` - JSON-RPC 2.0 protocol over TCP port 1710 (default), supports both flat Named Controls and Component Controls.
 
 [Q-SYS External Control Overview](https://help.qsys.com/q-sys_8.1/Content/External_Control/001_External_Control_Overview.htm?tocpath=External%20Control%7C_____0)
 
