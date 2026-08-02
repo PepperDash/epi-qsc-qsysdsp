@@ -1,6 +1,6 @@
 ![PepperDash Logo](/images/essentials-plugin-blue.png)
 
-# QSC Q-Sys DSP Essentials Plugin for 4-Series (c) 2025
+# QSC Q-Sys DSP Essentials Plugin for 4-Series (c) 2026
 
 ## License
 
@@ -9,6 +9,14 @@ Provided under MIT license
 ## Notes
 
 Please refer to QSC Q-Sys plugin developer for questions and issues or use the "Issues" tab above.
+
+## Protocols
+
+[Q-SYS External Control Overview](https://help.qsys.com/q-sys_8.1/Content/External_Control/001_External_Control_Overview.htm?tocpath=External%20Control%7C_____0)
+
+[Q-SYS External Control Protocol (ECP)](https://help.qsys.com/q-sys_8.1/Content/External_Control/Q-SYS_External_Control/007_Q-SYS_External_Control_Protocol.htm)
+
+[Q-SYS Remote Control Protocol (QRC)](https://help.qsys.com/Content/External_Control_APIs/QRC/QRC_Overview.htm)
 
 ## Device Specific Information
 
