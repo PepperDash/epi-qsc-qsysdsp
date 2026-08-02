@@ -26,9 +26,9 @@
   "branches": [
     "main",
     {
-      "name": "replace-me-feature-branch",
-      "prerelease": "replace-me-prerelease",
-      "channel": "replace-me-prerelease"
+      "name": "qrc-protocol",
+      "prerelease": "qrc-protocol",
+      "channel": "qrc-protocol"
     }
   ]
 }
