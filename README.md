@@ -166,6 +166,18 @@ ECP always addresses flat Named Controls; the `#` convention only applies when t
 }
 ```
 
+#### Getting Named Control / Component Control names from the Q-SYS Designer file
+
+The tag values above must match the names the Q-SYS programmer assigned in Designer:
+
+- **Named Controls**: In Q-SYS Designer, select the control (fader, mute button, trigger, etc.) in the schematic, open its **Properties** pane, and set the **Name** field under **Named Controls**. That string is exactly what goes in `levelInstanceTag`/`muteInstanceTag`/etc. The full list of Named Controls in a design is also visible under **Design > Named Controls**, and is exported in the design's Named Controls report (**File > Print/Export > Named Controls List**).
+- **Component Controls**: Every component has its own **Name**, shown at the top of its Properties pane (or by right-clicking the component in the schematic). The individual control names within a component are fixed by the component type (e.g. a Gain component exposes `gain`, `mute`, `invert`, etc.) - ask the Q-SYS programmer for the component's control reference, or discover them live from a running Core:
+  - Send a `Component.GetComponents` QRC request to list every component name in the running design.
+  - Send a `Component.GetControls` QRC request (with `{"Name": "ComponentName"}`) to list every control name exposed by that component.
+  - QSC's Q-SYS Remote Control test tool (or any raw TCP/JSON-RPC client on port 1710) can be used to send these two requests ad hoc without writing any code.
+
+Once you have the Component Name and Control Name, combine them as `"ComponentName#ControlName"` for any tag field when using the `qscDspQrc` device type.
+
 ### Shared Configuration (ECP & QRC)
 
 The level control, preset, dialer, and camera control block configuration, and the SiMPL bridge/join map below, are identical regardless of which protocol device type is used - both implementations share the same control point classes and bridge.
