@@ -75,7 +75,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public bool HasMute { get; private set; }
 		public bool HasLevel { get; private set; }
 
-        public string Name => Key;
+        public new string Name => Key;
 
         bool _muteIsSubscribed;
 		bool _levelIsSubscribed;
