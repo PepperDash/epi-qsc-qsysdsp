@@ -13,7 +13,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 	/// </summary>
     public class QsysCamera : Device, IBridgeAdvanced, IOnline
 	{
-		ExternalControlProtocol.QsysEcpController _Dsp;
+		IQsys _Dsp;
 		public QsysCameraConfig Config { get; private set; }
 		string LastCmd;
 		private bool _Online;
@@ -37,7 +37,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// <param name="key">string</param>
 		/// <param name="name">string</param>
 		/// <param name="dc">QsysCameraConfig</param>
-		public QsysCamera(ExternalControlProtocol.QsysEcpController dsp, string key, string name, QsysCameraConfig dc)
+		public QsysCamera(IQsys dsp, string key, string name, QsysCameraConfig dc)
 			: base(key, name)
 		{
 			_Dsp = dsp;
@@ -59,8 +59,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 			{
 				case eCameraPtzControls.Stop:
 					{
-                        var cmdToSend = string.Format("csv \"{0}\" 0", LastCmd);
-						_Dsp.SendLine(cmdToSend);
+						_Dsp.SendControlValue(LastCmd, "0");
 						break;
 					}
 				case eCameraPtzControls.PanLeft: tag = Config.PanLeftTag; break;
@@ -74,9 +73,8 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 			}
 			if (tag != null)
 			{
-                var cmdToSend = string.Format("csv \"{0}\" 1", tag);
 				LastCmd = tag;
-				_Dsp.SendLine(cmdToSend);
+				_Dsp.SendControlValue(tag, "1");
 
 			}
 		}
@@ -86,8 +84,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// </summary>
 		public void PrivacyOn()
 		{
-            var cmdToSend = string.Format("csv \"{0}\" 1", Config.Privacy);
-			_Dsp.SendLine(cmdToSend);
+			_Dsp.SendControlValue(Config.Privacy, "1");
 		}
 
 		/// <summary>
@@ -95,8 +92,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// </summary>
 		public void PrivacyOff()
 		{
-            var cmdToSend = string.Format("csv \"{0}\" 0", Config.Privacy);
-			_Dsp.SendLine(cmdToSend);
+			_Dsp.SendControlValue(Config.Privacy, "0");
 		}
 
 		/// <summary>
@@ -109,8 +105,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
-				var cmdToSend = string.Format("ssl {0} {1} 0", preset.Bank, preset.Number);
-				_Dsp.SendLine(cmdToSend);
+				_Dsp.RecallSnapshot(preset.Bank, preset.Number.ToString(), "0");
 			}
 		}
 
@@ -123,8 +118,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
-				var cmdToSend = string.Format("sss {0} {1}", preset.Bank, preset.Number);
-				_Dsp.SendLine(cmdToSend);
+				_Dsp.SaveSnapshot(preset.Bank, preset.Number.ToString());
 			}
 		}
 
@@ -155,8 +149,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 				// Do subscriptions and blah blah
 				if (Config.OnlineStatus != null)
 				{
-                    var cmd = string.Format("cga 1 \"{0}\"", Config.OnlineStatus);
-					_Dsp.SendLine(cmd);
+					_Dsp.SubscribeControl(Config.OnlineStatus);
 				}
 			}
 			catch (Exception e)

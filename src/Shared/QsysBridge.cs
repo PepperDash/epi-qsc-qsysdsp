@@ -14,7 +14,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 	/// </summary>
 	public static class QsysDeviceApiExtensions
 	{
-		public static void LinkToApiExt(this ExternalControlProtocol.QsysEcpController DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
+		public static void LinkToApiExt(this IQsys DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
 		{
             var joinMap = new QsysDeviceJoinMapAdvanced(joinStart);
             var joinMapSerialized = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey); //as QsysCameraDeviceJoinMap;
@@ -190,7 +190,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 			}
 		}
 
-        private static bool TryGetPresetIndex(ExternalControlProtocol.QsysEcpController dspDevice, ushort selectedPreset, string action, out ushort presetIndex)
+        private static bool TryGetPresetIndex(IQsys dspDevice, ushort selectedPreset, string action, out ushort presetIndex)
         {
             presetIndex = 0;
 

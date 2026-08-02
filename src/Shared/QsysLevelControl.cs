@@ -24,7 +24,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		CTimer _volumeUpRepeatTimer;
 		CTimer _volumeDownRepeatTimer;
         CTimer _volumeRampDelay;
-	    private readonly ExternalControlProtocol.QsysEcpController _parent;
+	    private readonly IQsys _parent;
 
         bool _volumeRampTracker;
 
@@ -86,7 +86,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
         /// <param name="key">instance key</param>
         /// <param name="config">level control block configuration object</param>
         /// <param name="parent">dsp parent isntance</param>
-        public QsysLevelControl(string key, QsysLevelControlBlockConfig config, ExternalControlProtocol.QsysEcpController parent)
+        public QsysLevelControl(string key, QsysLevelControlBlockConfig config, IQsys parent)
             : base(key, config.LevelInstanceTag, config.MuteInstanceTag, parent)
         {
             _parent = parent;
@@ -101,10 +101,10 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
                 CrestronInvoke.BeginInvoke(o =>
                 {
                     if (!String.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
-                        _parent.SendLine(String.Format("cg \"{0}\"", config.LevelInstanceTag));
+                        _parent.GetControl(config.LevelInstanceTag);
 
                     if (!String.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
-                        _parent.SendLine(String.Format("cg \"{0}\"", config.MuteInstanceTag));
+                        _parent.GetControl(config.MuteInstanceTag);
                 });
             };
 

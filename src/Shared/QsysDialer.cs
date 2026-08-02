@@ -17,7 +17,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// <summary>
 		/// Parent DSP
 		/// </summary>
-		public ExternalControlProtocol.QsysEcpController Parent { get; private set; }
+		public IQsys Parent { get; private set; }
 
 		/// <summary>
 		/// Dialer instance key
@@ -154,7 +154,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// <param name="key">dialer instance key</param>
 		/// <param name="config">configuration object</param>
 		/// <param name="parent">parent dsp instance</param>
-		public QsysDialer(string key, QscDialerConfig config, ExternalControlProtocol.QsysEcpController parent)
+		public QsysDialer(string key, QscDialerConfig config, IQsys parent)
 		{
 			Key = key;
 			Tags = config;
@@ -326,7 +326,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public void DoNotDisturbToggle()
 		{
 			var dndStateInt = !DoNotDisturbState ? 1 : 0;
-			Parent.SendLine(string.Format("csv {0} {1}", Tags.DoNotDisturbTag, dndStateInt));
+			Parent.SendControlValue(Tags.DoNotDisturbTag, dndStateInt.ToString());
 		}
 
 		/// <summary>
@@ -334,7 +334,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// </summary>
 		public void DoNotDisturbOn()
 		{
-            Parent.SendLine(string.Format("csv \"{0}\" 1", Tags.DoNotDisturbTag));
+            Parent.SendControlValue(Tags.DoNotDisturbTag, "1");
 		}
 
 		/// <summary>
@@ -342,7 +342,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// </summary>
 		public void DoNotDisturbOff()
 		{
-            Parent.SendLine(string.Format("csv \"{0}\" 0", Tags.DoNotDisturbTag));
+            Parent.SendControlValue(Tags.DoNotDisturbTag, "0");
 		}
 
 		/// <summary>
@@ -351,7 +351,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public void AutoAnswerToggle()
 		{
 			int autoAnswerStateInt = !AutoAnswerState ? 1 : 0;
-            Parent.SendLine(string.Format("csv \"{0}\" {1}", Tags.AutoAnswerTag, autoAnswerStateInt));
+            Parent.SendControlValue(Tags.AutoAnswerTag, autoAnswerStateInt.ToString());
 		}
 
 		/// <summary>
@@ -359,7 +359,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// </summary>
 		public void AutoAnswerOn()
 		{
-            Parent.SendLine(string.Format("csv \"{0}\" 1", Tags.AutoAnswerTag));
+            Parent.SendControlValue(Tags.AutoAnswerTag, "1");
 		}
 
 		/// <summary>
@@ -367,13 +367,13 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// </summary>
 		public void AutoAnswerOff()
 		{
-            Parent.SendLine(string.Format("csv \"{0}\" 0", Tags.AutoAnswerTag));
+            Parent.SendControlValue(Tags.AutoAnswerTag, "0");
 		}
 
 		private void PollKeypad()
 		{
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.DialStringTag));
+            Parent.GetControl(Tags.DialStringTag);
 		}
 
 		/// <summary>
@@ -404,8 +404,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 
 			if (keypadTag != null)
 			{
-                var cmdToSend = string.Format("ct \"{0}\"", keypadTag);
-				Parent.SendLine(cmdToSend);
+				Parent.TriggerControl(keypadTag);
 				PollKeypad();
 			}
 		}
@@ -414,14 +413,9 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// Sends the subscription command using the provided named control and change group
 		/// </summary>
 		/// <param name="instanceTag">Named control/Instance tag</param>
-		/// <param name="changeGroup">Change group ID</param>
 		public void SendSubscriptionCommand(string instanceTag)
 		{
-			// Subscription string format: InstanceTag subscribe attributeCode Index1 customName responseRate
-			// Ex: "RoomLevel subscribe level 1 MyRoomLevel 500"
-
-            var cmd = string.Format("cga 1 \"{0}\"", instanceTag);
-			Parent.SendLine(cmd);
+			Parent.SubscribeControl(instanceTag);
 		}
 
 		/// <summary>
@@ -429,12 +423,13 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// </summary>
 		public void Dial()
 		{
-			Parent.SendLine(!this.OffHook
-                ? string.Format("ct \"{0}\"", Tags.ConnectTag)		// !this.OffHook
-                : string.Format("ct \"{0}\"", Tags.DisconnectTag));	// this.OffHook
+			if (!this.OffHook)
+				Parent.TriggerControl(Tags.ConnectTag);
+			else
+				Parent.TriggerControl(Tags.DisconnectTag);
 
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.CallStatusTag));
+            Parent.GetControl(Tags.CallStatusTag);
 		}
 
 		/// <summary>
@@ -449,10 +444,10 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
             
 			if (OffHook) EndAllCalls();
 
-            Parent.SendLine(string.Format("css \"{0}\" \"{1}\"",Tags.DialStringTag, number));
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
+            Parent.SendControlString(Tags.DialStringTag, number);
+            Parent.TriggerControl(Tags.ConnectTag);
             Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.CallStatusTag));
+            Parent.GetControl(Tags.CallStatusTag);
 		}
 
 		/// <summary>
@@ -461,7 +456,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// <param name="item">Use null as the parameter, use of CodecActiveCallItem is not implemented</param>
 		public void EndCall(CodecActiveCallItem item)
 		{
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
+            Parent.TriggerControl(Tags.DisconnectTag);
 		}
 
 		/// <summary>
@@ -469,7 +464,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// </summary>
 		public void EndAllCalls()
 		{
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
+            Parent.TriggerControl(Tags.DisconnectTag);
 		}
 
 		/// <summary>
@@ -478,9 +473,9 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public void AcceptCall()
 		{
 			this.IncomingCall = false;
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
+            Parent.TriggerControl(Tags.ConnectTag);
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
+            Parent.GetControl(Tags.HookStatusTag);
 		}
 
 		/// <summary>
@@ -490,9 +485,9 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public void AcceptCall(CodecActiveCallItem item)
 		{
 			this.IncomingCall = false;
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
+            Parent.TriggerControl(Tags.ConnectTag);
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
+            Parent.GetControl(Tags.HookStatusTag);
 		}
 
 		/// <summary>
@@ -501,9 +496,9 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public void RejectCall()
 		{
 			this.IncomingCall = false;
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
+            Parent.TriggerControl(Tags.DisconnectTag);
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
+            Parent.GetControl(Tags.HookStatusTag);
 		}
 
 		/// <summary>
@@ -513,9 +508,9 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public void RejectCall(CodecActiveCallItem item)
 		{
 			this.IncomingCall = false;
-            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
+            Parent.TriggerControl(Tags.DisconnectTag);
 			Thread.Sleep(50);
-            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
+            Parent.GetControl(Tags.HookStatusTag);
 		}
 
 		/// <summary>
