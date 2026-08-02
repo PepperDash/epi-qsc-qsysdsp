@@ -659,7 +659,16 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
 
             foreach (var change in changes)
             {
-                ProcessControlUpdate(change);
+                try
+                {
+                    // Each change already carries its own "Component" field (when applicable), e.g.
+                    // {"Component":"av-tr-gain-room-stereo","Name":"gain","String":"-67.4dB","Value":-67.35912322,"Position":0.27200731}
+                    ProcessControlUpdate(change, null);
+                }
+                catch (Exception e)
+                {
+                    this.LogVerbose(e, "Error processing ChangeGroup.Poll entry '{0}'", change.ToString(Formatting.None));
+                }
             }
         }
 
@@ -668,8 +677,18 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
             var array = result as JArray;
             if (array != null)
             {
+                // Flat Control.Get response: [{"Name":tag,"Value":...,"String":...,"Position":...}, ...]
                 foreach (var item in array)
-                    ProcessControlUpdate(item);
+                {
+                    try
+                    {
+                        ProcessControlUpdate(item, null);
+                    }
+                    catch (Exception e)
+                    {
+                        this.LogVerbose(e, "Error processing Control.Get result entry '{0}'", item.ToString(Formatting.None));
+                    }
+                }
                 return;
             }
 
@@ -679,51 +698,71 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
             var controls = obj["Controls"] as JArray;
             if (controls != null)
             {
+                // Component.Get response: {"Name":component,"Controls":[{"Name":ctrl,...}, ...]} - the outer
+                // Name is the component; nested control entries don't repeat it, so it's passed explicitly.
+                var componentName = obj["Name"] != null ? obj["Name"].ToString() : null;
                 foreach (var item in controls)
-                    ProcessControlUpdate(item);
+                {
+                    try
+                    {
+                        ProcessControlUpdate(item, componentName);
+                    }
+                    catch (Exception e)
+                    {
+                        this.LogVerbose(e, "Error processing Component.Get result entry '{0}'", item.ToString(Formatting.None));
+                    }
+                }
                 return;
             }
 
             if (obj["Name"] != null)
-                ProcessControlUpdate(obj);
+                ProcessControlUpdate(obj, null);
         }
 
-        private void ProcessControlUpdate(JToken controlToken)
+        private void ProcessControlUpdate(JToken controlToken, string componentNameOverride)
         {
             var name = controlToken["Name"] != null ? controlToken["Name"].ToString() : null;
             if (string.IsNullOrEmpty(name)) return;
 
-            var value = controlToken["Value"] != null ? controlToken["Value"].ToString() : null;
+            // Component Control changes report "Component" and "Name" separately; reconstruct the
+            // "Component#Control" tag so it matches the configured instance tag.
+            var component = componentNameOverride ??
+                (controlToken["Component"] != null ? controlToken["Component"].ToString() : null);
+            var customName = component != null ? component + "#" + name : name;
+
+            var rawValue = controlToken["Value"] != null ? controlToken["Value"].ToString() : null;
+            var rawString = controlToken["String"] != null ? controlToken["String"].ToString() : null;
             var position = controlToken["Position"] != null ? controlToken["Position"].ToString() : null;
-            var stringValue = controlToken["String"] != null ? controlToken["String"].ToString() : value;
 
             if (position != null)
             {
                 double positionValue;
                 if (double.TryParse(position, out positionValue))
-                    _lastKnownPosition[name] = positionValue;
+                    _lastKnownPosition[customName] = positionValue;
             }
 
-            DispatchControlUpdate(name, stringValue, position);
+            DispatchControlUpdate(customName, rawString, rawValue, position);
         }
 
         /// <summary>
         /// Dispatches a control update to whichever level/dialer/camera owns the matching instance tag,
-        /// mirroring the ECP implementation's customName matching in Port_LineReceived.
+        /// mirroring the ECP implementation's customName matching in Port_LineReceived. Mute (Boolean)
+        /// controls are text-matched from String/Value; Level (Float) controls use the normalized Position
+        /// for percent-based feedback, or the raw Value for controls configured with useAbsoluteValue.
         /// </summary>
-        private void DispatchControlUpdate(string customName, string value, string absoluteValue)
+        private void DispatchControlUpdate(string customName, string stringValue, string rawValue, string position)
         {
             foreach (var controlPoint in LevelControlPoints)
             {
                 if (customName == controlPoint.Value.LevelInstanceTag)
                 {
-                    controlPoint.Value.ParseSubscriptionMessage(customName, value, absoluteValue ?? value);
+                    controlPoint.Value.ParseSubscriptionMessage(customName, position ?? rawValue, rawValue);
                     return;
                 }
 
                 if (customName == controlPoint.Value.MuteInstanceTag)
                 {
-                    controlPoint.Value.ParseSubscriptionMessage(customName, value, null);
+                    controlPoint.Value.ParseSubscriptionMessage(customName, ToMuteStateText(stringValue, rawValue), null);
                     return;
                 }
             }
@@ -736,7 +775,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                     var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
                     if (customName == propValue)
                     {
-                        dialer.Value.ParseSubscriptionMessage(customName, value);
+                        dialer.Value.ParseSubscriptionMessage(customName, stringValue ?? rawValue);
                         return;
                     }
                 }
@@ -746,10 +785,26 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
             {
                 if (customName == camera.Value.Config.OnlineStatus)
                 {
-                    camera.Value.ParseSubscriptionMessage(customName, value, null);
+                    camera.Value.ParseSubscriptionMessage(customName, stringValue ?? rawValue, null);
                     return;
                 }
             }
+        }
+
+        /// <summary>
+        /// Falls back to deriving a "true"/"false" state from a raw numeric Value when a control has no
+        /// human-readable String representation.
+        /// </summary>
+        private static string ToMuteStateText(string stringValue, string rawValue)
+        {
+            if (!string.IsNullOrEmpty(stringValue))
+                return stringValue;
+
+            double numeric;
+            if (rawValue != null && double.TryParse(rawValue, out numeric))
+                return numeric != 0 ? "true" : "false";
+
+            return rawValue;
         }
 
         /// <summary>

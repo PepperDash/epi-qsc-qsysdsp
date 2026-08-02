@@ -9,8 +9,8 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
     {
         public QsysQrcFactory()
         {
-            MinimumEssentialsFrameworkVersion = "2.0.0";
-            TypeNames = new List<string> { "qscDspQrc" };
+            MinimumEssentialsFrameworkVersion = "2.39.0";
+            TypeNames = new List<string> { "qscQsysQrc" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
