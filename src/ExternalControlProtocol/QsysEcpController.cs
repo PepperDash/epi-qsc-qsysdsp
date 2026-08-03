@@ -664,6 +664,14 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
             SendLine(string.Format("sss {0} {1}", bank, number));
         }
 
+        /// <summary>
+        /// Not supported over ECP - component/control discovery requires the QRC protocol (qscDspQrc)
+        /// </summary>
+        public void GetAllComponentsAndControls()
+        {
+            this.LogWarning("GetAllComponentsAndControls is not supported over the ECP protocol; use the QRC device type instead");
+        }
+
         #endregion
 
         /// <summary>

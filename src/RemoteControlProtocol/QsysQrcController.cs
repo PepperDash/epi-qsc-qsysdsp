@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Crestron.SimplSharp;
+using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
@@ -92,6 +93,14 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
         // Tracks the last known normalized (0-1) position per tag, used to approximate relative ramping
         private readonly Dictionary<string, double> _lastKnownPosition = new Dictionary<string, double>();
 
+        // Correlates JSON-RPC request ids to a one-shot callback, so discovery responses don't get misrouted into control-update dispatch
+        private readonly Dictionary<int, Action<JToken>> _pendingRequests = new Dictionary<int, Action<JToken>>();
+        private readonly object _pendingRequestsLock = new object();
+
+        private readonly object _discoveryLock = new object();
+        private const long DiscoveryTimeoutMs = 15000;
+        private const string DiscoveryFileName = "qsys-components.json";
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -145,6 +154,8 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
             CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "",
                 ConsoleAccessLevelEnum.AccessOperator);
+            CrestronConsole.AddNewConsoleCommand(s => GetAllComponentsAndControls(), "getcomponents" + Key,
+                "Discovers all Q-SYS components/controls and writes them to file", ConsoleAccessLevelEnum.AccessOperator);
             return true;
         }
 
@@ -534,7 +545,139 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
             SendRequest("Snapshot.Save", JToken.FromObject(new { Name = bank, Bank = bankNumber }));
         }
 
+        /// <summary>
+        /// Enumerates every component/control in the running design via Component.GetComponents +
+        /// Component.GetControls and writes the result to a JSON file for integrator reference.
+        /// </summary>
+        public void GetAllComponentsAndControls()
+        {
+            this.LogInformation("Starting Q-SYS component/control discovery");
+
+            SendRequest("Component.GetComponents", new JArray(), result =>
+            {
+                var components = new List<QsysComponent>();
+                var array = result as JArray;
+                if (array != null)
+                {
+                    foreach (var item in array)
+                    {
+                        var component = item.ToObject<QsysComponent>();
+                        if (component != null && !string.IsNullOrEmpty(component.Name))
+                            components.Add(component);
+                    }
+                }
+
+                this.LogInformation("Discovered {0} components, requesting controls", components.Count);
+                BeginComponentControlDiscovery(components);
+            });
+        }
+
         #endregion
+
+        /// <summary>
+        /// Requests controls for each discovered component one at a time (rather than fanning out all
+        /// requests at once, which risks overrunning the Core/reply buffer on large designs), then writes
+        /// the combined result to file once every component has responded or the safety timeout elapses.
+        /// </summary>
+        private void BeginComponentControlDiscovery(List<QsysComponent> components)
+        {
+            var discovered = new List<QsysComponentWithControls>();
+            var queue = new Queue<QsysComponent>(components);
+            var finished = false;
+            CTimer timeoutTimer = null;
+
+            Action finish = () =>
+            {
+                lock (_discoveryLock)
+                {
+                    if (finished) return;
+                    finished = true;
+                }
+
+                if (timeoutTimer != null)
+                    timeoutTimer.Stop();
+
+                WriteComponentsToFile(discovered);
+            };
+
+            timeoutTimer = new CTimer(_ =>
+            {
+                this.LogWarning("Q-SYS discovery timed out with {0} of {1} components still pending; writing partial results",
+                    queue.Count, components.Count);
+                finish();
+            }, DiscoveryTimeoutMs);
+
+            Action requestNext = null;
+            requestNext = () =>
+            {
+                QsysComponent component;
+                lock (_discoveryLock)
+                {
+                    if (finished) return;
+                    component = queue.Count > 0 ? queue.Dequeue() : null;
+                }
+
+                if (component == null)
+                {
+                    finish();
+                    return;
+                }
+
+                var componentName = component.Name;
+                var componentType = component.Type;
+
+                SendRequest("Component.GetControls", JToken.FromObject(new { Name = componentName }), result =>
+                {
+                    var controls = new List<QsysControlInfo>();
+                    var controlsArray = result != null ? result["Controls"] as JArray : null;
+                    if (controlsArray != null)
+                    {
+                        foreach (var item in controlsArray)
+                        {
+                            var control = item.ToObject<QsysControlInfo>();
+                            if (control == null || string.IsNullOrEmpty(control.Name)) continue;
+                            control.SuggestedTag = string.Format("{0}#{1}", componentName, control.Name);
+                            controls.Add(control);
+                        }
+                    }
+
+                    lock (_discoveryLock)
+                    {
+                        if (finished) return;
+                        discovered.Add(new QsysComponentWithControls
+                        {
+                            Name = componentName,
+                            Type = componentType,
+                            Controls = controls
+                        });
+                    }
+
+                    requestNext();
+                });
+            };
+
+            requestNext();
+        }
+
+        private void WriteComponentsToFile(List<QsysComponentWithControls> components)
+        {
+            try
+            {
+                var path = Path.Combine(Global.FilePathPrefix, DiscoveryFileName);
+                var json = JsonConvert.SerializeObject(components, Formatting.Indented);
+
+                using (var writer = new StreamWriter(path, false))
+                {
+                    writer.Write(json);
+                }
+
+                this.LogInformation("Q-SYS discovery complete: wrote {0} components to {1}", components.Count, path);
+            }
+            catch (Exception e)
+            {
+                this.LogError(e, "Error writing Q-SYS discovery file");
+            }
+        }
 
         private void SendControl(string tag, string valueField, object value)
         {
@@ -574,7 +717,26 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
 
         private void SendRequest(string method, JToken paramsToken)
         {
+            SendRequest(method, paramsToken, null);
+        }
+
+        /// <summary>
+        /// Sends a JSON-RPC request, invoking <paramref name="onResult"/> with the response's "result" token
+        /// (or null on an error response) once the matching id comes back, instead of routing through the
+        /// fire-and-forget control-update dispatch in <see cref="ProcessResult"/>.
+        /// </summary>
+        private void SendRequest(string method, JToken paramsToken, Action<JToken> onResult)
+        {
             var id = Crestron.SimplSharp.Interlocked.Increment(ref _requestId);
+
+            if (onResult != null)
+            {
+                lock (_pendingRequestsLock)
+                {
+                    _pendingRequests[id] = onResult;
+                }
+            }
+
             var request = new JObject();
             request["jsonrpc"] = "2.0";
             request["method"] = method;
@@ -620,9 +782,26 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                     return;
                 }
 
+                Action<JToken> pendingCallback = null;
+                var idToken = json["id"];
+                int id;
+                if (idToken != null && int.TryParse(idToken.ToString(), out id))
+                {
+                    lock (_pendingRequestsLock)
+                    {
+                        if (_pendingRequests.TryGetValue(id, out pendingCallback))
+                            _pendingRequests.Remove(id);
+                    }
+                }
+
                 var result = json["result"];
                 if (result != null)
                 {
+                    if (pendingCallback != null)
+                    {
+                        pendingCallback(result);
+                        return;
+                    }
                     ProcessResult(result);
                     return;
                 }
@@ -631,6 +810,8 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                 if (error != null)
                 {
                     this.LogWarning("QRC error response: {0}", error.ToString(Formatting.None));
+                    if (pendingCallback != null)
+                        pendingCallback(null);
                 }
             }
             catch (Exception e)

@@ -81,5 +81,10 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// Saves a snapshot/preset bank and number (e.g. camera presets)
 		/// </summary>
 		void SaveSnapshot(string bank, string number);
+
+		/// <summary>
+		/// Enumerates every component/control in the running design and writes the result to a JSON file
+		/// </summary>
+		void GetAllComponentsAndControls();
 	}
 }
