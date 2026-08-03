@@ -84,8 +84,8 @@ This branch sends JSON-RPC requests via `SendRequest(method, params)` and parses
 - **Decided:** no bridge join for v1 — keeps the shared `QsysDeviceJoinMapAdvanced` (used by both ECP and QRC) untouched.
 - `GetAllComponentsAndControls()` is a plain `public void` method (parameterless, no return value) on `QsysQrcController`, so it's usable two ways:
   1. **`devjson`** — Essentials' `DeviceJsonApi.DoDeviceAction` console command invokes public device methods by name via reflection, e.g. `devjson:1 {"deviceKey":"dsp-1","methodName":"GetAllComponentsAndControls"}`. Works automatically since the method is public; no extra code needed for this path.
-  2. **DSP-specific console command** — register in `CustomActivate()` alongside the existing `"send" + Key` / `"con" + Key` commands: `CrestronConsole.AddNewConsoleCommand(s => GetAllComponentsAndControls(), "getcomponents" + Key, "Discovers all Q-SYS components/controls and writes them to file", ConsoleAccessLevelEnum.AccessOperator);`. This keeps a quick per-device command available at the console (`getcomponentsdsp-1`) without needing to hand-type JSON for `devjson`.
-- Since ECP doesn't implement discovery, only register `"getcomponents" + Key` in the QRC controller's `CustomActivate()`, not the ECP controller's; `devjson` against an ECP-typed device key simply won't find the method (ECP's `IQsys` stub can log a warning if invoked directly in code).
+  2. **Global `getcomponents <deviceKey>` console command** — a single command (not one per device key) registered once via a static guard in `CustomActivate()`, so it works regardless of how many QRC devices are active. The handler resolves the device with `DeviceManager.GetDeviceForKey<IQsys>(key)` and calls `GetAllComponentsAndControls()` on it. Registering by key argument instead of baking the key into the command name (`"getcomponents" + Key`) matters once Essentials is running in a program slot > 1 alongside other programs/plugins that may also register console commands — it keeps a single, predictable command name instead of one per device instance.
+- Since ECP doesn't implement discovery, `DeviceManager.GetDeviceForKey<IQsys>` will still resolve an ECP-typed device key, but its `GetAllComponentsAndControls()` stub just logs a warning; `devjson` against an ECP key behaves the same way.
 
 **6. Interface update**
 - Add `void GetAllComponentsAndControls();` to `IQsys.cs`.
@@ -103,7 +103,7 @@ This branch sends JSON-RPC requests via `SendRequest(method, params)` and parses
 
 | File | Change |
 |---|---|
-| `src/RemoteControlProtocol/QsysQrcController.cs` | Add pending-request map (with error correlation + locking), `GetAllComponentsAndControls()`, `WriteComponentsToFile()`, `"getcomponents" + Key` console command in `CustomActivate()` |
+| `src/RemoteControlProtocol/QsysQrcController.cs` | Add pending-request map (with error correlation + locking), `GetAllComponentsAndControls()`, `WriteComponentsToFile()`, global `"getcomponents"` console command (registered once, takes device key as its argument) in `CustomActivate()` |
 | `src/Shared/QsysComponentInfo.cs` (new) | POCOs for components/controls (incl. `SuggestedTag`) |
 | `src/Interfaces/IQsys.cs` | Add `GetAllComponentsAndControls()` to interface |
 | `src/ExternalControlProtocol/QsysEcpController.cs` | Stub interface method (no-op/log) |

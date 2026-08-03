@@ -101,6 +101,11 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
         private const long DiscoveryTimeoutMs = 15000;
         private const string DiscoveryFileName = "qsys-components.json";
 
+        // "getcomponents" is a single global console command (not per-Key) so it registers once no matter how
+        // many QRC device instances are active in this program/slot; it takes the target device key as its argument.
+        private static bool _discoveryConsoleCommandRegistered;
+        private static readonly object _discoveryConsoleCommandLock = new object();
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -154,9 +159,43 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
             CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "",
                 ConsoleAccessLevelEnum.AccessOperator);
-            CrestronConsole.AddNewConsoleCommand(s => GetAllComponentsAndControls(), "getcomponents" + Key,
-                "Discovers all Q-SYS components/controls and writes them to file", ConsoleAccessLevelEnum.AccessOperator);
+
+            lock (_discoveryConsoleCommandLock)
+            {
+                if (!_discoveryConsoleCommandRegistered)
+                {
+                    CrestronConsole.AddNewConsoleCommand(GetComponentsConsoleCommand, "getcomponents",
+                        "getcomponents <deviceKey> - discovers all Q-SYS components/controls for the QRC device with the given key and writes them to file",
+                        ConsoleAccessLevelEnum.AccessOperator);
+                    _discoveryConsoleCommandRegistered = true;
+                }
+            }
+
             return true;
+        }
+
+        /// <summary>
+        /// Console command handler for "getcomponents &lt;deviceKey&gt;" - looks up the target QRC device by key
+        /// (rather than baking the key into the command name), so one command works across every QRC instance,
+        /// which matters when Essentials runs multiple DSPs or is itself running in a program slot > 1.
+        /// </summary>
+        private static void GetComponentsConsoleCommand(string deviceKey)
+        {
+            var key = deviceKey != null ? deviceKey.Trim() : string.Empty;
+            if (string.IsNullOrEmpty(key))
+            {
+                CrestronConsole.ConsoleCommandResponse("Usage: getcomponents <deviceKey>\r\n");
+                return;
+            }
+
+            var device = DeviceManager.GetDeviceForKey<IQsys>(key);
+            if (device == null)
+            {
+                CrestronConsole.ConsoleCommandResponse("Device '{0}' not found or is not a Q-SYS device\r\n", key);
+                return;
+            }
+
+            device.GetAllComponentsAndControls();
         }
 
         private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)

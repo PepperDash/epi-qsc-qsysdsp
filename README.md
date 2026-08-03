@@ -178,6 +178,20 @@ The tag values above must match the names the Q-SYS programmer assigned in Desig
 
 Once you have the Component Name and Control Name, combine them as `"ComponentName#ControlName"` for any tag field when using the `qscDspQrc` device type.
 
+#### Console Command: Component/Control Discovery (QRC only)
+
+Instead of manually calling `Component.GetComponents`/`Component.GetControls` with an external QRC test tool, the QRC device type (`qscQsysQrc`) exposes a console command that does both steps automatically and writes the full result to a JSON file for reference:
+
+```text
+getcomponents <deviceKey>
+```
+
+- `<deviceKey>` is the plugin device's configured `"key"` value (e.g. `dsp-1` from the config examples above).
+- Output is written to `qsys-components.json` in the processor's application directory (overwritten on every run), listing every discovered component and its controls. Each control includes a `SuggestedTag` field (`"ComponentName#ControlName"`) ready to paste directly into `levelInstanceTag`/`muteInstanceTag`/etc.
+- `getcomponents` is registered **once** as a single global command (not once per device), so it's usable regardless of how many QRC devices are configured. This also matters when Essentials is running in a program slot other than 1 (e.g. a dual-program SIMPL + Essentials system) - console commands are shared across every program on the processor, so a single, predictable `getcomponents <deviceKey>` command avoids needing a differently-named command per device/program to remember.
+- Not supported on the ECP device type (`qscdsp`); ECP has no equivalent discovery request.
+- Also invocable via Essentials' `devjson` console command against the device's `GetAllComponentsAndControls` method, e.g. `devjson:1 {"deviceKey":"dsp-1","methodName":"GetAllComponentsAndControls"}`.
+
 ### Shared Configuration (ECP & QRC)
 
 The level control, preset, dialer, and camera control block configuration, and the SiMPL bridge/join map below, are identical regardless of which protocol device type is used - both implementations share the same control point classes and bridge.
