@@ -183,12 +183,12 @@ Once you have the Component Name and Control Name, combine them as `"ComponentNa
 Instead of manually calling `Component.GetComponents`/`Component.GetControls` with an external QRC test tool, the QRC device type (`qscQsysQrc`) exposes a console command that does both steps automatically and writes the full result to a JSON file for reference:
 
 ```text
-getcomponents <deviceKey>
+getdspcomponents <deviceKey>
 ```
 
 - `<deviceKey>` is the plugin device's configured `"key"` value (e.g. `dsp-1` from the config examples above).
 - Output is written to `qsys-components.json` in the processor's application directory (overwritten on every run), listing every discovered component and its controls. Each control includes a `SuggestedTag` field (`"ComponentName#ControlName"`) ready to paste directly into `levelInstanceTag`/`muteInstanceTag`/etc.
-- `getcomponents` is registered **once** as a single global command (not once per device), so it's usable regardless of how many QRC devices are configured. This also matters when Essentials is running in a program slot other than 1 (e.g. a dual-program SIMPL + Essentials system) - console commands are shared across every program on the processor, so a single, predictable `getcomponents <deviceKey>` command avoids needing a differently-named command per device/program to remember.
+- `getdspcomponents` is registered **once** as a single global command (not once per device), so it's usable regardless of how many QRC devices are configured. This also matters when Essentials is running in a program slot other than 1 (e.g. a dual-program SIMPL + Essentials system) - console commands are shared across every program on the processor, so a single, predictable `getdspcomponents <deviceKey>` command avoids needing a differently-named command per device/program to remember.
 - Not supported on the ECP device type (`qscdsp`); ECP has no equivalent discovery request.
 - Also invocable via Essentials' `devjson` console command against the device's `GetAllComponentsAndControls` method, e.g. `devjson:1 {"deviceKey":"dsp-1","methodName":"GetAllComponentsAndControls"}`.
 

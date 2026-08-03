@@ -101,7 +101,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
         private const long DiscoveryTimeoutMs = 15000;
         private const string DiscoveryFileName = "qsys-components.json";
 
-        // "getcomponents" is a single global console command (not per-Key) so it registers once no matter how
+        // "getdspcomponents" is a single global console command (not per-Key) so it registers once no matter how
         // many QRC device instances are active in this program/slot; it takes the target device key as its argument.
         private static bool _discoveryConsoleCommandRegistered;
         private static readonly object _discoveryConsoleCommandLock = new object();
@@ -164,10 +164,18 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
             {
                 if (!_discoveryConsoleCommandRegistered)
                 {
-                    CrestronConsole.AddNewConsoleCommand(GetComponentsConsoleCommand, "getcomponents",
-                        "getcomponents <deviceKey> - discovers all Q-SYS components/controls for the QRC device with the given key and writes them to file",
+                    var registered = CrestronConsole.AddNewConsoleCommand(GetDspComponentsConsoleCommand, "getdspcomponents",
+                        "Discovers Q-SYS components/controls for a device and writes them to file",
                         ConsoleAccessLevelEnum.AccessOperator);
-                    _discoveryConsoleCommandRegistered = true;
+
+                    if (registered)
+                    {
+                        _discoveryConsoleCommandRegistered = true;
+                    }
+                    else
+                    {
+                        this.LogWarning("Failed to register 'getdspcomponents' console command - a command with that name may already exist");
+                    }
                 }
             }
 
@@ -175,16 +183,16 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
         }
 
         /// <summary>
-        /// Console command handler for "getcomponents &lt;deviceKey&gt;" - looks up the target QRC device by key
+        /// Console command handler for "getdspcomponents &lt;deviceKey&gt;" - looks up the target QRC device by key
         /// (rather than baking the key into the command name), so one command works across every QRC instance,
         /// which matters when Essentials runs multiple DSPs or is itself running in a program slot > 1.
         /// </summary>
-        private static void GetComponentsConsoleCommand(string deviceKey)
+        private static void GetDspComponentsConsoleCommand(string deviceKey)
         {
             var key = deviceKey != null ? deviceKey.Trim() : string.Empty;
             if (string.IsNullOrEmpty(key))
             {
-                CrestronConsole.ConsoleCommandResponse("Usage: getcomponents <deviceKey>\r\n");
+                CrestronConsole.ConsoleCommandResponse("Usage: getdspcomponents <deviceKey>\r\n");
                 return;
             }
 
