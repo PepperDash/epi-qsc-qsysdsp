@@ -108,7 +108,9 @@ namespace QscQsysDspPlugin
 		[JsonProperty("number")]
 		public int Number { get; set; }
 
-		[JsonProperty("labelFeedback")]
+		// Not serialized: a live StringFeedback object drags device/reflection graph (RuntimeModule)
+		// into the mobile-control presets message and triggers a self-referencing-loop exception.
+		[JsonIgnore]
 		public StringFeedback LabelFeedback;
 
 		/// <summary>
