@@ -222,7 +222,7 @@ namespace PepperDash.Essentials.Plugins
                     value.MuteInstanceTag = FormatTag(prefix, value.MuteInstanceTag);
 
                     this.LevelControlPoints.Add(key, new QscDspLevelControl(key, value, this));
-                    this.LogVerbose("Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key,
+                    this.LogVerbose("Added LevelControlPoint {Key} LevelTag: {LevelTag} MuteTag: {MuteTag}", key,
                         value.LevelInstanceTag, value.MuteInstanceTag);
                 }
             }
@@ -242,7 +242,7 @@ namespace PepperDash.Essentials.Plugins
                     value.Preset = string.Format("{0}{1}", prefix, value.Preset);
                     this.AddPreset(value);
                     Presets.Add(preset.Key, qsysPreset);
-                    this.LogVerbose("Added Preset {0} {1}", value.Label, value.Preset);
+                    this.LogVerbose("Added Preset {Label} {Preset}", value.Label, value.Preset);
                 }
             }
             if (props.CameraControlBlocks != null)
@@ -267,7 +267,7 @@ namespace PepperDash.Essentials.Plugins
                     }
 
                     Cameras.Add(key, new QscDspCamera(this, key, key, value));
-                    this.LogVerbose("Added Camera {0}\n {1}", key, value);
+                    this.LogVerbose("Added Camera {Key}\n {Camera}", key, value);
                 }
             }
             if (props.DialerControlBlocks != null)
@@ -300,7 +300,7 @@ namespace PepperDash.Essentials.Plugins
                     value.KeypadPoundTag = FormatTag(prefix, value.KeypadPoundTag);
                     value.KeypadStarTag = FormatTag(prefix, value.KeypadStarTag);
                     this.Dialers.Add(key, new QscDspDialer(value, this));
-                    this.LogVerbose("Added Dialer {0}\n {1}", key, value);
+                    this.LogVerbose("Added Dialer {Key}\n {Dialer}", key, value);
                 }
             }
             SubscribeToAttributes();
@@ -322,7 +322,7 @@ namespace PepperDash.Essentials.Plugins
                 if (hostname.Length > 2 &
                     _Dc.Properties["control"]["tcpSshProperties"]["address"].ToString() != hostname)
                 {
-                    this.LogVerbose("Changing IPAddress: {0}", hostname);
+                    this.LogVerbose("Changing IPAddress: {Hostname}", hostname);
                     Communication.Disconnect();
 
                     (Communication as GenericTcpIpClient).Hostname = hostname;
@@ -335,7 +335,7 @@ namespace PepperDash.Essentials.Plugins
             catch (Exception e)
             {
                 if (Debug.Level == 2)
-                    this.LogVerbose("Error SetIpAddress: '{0}'", e);
+                    this.LogVerbose("Error SetIpAddress: '{Error}'", e);
             }
         }
 
@@ -350,7 +350,7 @@ namespace PepperDash.Essentials.Plugins
                 _Dc.Properties["prefix"] = prefix;
                 CustomSetConfig(_Dc);
                 // CreateDspObjects();
-                this.LogInformation("The Dsp Prefix has changed to {0} the program will automaticly restart in 60 seconds", prefix);
+                this.LogInformation("The Dsp Prefix has changed to {Prefix} the program will automaticly restart in 60 seconds", prefix);
                 string notUsed = "";
                 CTimer restart =
                     new CTimer(
@@ -391,7 +391,7 @@ namespace PepperDash.Essentials.Plugins
 
             if (HeartbeatTracker > 0)
             {
-                this.LogDebug("Heartbeat missed, count {0}", HeartbeatTracker);
+                this.LogDebug("Heartbeat missed, count {Count}", HeartbeatTracker);
                 if (HeartbeatTracker % 5 == 0)
                 {
                     this.LogDebug("Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
@@ -486,7 +486,7 @@ namespace PepperDash.Essentials.Plugins
                     IsPrimary = statusMessage[3].Contains("1") ? true : false;
                     IsActive = statusMessage[4].Contains("1") ? true : false;
 
-                    this.LogDebug("IsPrimary = {0}{1}:: IsActive = {2}{3}", statusMessage[3], IsPrimary,
+                    this.LogDebug("IsPrimary = {PrimaryRaw}{IsPrimary}:: IsActive = {ActiveRaw}{IsActive}", statusMessage[3], IsPrimary,
                         statusMessage[4], IsActive);
                 }
                 else if (args.Text.IndexOf("cv") > -1)
@@ -495,7 +495,7 @@ namespace PepperDash.Essentials.Plugins
                     //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
 
                     string changedInstance = changeMessage[1].Replace("\"", "");
-                    this.LogVerbose("cv parse Instance: {0}", changedInstance);
+                    this.LogVerbose("cv parse Instance: {Instance}", changedInstance);
                     bool foundItFlag = false;
                     foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
                     {
@@ -550,7 +550,7 @@ namespace PepperDash.Essentials.Plugins
                     {
                         foreach (var camera in Cameras)
                         {
-                            this.LogVerbose("DSP Camera Status Compare: {0} ==? {1}", changedInstance,
+                            this.LogVerbose("DSP Camera Status Compare: {Changed} ==? {Expected}", changedInstance,
                                 camera.Value.Config.OnlineStatus);
                             if (changedInstance == camera.Value.Config.OnlineStatus)
                             {
@@ -570,7 +570,7 @@ namespace PepperDash.Essentials.Plugins
             catch (Exception e)
             {
                 if (Debug.Level == 2)
-                    this.LogVerbose("Port_LineRecieved Exception: '{0}'\n{1}", args.Text, e);
+                    this.LogVerbose("Port_LineRecieved Exception: '{Text}'\n{Error}", args.Text, e);
             }
         }
 
@@ -655,7 +655,7 @@ namespace PepperDash.Essentials.Plugins
             var preset = PresetList[n];
             if (string.IsNullOrEmpty(preset.Preset))
             {
-                this.LogError("Cannot recall preset at index {0}: preset name is not defined", n);
+                this.LogError("Cannot recall preset at index {Index}: preset name is not defined", n);
                 return;
             }
             RunPreset(preset.Preset);
@@ -676,15 +676,15 @@ namespace PepperDash.Essentials.Plugins
             if (!Presets.ContainsKey(key))
                 return;
             var preset = Presets[key] as QsysPreset;
-            this.LogInformation("Running preset {0}", preset.Label);
+            this.LogInformation("Running preset {Label}", preset.Label);
             if (preset == null) return;
 
-            this.LogInformation("Checking Preset {0} | presetIndex {1}",
+            this.LogInformation("Checking Preset {Label} | presetIndex {PresetIndex}",
                 preset.Label, preset.Preset);
             // - changed string check reference from 'tesiraPreset.PresetName' to 'tesiraPreset.PreetData.PresetName'
             if (string.IsNullOrEmpty(preset.Preset))
             {
-                this.LogInformation("Preset {0} is not valid", preset.Label);
+                this.LogInformation("Preset {Label} is not valid", preset.Label);
                 return;
             }
             RunPreset(preset.Preset);
@@ -699,7 +699,7 @@ namespace PepperDash.Essentials.Plugins
             var preset = PresetList[n];
             if (string.IsNullOrEmpty(preset.Preset))
             {
-                this.LogError("Cannot save preset at index {0}: preset name is not defined", n);
+                this.LogError("Cannot save preset at index {Index}: preset name is not defined", n);
                 return;
             }
             // assuming the preset configuration is "SNAPSHOT_BANK SNAPSHOT_NUM FLOATING_POINT_NUM"
@@ -708,7 +708,7 @@ namespace PepperDash.Essentials.Plugins
             var cmd = preset.Preset.Split(' ');
             if (cmd.Length < 2)
             {
-                this.LogError("Cannot save preset at index {0}: preset name '{1}' is not in the expected 'BANK NUMBER' format", n, preset.Preset);
+                this.LogError("Cannot save preset at index {Index}: preset name '{Preset}' is not in the expected 'BANK NUMBER' format", n, preset.Preset);
                 return;
             }
             SavePreset(string.Format("{0} {1}", cmd[0], cmd[1]));

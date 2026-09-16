@@ -106,7 +106,7 @@ namespace PepperDash.Essentials.Plugins
 		/// <param name="presetNumber">ushort</param>
 		public void RecallPreset(ushort presetNumber)
 		{
-			this.LogVerbose("Recall Camera Preset {0}", presetNumber);
+			this.LogVerbose("Recall Camera Preset {PresetNumber}", presetNumber);
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
@@ -162,7 +162,7 @@ namespace PepperDash.Essentials.Plugins
 			}
 			catch (Exception e)
 			{
-				Debug.LogMessage(LogEventLevel.Verbose, "QscDspCamera Subscription Error: '{0}'\n", e);
+				Debug.LogMessage(LogEventLevel.Debug, e, "QscDspCamera Subscription Error");
 			}
 		}
 
@@ -176,7 +176,7 @@ namespace PepperDash.Essentials.Plugins
 		{
 
 			// Check for valid subscription response
-			this.LogDebug("CameraOnline {0} Response: '{1}'", customName, value);
+			this.LogDebug("CameraOnline {CustomName} Response: '{Value}'", customName, value);
 
 			if (value == "true")
 			{

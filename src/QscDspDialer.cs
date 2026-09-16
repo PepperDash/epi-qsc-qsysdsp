@@ -197,14 +197,14 @@ namespace PepperDash.Essentials.Plugins
                     if (prop.Name.Contains("Tag") && !prop.Name.ToLower().Contains("keypad"))
 					{
 						var propValue = prop.GetValue(Tags, null) as string;
-						Debug.LogMessage(LogEventLevel.Verbose, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, propValue);
+						Debug.LogMessage(LogEventLevel.Verbose, "Property {TypeName}, {PropName}, {Value}\n", prop.GetType().Name, prop.Name, propValue);
 						SendSubscriptionCommand(propValue);
 					}
 				}
 			}
 			catch (Exception e)
 			{
-				Debug.LogMessage(LogEventLevel.Verbose, "QscDspDialer Subscription Error: '{0}'\n", e);
+				Debug.LogMessage(LogEventLevel.Debug, e, "QscDspDialer Subscription Error");
 			}
 
 			// SendSubscriptionCommand(, "1");
@@ -219,10 +219,10 @@ namespace PepperDash.Essentials.Plugins
 		public void ParseSubscriptionMessage(string customName, string value)
 		{
 			// Check for valid subscription response
-			Debug.LogMessage(LogEventLevel.Information, "ParseMessage customName: {0} value: '{1}'", customName, value);
+			Debug.LogMessage(LogEventLevel.Information, "ParseMessage customName: {CustomName} value: '{Value}'", customName, value);
 			if (customName == Tags.DialStringTag)
 			{
-				Debug.LogMessage(LogEventLevel.Information, "ParseMessage customName: {0} == Tags.DialStringTag: {1} | value: {2}", customName, Tags.DialStringTag, value);
+				Debug.LogMessage(LogEventLevel.Information, "ParseMessage customName: {CustomName} == Tags.DialStringTag: {DialStringTag} | value: {Value}", customName, Tags.DialStringTag, value);
 				DialString = value;
 				DialStringFeedback.FireUpdate();
 			}

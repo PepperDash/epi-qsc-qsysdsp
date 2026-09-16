@@ -25,7 +25,7 @@ namespace PepperDash.Essentials.Plugins
             //if (joinMap == null)
             //    joinMap = new QscDspCameraDeviceJoinMap();
 
-            camera.LogDebug("Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            camera.LogDebug("Linking to Trilist '{TrilistId}'", trilist.ID.ToString("X"));
 
             // from Plugin > to SiMPL
             camera.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.Online.JoinNumber]);
