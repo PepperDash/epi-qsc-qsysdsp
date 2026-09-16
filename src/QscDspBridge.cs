@@ -1,12 +1,14 @@
 using System.Linq;
-using Crestron.SimplSharp.Reflection;
+using System.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
+using Serilog.Events;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Plugins
 {
 	/// <summary>
 	/// QSC DSP api extensions
@@ -26,7 +28,7 @@ namespace QscQsysDspPlugin
             }
             //if (joinMap == null)
             //    joinMap = new QscDspCameraDeviceJoinMap();
-            Debug.Console(1, DspDevice, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            DspDevice.LogDebug("Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 			ushort x = 0;
             ushort selectedPresetToRecall = 0;
             ushort selectedPresetToSave = 0;
@@ -53,7 +55,7 @@ namespace QscQsysDspPlugin
             {
                 if (channel.Key == DspDevice.AutoTrackingKey)
                 {
-                    Debug.Console(2, DspDevice, "Found autotracking... skipping");
+                    DspDevice.LogVerbose("Found autotracking... skipping");
                     var actualChannel = channel.Value;
                     trilist.SetSigTrueAction(joinMap.AutoTracking.JoinNumber, actualChannel.MuteToggle);
                     actualChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoTracking.JoinNumber]);
@@ -61,12 +63,12 @@ namespace QscQsysDspPlugin
                 }
 
 				//var QscChannel = channel.Value as QSC.DSP.EPI.QscDspLevelControl;
-			    Debug.Console(2, DspDevice, "QscChannel {0} connect", x);
+			    DspDevice.LogVerbose("QscChannel {0} connect", x);
                 
 				var genericChannel = channel.Value as IBasicVolumeWithFeedback;
 				if (channel.Value.Enabled)
                 {
-                    Debug.Console(2, DspDevice, "Linking Level Control:{0} at index:{1}", channel.Key, x);
+                    DspDevice.LogVerbose("Linking Level Control:{0} at index:{1}", channel.Key, x);
 
 					// from SiMPL > to Plugin
                     trilist.StringInput[joinMap.ChannelName.JoinNumber + x].StringValue = channel.Value.LevelCustomName;
@@ -132,7 +134,7 @@ namespace QscQsysDspPlugin
 				var dialer = line;
 
 				var dialerLineOffset = lineOffset;
-				Debug.Console(0, "AddingDialerBridge {0} {1} Offset", dialer.Key, dialerLineOffset);
+				Debug.LogMessage(LogEventLevel.Information, "AddingDialerBridge {0} {1} Offset", dialer.Key, dialerLineOffset);
 				
 				// from SiMPL > to Plugin
                 trilist.SetSigTrueAction((joinMap.Keypad0.JoinNumber + dialerLineOffset), () => DspDevice.Dialers[dialer.Key].SendKeypad(QscDspDialer.EKeypadKeys.Num0));
@@ -195,13 +197,13 @@ namespace QscQsysDspPlugin
 
             if (selectedPreset == 0)
             {
-                Debug.Console(1, dspDevice, "Ignoring preset {0}; selected preset index is 0 and must be one-based", action);
+                dspDevice.LogDebug("Ignoring preset {0}; selected preset index is 0 and must be one-based", action);
                 return false;
             }
 
             if (selectedPreset > dspDevice.PresetList.Count)
             {
-                Debug.Console(1, dspDevice, "Ignoring preset {0}; selected preset index {1} is outside the available range 1-{2}",
+                dspDevice.LogDebug("Ignoring preset {0}; selected preset index {1} is outside the available range 1-{2}",
                     action, selectedPreset, dspDevice.PresetList.Count);
                 return false;
             }
@@ -328,7 +330,7 @@ namespace QscQsysDspPlugin
 		public override void OffsetJoinNumbers(uint joinStart)
 		{
 			var joinOffset = joinStart - 1;
-			var properties = this.GetType().GetCType().GetProperties().Where(o => o.PropertyType == typeof(uint)).ToList();
+			var properties = this.GetType().GetProperties().Where(o => o.PropertyType == typeof(uint)).ToList();
 			foreach (var property in properties)
 			{
 				property.SetValue(this, (uint)property.GetValue(this, null) + joinOffset, null);
