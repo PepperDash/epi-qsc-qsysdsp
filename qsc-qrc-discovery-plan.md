@@ -1,5 +1,10 @@
 # QSC Q-SYS QRC — Component/Control Discovery Feature Plan
 
+> **Status: implemented.** This document is the original design plan and is kept as historical context.
+> The discovery feature it describes (request/response correlation, `GetAllComponentsAndControls()`,
+> the `getdspcomponents` console command, and `src/Shared/QsysComponentInfo.cs`) is already implemented
+> on this branch — see the "Files to touch/add" table below for where.
+
 ## Background
 
 **Question:** Can Crestron poll QSC via the QRC protocol to get a list of available controls?
@@ -35,7 +40,7 @@
   - `src/Interfaces/IQsys.cs` (protocol-neutral interface shared with ECP)
   - `src/Shared/*` — level controls, dialers, cameras, presets, bridge/join map
 
-This branch sends JSON-RPC requests via `SendRequest(method, params)` and parses inbound frames in `Port_LineReceived` → `ProcessResult`, but is currently **fire-and-forget**: no request-ID correlation exists yet.
+This branch sends JSON-RPC requests via `SendRequest(method, params)` and parses inbound frames in `Port_LineReceived` → `ProcessResult`. At the time this plan was written it was **fire-and-forget** (no request-ID correlation); that gap is closed by the pending-request map described below, which is now implemented.
 
 ---
 
@@ -110,4 +115,4 @@ This branch sends JSON-RPC requests via `SendRequest(method, params)` and parses
 
 `src/Shared/QsysBridge.cs` is **not** touched — triggering is via `devjson`, not a bridge join.
 
-**Next step:** implement steps 1–4 (controller/POCO/file-write code) against the actual branch files.
+**Status:** steps 1–4 (controller/POCO/file-write code) are implemented on this branch.

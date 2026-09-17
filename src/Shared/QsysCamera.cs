@@ -168,7 +168,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		{
 
 			// Check for valid subscription response
-			this.LogWarning("CameraOnline {0} Response: '{1}'", customName, value);
+			this.LogVerbose("CameraOnline {0} Response: '{1}'", customName, value);
 
 			if (value == "true")
 			{

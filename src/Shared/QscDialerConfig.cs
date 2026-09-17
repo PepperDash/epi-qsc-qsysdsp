@@ -6,7 +6,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 	/// QSC Dialer Block Configuration
 	/// </summary>
 	/// <code>
-	/// "dialerControlBlock": {
+	/// "dialerControlBlocks": {
 	///		"dialer-1": {
 	///			"ClearOnHangup": true,
 	///			"incomingCallRingerTag": "VOIP_RINGTRIG",

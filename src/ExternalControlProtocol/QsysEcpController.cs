@@ -665,7 +665,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
         }
 
         /// <summary>
-        /// Not supported over ECP - component/control discovery requires the QRC protocol (qscDspQrc)
+        /// Not supported over ECP - component/control discovery requires the QRC protocol (qscQsysQrc)
         /// </summary>
         public void GetAllComponentsAndControls()
         {

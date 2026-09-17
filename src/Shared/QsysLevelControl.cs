@@ -169,7 +169,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public void ParseSubscriptionMessage(string customName, string value, string absoluteValue)
 		{
 			// Check for valid subscription response
-			this.LogWarning("Level {0} Response: '{1}'", customName, value);
+			this.LogVerbose("Level {0} Response: '{1}'", customName, value);
 			if (
                 !String.IsNullOrEmpty(MuteInstanceTag) 
                 && customName.Equals(MuteInstanceTag, StringComparison.OrdinalIgnoreCase))
@@ -200,7 +200,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 				var parsedValue = Double.Parse(value);
 
                 _volumeLevel = (ushort)(parsedValue * 65535);
-				this.LogWarning("Level {0} VolumeLevel: '{1}'", customName, _volumeLevel);
+				this.LogVerbose("Level {0} VolumeLevel: '{1}'", customName, _volumeLevel);
 				_levelIsSubscribed = true;
 
 				VolumeLevelFeedback.FireUpdate();
@@ -212,7 +212,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 			{
 
 				_volumeLevel = ushort.Parse(absoluteValue);
-				this.LogWarning("Level {0} VolumeLevel: '{1}'", customName, _volumeLevel);
+				this.LogVerbose("Level {0} VolumeLevel: '{1}'", customName, _volumeLevel);
 				_levelIsSubscribed = true;
 
 				VolumeLevelFeedback.FireUpdate();
@@ -241,7 +241,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// <param name="level"></param>
 		public void SetVolume(ushort level)
 		{
-			this.LogWarning("volume: {0}", level);
+			this.LogVerbose("volume: {0}", level);
 			// Unmute volume if new level is higher than existing
 			if (AutomaticUnmuteOnVolumeUp && _isMuted)
 			{
@@ -250,7 +250,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 			if (!UseAbsoluteValue)
 			{
 				var newLevel = Scale(level);
-				this.LogWarning("newVolume: {0}", newLevel);
+				this.LogVerbose("newVolume: {0}", newLevel);
 				SendFullCommand("csp", this.LevelInstanceTag, string.Format("{0}", newLevel));
 			}
 			else
@@ -347,11 +347,11 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// <returns></returns>
 		double Scale(double input)
 		{
-			this.LogWarning("Scaling (double) input '{0}'", input);
+			this.LogVerbose("Scaling (double) input '{0}'", input);
 
 			var output = (input / 65535);
 
-			this.LogWarning("Scaled output '{0}'", output);
+			this.LogVerbose("Scaled output '{0}'", output);
 
 			return output;
 		}

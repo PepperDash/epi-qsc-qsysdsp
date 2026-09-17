@@ -9,7 +9,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
     {
         public QsysEcpFactory()
         {
-            MinimumEssentialsFrameworkVersion = "2.0.0";
+            MinimumEssentialsFrameworkVersion = "2.39.0";
             TypeNames = new List<string> { "qscDsp" };
         }
 

@@ -220,7 +220,7 @@
                 "key": "dsp-2-qrc",
                 "uid": 5,
                 "name": "QSC Q-Sys QRC Essentials Plugin",
-                "type": "qscDspQrc",
+                "type": "qscQsysQrc",
                 "group": "plugin",
                 "properties": {
                     "control": {

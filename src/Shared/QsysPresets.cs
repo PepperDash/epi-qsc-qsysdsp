@@ -14,7 +14,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 	/// "presets": {
 	///		"preset-key": {
 	///			"label": "Preset X",
-	///			"preset": "PRESET TAG"
+	///			"preset": "PRESET TAG",
 	///			"bank": "PRESET BANK",
 	///			"number": "PRESET NUMBER"
 	///		}

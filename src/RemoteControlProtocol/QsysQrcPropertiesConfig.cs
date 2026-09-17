@@ -16,7 +16,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
 	/// <code>
 	/// "key": "dsp-1",
 	/// "name": "QSC Q-Sys QRC Plugin",
-	/// "type": "qscDspQrc",
+	/// "type": "qscQsysQrc",
 	/// "group": "plugin",
 	/// "properties": {
 	///		"control": {
@@ -33,7 +33,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
 	///		"prefix": "",
 	///		"levelControlBlocks": {},
 	///		"presets": {},
-	///		"dialerControlBlock": {},
+	///		"dialerControlBlocks": {},
 	///		"cameraControlBlocks": {}
 	/// }
 	/// </code>

@@ -206,6 +206,10 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
                     if (prop.Name.Contains("Tag") && !prop.Name.ToLower().Contains("keypad"))
 					{
 						var propValue = prop.GetValue(Tags, null) as string;
+						if (string.IsNullOrEmpty(propValue))
+						{
+							continue;
+						}
 						Parent.LogVerbose("Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, propValue);
 						SendSubscriptionCommand(propValue);
 					}

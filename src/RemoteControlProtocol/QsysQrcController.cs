@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
@@ -90,8 +91,9 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
         private const string ChangeGroupId = "1";
         private int _requestId;
 
-        // Tracks the last known normalized (0-1) position per tag, used to approximate relative ramping
-        private readonly Dictionary<string, double> _lastKnownPosition = new Dictionary<string, double>();
+        // Tracks the last known normalized (0-1) position per tag, used to approximate relative ramping.
+        // ConcurrentDictionary because the socket receive path and bridge/control calls write concurrently.
+        private readonly ConcurrentDictionary<string, double> _lastKnownPosition = new ConcurrentDictionary<string, double>();
 
         // Correlates JSON-RPC request ids to a one-shot callback, so discovery responses don't get misrouted into control-update dispatch
         private readonly Dictionary<int, Action<JToken>> _pendingRequests = new Dictionary<int, Action<JToken>>();
@@ -266,6 +268,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                 foreach (KeyValuePair<string, QsysPresets> preset in props.Presets)
                 {
                     var value = preset.Value;
+                    value.Preset = string.Format("{0}{1}", prefix, value.Preset);
                     var qsysPreset = new QsysPreset(preset.Key)
                     {
                         Label = value.Label,
@@ -274,7 +277,6 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                         Number = value.Number,
                         LabelFeedback = value.LabelFeedback
                     };
-                    value.Preset = string.Format("{0}{1}", prefix, value.Preset);
                     AddPreset(value);
                     Presets.Add(preset.Key, qsysPreset);
                     this.LogVerbose("Added Preset {0} {1}", value.Label, value.Preset);
@@ -1122,21 +1124,22 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
         }
 
         /// <summary>
-        /// Splits a "BANK NUMBER" preset string on the last space, so bank names that themselves
-        /// contain spaces (e.g. "eq gf 1") keep the full bank name ("eq gf") with the trailing number ("1").
+        /// Splits a "BANK NUMBER [RAMP]" preset string on whitespace, matching the ECP convention
+        /// (see <c>QsysEcpController.SavePresetNumber</c>): the first token is the bank, the second
+        /// is the number, and any further token (e.g. a ramp time) is ignored for QRC snapshots.
         /// </summary>
         private static bool TrySplitBankAndNumber(string name, out string bank, out string number)
         {
-            var lastSpace = name != null ? name.LastIndexOf(' ') : -1;
-            if (lastSpace < 0 || lastSpace == name.Length - 1)
+            var parts = string.IsNullOrEmpty(name) ? null : name.Split(' ');
+            if (parts == null || parts.Length < 2)
             {
                 bank = null;
                 number = null;
                 return false;
             }
 
-            bank = name.Substring(0, lastSpace);
-            number = name.Substring(lastSpace + 1);
+            bank = parts[0];
+            number = parts[1];
             return true;
         }
 
