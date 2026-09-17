@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using PepperDash.Core;
+using Serilog.Events;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Plugins
 {
     public class QscDspFactory : EssentialsPluginDeviceFactory<QscDsp>
     {
         public QscDspFactory()
         {
-            MinimumEssentialsFrameworkVersion = "2.0.0";
+            MinimumEssentialsFrameworkVersion = "3.0.0";
             TypeNames = new List<string> { "qscDsp" };
         }
 

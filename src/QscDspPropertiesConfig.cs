@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Plugins
 {
 	/// <summary>
 	/// QSC DSP Properties config class

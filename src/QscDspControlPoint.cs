@@ -1,6 +1,6 @@
 using PepperDash.Essentials.Devices.Common.DSP;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Plugins
 {
 	public abstract class QscDspControlPoint : DspControlPoint
 	{

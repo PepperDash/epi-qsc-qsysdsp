@@ -361,3 +361,5 @@ MigrationBackup/
 .vscode/
 *.projectinfo
 output
+
+*.cplz

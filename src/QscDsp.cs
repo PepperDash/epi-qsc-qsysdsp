@@ -1,18 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
-using Crestron.SimplSharp.Reflection;
+using System.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
+using Serilog.Events;
 using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Plugins
 {
     /// <summary>
     /// DSP Device
@@ -104,7 +105,7 @@ namespace QscQsysDspPlugin
         {
             _Dc = dc;
             var props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
-            Debug.Console(2, this, "Made it to device constructor");
+            this.LogVerbose("Made it to device constructor");
 
             CommandQueue = new CrestronQueue(100);
             Communication = comm;
@@ -151,7 +152,7 @@ namespace QscQsysDspPlugin
         /// CustomActivate Override
         /// </summary>
         /// <returns></returns>
-        public override bool CustomActivate()
+        protected override bool CustomActivate()
         {
             CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "",
@@ -221,7 +222,7 @@ namespace QscQsysDspPlugin
                     value.MuteInstanceTag = FormatTag(prefix, value.MuteInstanceTag);
 
                     this.LevelControlPoints.Add(key, new QscDspLevelControl(key, value, this));
-                    Debug.Console(2, this, "Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key,
+                    this.LogVerbose("Added LevelControlPoint {Key} LevelTag: {LevelTag} MuteTag: {MuteTag}", key,
                         value.LevelInstanceTag, value.MuteInstanceTag);
                 }
             }
@@ -241,7 +242,7 @@ namespace QscQsysDspPlugin
                     value.Preset = string.Format("{0}{1}", prefix, value.Preset);
                     this.AddPreset(value);
                     Presets.Add(preset.Key, qsysPreset);
-                    Debug.Console(2, this, "Added Preset {0} {1}", value.Label, value.Preset);
+                    this.LogVerbose("Added Preset {Label} {Preset}", value.Label, value.Preset);
                 }
             }
             if (props.CameraControlBlocks != null)
@@ -266,7 +267,7 @@ namespace QscQsysDspPlugin
                     }
 
                     Cameras.Add(key, new QscDspCamera(this, key, key, value));
-                    Debug.Console(2, this, "Added Camera {0}\n {1}", key, value);
+                    this.LogVerbose("Added Camera {Key}\n {Camera}", key, value);
                 }
             }
             if (props.DialerControlBlocks != null)
@@ -299,7 +300,7 @@ namespace QscQsysDspPlugin
                     value.KeypadPoundTag = FormatTag(prefix, value.KeypadPoundTag);
                     value.KeypadStarTag = FormatTag(prefix, value.KeypadStarTag);
                     this.Dialers.Add(key, new QscDspDialer(value, this));
-                    Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
+                    this.LogVerbose("Added Dialer {Key}\n {Dialer}", key, value);
                 }
             }
             SubscribeToAttributes();
@@ -321,7 +322,7 @@ namespace QscQsysDspPlugin
                 if (hostname.Length > 2 &
                     _Dc.Properties["control"]["tcpSshProperties"]["address"].ToString() != hostname)
                 {
-                    Debug.Console(2, this, "Changing IPAddress: {0}", hostname);
+                    this.LogVerbose("Changing IPAddress: {Hostname}", hostname);
                     Communication.Disconnect();
 
                     (Communication as GenericTcpIpClient).Hostname = hostname;
@@ -334,7 +335,7 @@ namespace QscQsysDspPlugin
             catch (Exception e)
             {
                 if (Debug.Level == 2)
-                    Debug.Console(2, this, "Error SetIpAddress: '{0}'", e);
+                    this.LogVerbose("Error SetIpAddress: '{Error}'", e);
             }
         }
 
@@ -349,8 +350,7 @@ namespace QscQsysDspPlugin
                 _Dc.Properties["prefix"] = prefix;
                 CustomSetConfig(_Dc);
                 // CreateDspObjects();
-                Debug.ConsoleWithLog(0, this,
-                    "The Dsp Prefix has changed to {0} the program will automaticly restart in 60 seconds", prefix);
+                this.LogInformation("The Dsp Prefix has changed to {Prefix} the program will automaticly restart in 60 seconds", prefix);
                 string notUsed = "";
                 CTimer restart =
                     new CTimer(
@@ -391,19 +391,18 @@ namespace QscQsysDspPlugin
 
             if (HeartbeatTracker > 0)
             {
-                Debug.Console(1, this, "Heartbeat missed, count {0}", HeartbeatTracker);
+                this.LogDebug("Heartbeat missed, count {Count}", HeartbeatTracker);
                 if (HeartbeatTracker % 5 == 0)
                 {
-                    Debug.Console(1, this, "Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
+                    this.LogDebug("Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
                     if (HeartbeatTracker == 5)
-                        Debug.LogError(Debug.ErrorLogLevel.Warning,
-                            "Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
+                        Debug.LogMessage(LogEventLevel.Warning, "Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
                     SubscribeToAttributes();
                 }
             }
             else
             {
-                Debug.Console(2, this, "Heartbeat okay");
+                this.LogVerbose("Heartbeat okay");
             }
         }
 
@@ -454,14 +453,14 @@ namespace QscQsysDspPlugin
         /// <param name="args"></param>
         private void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
         {
-            //Debug.Console(2, this, "RX: '{0}'", args.Text);
+            //this.LogVerbose("RX: '{0}'", args.Text);
             try
             {
                 if (args.Text.Contains("login_required"))
                 {
                     if (string.IsNullOrEmpty(_username) || string.IsNullOrEmpty(_password))
                     {
-                        Debug.Console(0, this, "DEVICE REQUIRES LOGIN CREDENTIALS");
+                        this.LogInformation("DEVICE REQUIRES LOGIN CREDENTIALS");
                         return;
                     }
 
@@ -471,12 +470,12 @@ namespace QscQsysDspPlugin
 
                 if (args.Text.EndsWith("cgpa\r"))
                 {
-                    Debug.Console(2, this, "Found poll response");
+                    this.LogVerbose("Found poll response");
                     HeartbeatTracker = 0;
                 }
                 if (args.Text.IndexOf("sr ") > -1)
                 {
-                    Debug.Console(1, this, "Status Response received");
+                    this.LogDebug("Status Response received");
 
                     var statusMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
                     //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
@@ -487,7 +486,7 @@ namespace QscQsysDspPlugin
                     IsPrimary = statusMessage[3].Contains("1") ? true : false;
                     IsActive = statusMessage[4].Contains("1") ? true : false;
 
-                    Debug.Console(1, this, "IsPrimary = {0}{1}:: IsActive = {2}{3}", statusMessage[3], IsPrimary,
+                    this.LogDebug("IsPrimary = {PrimaryRaw}{IsPrimary}:: IsActive = {ActiveRaw}{IsActive}", statusMessage[3], IsPrimary,
                         statusMessage[4], IsActive);
                 }
                 else if (args.Text.IndexOf("cv") > -1)
@@ -496,7 +495,7 @@ namespace QscQsysDspPlugin
                     //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
 
                     string changedInstance = changeMessage[1].Replace("\"", "");
-                    Debug.Console(2, this, "cv parse Instance: {0}", changedInstance);
+                    this.LogVerbose("cv parse Instance: {Instance}", changedInstance);
                     bool foundItFlag = false;
                     foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
                     {
@@ -520,7 +519,7 @@ namespace QscQsysDspPlugin
                     {
                         foreach (var dialer in Dialers)
                         {
-                            PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
+                            PropertyInfo[] properties = dialer.Value.Tags.GetType().GetProperties();
                             foreach (var prop in properties)
                             {
                                 var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
@@ -551,7 +550,7 @@ namespace QscQsysDspPlugin
                     {
                         foreach (var camera in Cameras)
                         {
-                            Debug.Console(2, this, "DSP Camera Status Compare: {0} ==? {1}", changedInstance,
+                            this.LogVerbose("DSP Camera Status Compare: {Changed} ==? {Expected}", changedInstance,
                                 camera.Value.Config.OnlineStatus);
                             if (changedInstance == camera.Value.Config.OnlineStatus)
                             {
@@ -571,7 +570,7 @@ namespace QscQsysDspPlugin
             catch (Exception e)
             {
                 if (Debug.Level == 2)
-                    Debug.Console(2, this, "Port_LineRecieved Exception: '{0}'\n{1}", args.Text, e);
+                    this.LogVerbose("Port_LineRecieved Exception: '{Text}'\n{Error}", args.Text, e);
             }
         }
 
@@ -588,7 +587,7 @@ namespace QscQsysDspPlugin
         /// <param name="s">Command to send</param>
         public void SendLine(string s)
         {
-            //Debug.Console(1, this, "TX: '{0}'", s);
+            //this.LogDebug("TX: '{0}'", s);
             Communication.SendText(s + "\x0a");
         }
 
@@ -599,7 +598,7 @@ namespace QscQsysDspPlugin
         public void EnqueueCommand(QueuedCommand commandToEnqueue)
         {
             CommandQueue.Enqueue(commandToEnqueue);
-            //Debug.Console(1, this, "Command (QueuedCommand) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", commandToEnqueue.Command, CommandQueue.Count);
+            //this.LogDebug("Command (QueuedCommand) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", commandToEnqueue.Command, CommandQueue.Count);
 
             if (!CommandQueueInProgress)
                 SendNextQueuedCommand();
@@ -612,7 +611,7 @@ namespace QscQsysDspPlugin
         public void EnqueueCommand(string command)
         {
             CommandQueue.Enqueue(command);
-            //Debug.Console(1, this, "Command (string) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", command, CommandQueue.Count);
+            //this.LogDebug("Command (string) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", command, CommandQueue.Count);
 
             if (!CommandQueueInProgress)
                 SendNextQueuedCommand();
@@ -656,7 +655,7 @@ namespace QscQsysDspPlugin
             var preset = PresetList[n];
             if (string.IsNullOrEmpty(preset.Preset))
             {
-                this.LogError("Cannot recall preset at index {0}: preset name is not defined", n);
+                this.LogError("Cannot recall preset at index {Index}: preset name is not defined", n);
                 return;
             }
             RunPreset(preset.Preset);
@@ -677,15 +676,15 @@ namespace QscQsysDspPlugin
             if (!Presets.ContainsKey(key))
                 return;
             var preset = Presets[key] as QsysPreset;
-            this.LogInformation("Running preset {0}", preset.Label);
+            this.LogInformation("Running preset {Label}", preset.Label);
             if (preset == null) return;
 
-            this.LogInformation("Checking Preset {0} | presetIndex {1}",
+            this.LogInformation("Checking Preset {Label} | presetIndex {PresetIndex}",
                 preset.Label, preset.Preset);
             // - changed string check reference from 'tesiraPreset.PresetName' to 'tesiraPreset.PreetData.PresetName'
             if (string.IsNullOrEmpty(preset.Preset))
             {
-                this.LogInformation("Preset {0} is not valid", preset.Label);
+                this.LogInformation("Preset {Label} is not valid", preset.Label);
                 return;
             }
             RunPreset(preset.Preset);
@@ -700,7 +699,7 @@ namespace QscQsysDspPlugin
             var preset = PresetList[n];
             if (string.IsNullOrEmpty(preset.Preset))
             {
-                this.LogError("Cannot save preset at index {0}: preset name is not defined", n);
+                this.LogError("Cannot save preset at index {Index}: preset name is not defined", n);
                 return;
             }
             // assuming the preset configuration is "SNAPSHOT_BANK SNAPSHOT_NUM FLOATING_POINT_NUM"
@@ -709,7 +708,7 @@ namespace QscQsysDspPlugin
             var cmd = preset.Preset.Split(' ');
             if (cmd.Length < 2)
             {
-                this.LogError("Cannot save preset at index {0}: preset name '{1}' is not in the expected 'BANK NUMBER' format", n, preset.Preset);
+                this.LogError("Cannot save preset at index {Index}: preset name '{Preset}' is not in the expected 'BANK NUMBER' format", n, preset.Preset);
                 return;
             }
             SavePreset(string.Format("{0} {1}", cmd[0], cmd[1]));
