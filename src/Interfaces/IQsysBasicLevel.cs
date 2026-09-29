@@ -1,4 +1,4 @@
-﻿using PepperDash.Essentials.Core;
+using PepperDash.Essentials.Core;
 
 namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 {

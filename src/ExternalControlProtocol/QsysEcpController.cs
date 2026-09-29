@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
-using Crestron.SimplSharp.Reflection;
+using System.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
@@ -151,7 +151,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
         /// CustomActivate Override
         /// </summary>
         /// <returns></returns>
-        public override bool CustomActivate()
+        protected override bool CustomActivate()
         {
             CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "",
@@ -221,7 +221,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                     value.MuteInstanceTag = FormatTag(prefix, value.MuteInstanceTag);
 
                     this.LevelControlPoints.Add(key, new QsysLevelControl(key, value, this));
-                    this.LogVerbose("Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key,
+                    this.LogVerbose("Added LevelControlPoint {Key} LevelTag: {LevelTag} MuteTag: {MuteTag}", key,
                         value.LevelInstanceTag, value.MuteInstanceTag);
                 }
             }
@@ -241,7 +241,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                     value.Preset = string.Format("{0}{1}", prefix, value.Preset);
                     this.AddPreset(value);
                     Presets.Add(preset.Key, qsysPreset);
-                    this.LogVerbose("Added Preset {0} {1}", value.Label, value.Preset);
+                    this.LogVerbose("Added Preset {Label} {Preset}", value.Label, value.Preset);
                 }
             }
             if (props.CameraControlBlocks != null)
@@ -266,7 +266,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                     }
 
                     Cameras.Add(key, new QsysCamera(this, key, key, value));
-                    this.LogVerbose("Added Camera {0}\n {1}", key, value);
+                    this.LogVerbose("Added Camera {Key}\n {Camera}", key, value);
                 }
             }
             if (props.DialerControlBlocks != null)
@@ -299,7 +299,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                     value.KeypadPoundTag = FormatTag(prefix, value.KeypadPoundTag);
                     value.KeypadStarTag = FormatTag(prefix, value.KeypadStarTag);
                     this.Dialers.Add(key, new QsysDialer(key, value, this));
-                    this.LogVerbose("Added Dialer {0}\n {1}", key, value);
+                    this.LogVerbose("Added Dialer {Key}\n {Dialer}", key, value);
                 }
             }
             SubscribeToAttributes();
@@ -321,7 +321,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                 if (hostname.Length > 2 &
                     _Dc.Properties["control"]["tcpSshProperties"]["address"].ToString() != hostname)
                 {
-                    this.LogVerbose("Changing IPAddress: {0}", hostname);
+                    this.LogVerbose("Changing IPAddress: {Hostname}", hostname);
                     Communication.Disconnect();
 
                     (Communication as GenericTcpIpClient).Hostname = hostname;
@@ -348,8 +348,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                 _Dc.Properties["prefix"] = prefix;
                 CustomSetConfig(_Dc);
                 // CreateDspObjects();
-                this.LogInformation(
-                    "The Dsp Prefix has changed to {0} the program will automaticly restart in 60 seconds", prefix);
+                this.LogInformation("The Dsp Prefix has changed to {Prefix} the program will automaticly restart in 60 seconds", prefix);
                 string notUsed = "";
                 CTimer restart =
                     new CTimer(
@@ -390,13 +389,12 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
 
             if (HeartbeatTracker > 0)
             {
-                this.LogWarning("Heartbeat missed, count {0}", HeartbeatTracker);
+                this.LogDebug("Heartbeat missed, count {Count}", HeartbeatTracker);
                 if (HeartbeatTracker % 5 == 0)
                 {
-                    this.LogWarning("Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
+                    this.LogDebug("Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
                     if (HeartbeatTracker == 5)
-                        this.LogWarning(
-                            "Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
+                        this.LogWarning("Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
                     SubscribeToAttributes();
                 }
             }
@@ -453,7 +451,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
         /// <param name="args"></param>
         private void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
         {
-            //Debug.Console(2, this, "RX: '{0}'", args.Text);
+            //this.LogVerbose("RX: '{0}'", args.Text);
             try
             {
                 if (args.Text.Contains("login_required"))
@@ -475,7 +473,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                 }
                 if (args.Text.IndexOf("sr ") > -1)
                 {
-                    this.LogWarning("Status Response received");
+                    this.LogDebug("Status Response received");
 
                     var statusMessage = Regex.Split(args.Text, " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
                     //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
@@ -486,7 +484,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                     IsPrimary = statusMessage[3].Contains("1") ? true : false;
                     IsActive = statusMessage[4].Contains("1") ? true : false;
 
-                    this.LogWarning("IsPrimary = {0}{1}:: IsActive = {2}{3}", statusMessage[3], IsPrimary,
+                    this.LogDebug("IsPrimary = {PrimaryRaw}{IsPrimary}:: IsActive = {ActiveRaw}{IsActive}", statusMessage[3], IsPrimary,
                         statusMessage[4], IsActive);
                 }
                 else if (args.Text.IndexOf("cv") > -1)
@@ -495,7 +493,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                     //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
 
                     string changedInstance = changeMessage[1].Replace("\"", "");
-                    this.LogVerbose("cv parse Instance: {0}", changedInstance);
+                    this.LogVerbose("cv parse Instance: {Instance}", changedInstance);
                     bool foundItFlag = false;
                     foreach (KeyValuePair<string, QsysLevelControl> controlPoint in LevelControlPoints)
                     {
@@ -519,7 +517,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                     {
                         foreach (var dialer in Dialers)
                         {
-                            PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
+                            PropertyInfo[] properties = dialer.Value.Tags.GetType().GetProperties();
                             foreach (var prop in properties)
                             {
                                 var propValue = prop.GetValue(dialer.Value.Tags, null) as string;
@@ -550,7 +548,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
                     {
                         foreach (var camera in Cameras)
                         {
-                            this.LogVerbose("DSP Camera Status Compare: {0} ==? {1}", changedInstance,
+                            this.LogVerbose("DSP Camera Status Compare: {Changed} ==? {Expected}", changedInstance,
                                 camera.Value.Config.OnlineStatus);
                             if (changedInstance == camera.Value.Config.OnlineStatus)
                             {
@@ -569,7 +567,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
             }
             catch (Exception e)
             {
-                this.LogVerbose(e, "Port_LineRecieved Exception processing '{0}'", args.Text);
+                this.LogVerbose(e, "Port_LineRecieved Exception processing '{Text}'", args.Text);
             }
         }
 
@@ -586,7 +584,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
         /// <param name="s">Command to send</param>
         public void SendLine(string s)
         {
-            //Debug.Console(1, this, "TX: '{0}'", s);
+            //this.LogDebug("TX: '{0}'", s);
             Communication.SendText(s + "\x0a");
         }
 
@@ -681,7 +679,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
         public void EnqueueCommand(QueuedCommand commandToEnqueue)
         {
             CommandQueue.Enqueue(commandToEnqueue);
-            //Debug.Console(1, this, "Command (QueuedCommand) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", commandToEnqueue.Command, CommandQueue.Count);
+            //this.LogDebug("Command (QueuedCommand) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", commandToEnqueue.Command, CommandQueue.Count);
 
             if (!CommandQueueInProgress)
                 SendNextQueuedCommand();
@@ -694,7 +692,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
         public void EnqueueCommand(string command)
         {
             CommandQueue.Enqueue(command);
-            //Debug.Console(1, this, "Command (string) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", command, CommandQueue.Count);
+            //this.LogDebug("Command (string) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", command, CommandQueue.Count);
 
             if (!CommandQueueInProgress)
                 SendNextQueuedCommand();
@@ -738,7 +736,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
             var preset = PresetList[n];
             if (string.IsNullOrEmpty(preset.Preset))
             {
-                this.LogError("Cannot recall preset at index {0}: preset name is not defined", n);
+                this.LogError("Cannot recall preset at index {Index}: preset name is not defined", n);
                 return;
             }
             RunPreset(preset.Preset);
@@ -759,15 +757,15 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
             if (!Presets.ContainsKey(key))
                 return;
             var preset = Presets[key] as QsysPreset;
-            this.LogInformation("Running preset {0}", preset.Label);
+            this.LogInformation("Running preset {Label}", preset.Label);
             if (preset == null) return;
 
-            this.LogInformation("Checking Preset {0} | presetIndex {1}",
+            this.LogInformation("Checking Preset {Label} | presetIndex {PresetIndex}",
                 preset.Label, preset.Preset);
             // - changed string check reference from 'tesiraPreset.PresetName' to 'tesiraPreset.PreetData.PresetName'
             if (string.IsNullOrEmpty(preset.Preset))
             {
-                this.LogInformation("Preset {0} is not valid", preset.Label);
+                this.LogInformation("Preset {Label} is not valid", preset.Label);
                 return;
             }
             RunPreset(preset.Preset);
@@ -782,7 +780,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
             var preset = PresetList[n];
             if (string.IsNullOrEmpty(preset.Preset))
             {
-                this.LogError("Cannot save preset at index {0}: preset name is not defined", n);
+                this.LogError("Cannot save preset at index {Index}: preset name is not defined", n);
                 return;
             }
             // assuming the preset configuration is "SNAPSHOT_BANK SNAPSHOT_NUM FLOATING_POINT_NUM"
@@ -791,7 +789,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
             var cmd = preset.Preset.Split(' ');
             if (cmd.Length < 2)
             {
-                this.LogError("Cannot save preset at index {0}: preset name '{1}' is not in the expected 'BANK NUMBER' format", n, preset.Preset);
+                this.LogError("Cannot save preset at index {Index}: preset name '{Preset}' is not in the expected 'BANK NUMBER' format", n, preset.Preset);
                 return;
             }
             SavePreset(string.Format("{0} {1}", cmd[0], cmd[1]));

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
@@ -101,7 +101,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		/// <param name="presetNumber">ushort</param>
 		public void RecallPreset(ushort presetNumber)
 		{
-			this.LogVerbose("Recall Camera Preset {0}", presetNumber);
+			this.LogVerbose("Recall Camera Preset {PresetNumber}", presetNumber);
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
@@ -168,7 +168,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		{
 
 			// Check for valid subscription response
-			this.LogVerbose("CameraOnline {0} Response: '{1}'", customName, value);
+			this.LogDebug("CameraOnline {CustomName} Response: '{Value}'", customName, value);
 
 			if (value == "true")
 			{

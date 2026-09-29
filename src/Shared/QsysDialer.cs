@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Linq;
-using Crestron.SimplSharp.Reflection;
+using System.Reflection;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
 using PepperDash.Core.Logging;
@@ -196,8 +196,8 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 			{
 				// Do subscriptions and blah blah
 				// This would be better using reflection JTA 2018-08-28
-				//PropertyInfo[] properties = Tags.GetType().GetCType().GetProperties();
-				var properties = Tags.GetType().GetCType().GetProperties();
+				//PropertyInfo[] properties = Tags.GetType().GetProperties();
+				var properties = Tags.GetType().GetProperties();
 				//GetPropertyValues(Tags);
 
 				Parent.LogVerbose("QsysDialer Subscribe");
@@ -210,7 +210,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 						{
 							continue;
 						}
-						Parent.LogVerbose("Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, propValue);
+						Parent.LogVerbose("Property {TypeName}, {PropName}, {Value}\n", prop.GetType().Name, prop.Name, propValue);
 						SendSubscriptionCommand(propValue);
 					}
 				}
@@ -232,10 +232,10 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public void ParseSubscriptionMessage(string customName, string value)
 		{
 			// Check for valid subscription response
-			Parent.LogInformation("ParseMessage customName: {0} value: '{1}'", customName, value);
+			Parent.LogInformation("ParseMessage customName: {CustomName} value: '{Value}'", customName, value);
 			if (customName == Tags.DialStringTag)
 			{
-				Parent.LogInformation("ParseMessage customName: {0} == Tags.DialStringTag: {1} | value: {2}", customName, Tags.DialStringTag, value);
+				Parent.LogInformation("ParseMessage customName: {CustomName} == Tags.DialStringTag: {DialStringTag} | value: {Value}", customName, Tags.DialStringTag, value);
 				DialString = value;
 				DialStringFeedback.FireUpdate();
 			}
@@ -387,7 +387,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public void SendKeypad(EKeypadKeys button)
 		{
 			string keypadTag = null;
-			// Debug.Console(2, "DIaler {0} SendKeypad {1}", this.ke);
+			// Parent.LogVerbose("DIaler {0} SendKeypad {1}", this.ke);
 			switch (button)
 			{
 				case EKeypadKeys.Num0: keypadTag = Tags.Keypad0Tag; break;
@@ -524,7 +524,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 		public void SendDtmf(string digit)
 		{
 			var keypadTag = EKeypadKeys.Clear;
-			// Debug.Console(2, "DIaler {0} SendKeypad {1}", this.ke);
+			// Parent.LogVerbose("DIaler {0} SendKeypad {1}", this.ke);
 			switch (digit)
 			{
 				case "0":

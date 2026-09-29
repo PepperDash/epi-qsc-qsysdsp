@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
-using Crestron.SimplSharp.Reflection;
+using System.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -156,7 +156,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
         /// <summary>
         /// CustomActivate Override
         /// </summary>
-        public override bool CustomActivate()
+        protected override bool CustomActivate()
         {
             CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "",
@@ -259,7 +259,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                     value.MuteInstanceTag = FormatTag(prefix, value.MuteInstanceTag);
 
                     LevelControlPoints.Add(key, new QsysLevelControl(key, value, this));
-                    this.LogVerbose("Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key,
+                    this.LogVerbose("Added LevelControlPoint {Key} LevelTag: {LevelTag} MuteTag: {MuteTag}", key,
                         value.LevelInstanceTag, value.MuteInstanceTag);
                 }
             }
@@ -279,7 +279,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                     };
                     AddPreset(value);
                     Presets.Add(preset.Key, qsysPreset);
-                    this.LogVerbose("Added Preset {0} {1}", value.Label, value.Preset);
+                    this.LogVerbose("Added Preset {Label} {Preset}", value.Label, value.Preset);
                 }
             }
             if (props.CameraControlBlocks != null)
@@ -304,7 +304,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                     }
 
                     Cameras.Add(key, new QsysCamera(this, key, key, value));
-                    this.LogVerbose("Added Camera {0}\n {1}", key, value);
+                    this.LogVerbose("Added Camera {Key}\n {Camera}", key, value);
                 }
             }
             if (props.DialerControlBlocks != null)
@@ -336,7 +336,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                     value.KeypadPoundTag = FormatTag(prefix, value.KeypadPoundTag);
                     value.KeypadStarTag = FormatTag(prefix, value.KeypadStarTag);
                     Dialers.Add(key, new QsysDialer(key, value, this));
-                    this.LogVerbose("Added Dialer {0}\n {1}", key, value);
+                    this.LogVerbose("Added Dialer {Key}\n {Dialer}", key, value);
                 }
             }
         }
@@ -356,7 +356,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                 if (hostname.Length > 2 &&
                     _Dc.Properties["control"]["tcpSshProperties"]["address"].ToString() != hostname)
                 {
-                    this.LogVerbose("Changing IPAddress: {0}", hostname);
+                    this.LogVerbose("Changing IPAddress: {Hostname}", hostname);
                     Communication.Disconnect();
 
                     (Communication as GenericTcpIpClient).Hostname = hostname;
@@ -382,7 +382,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                 _Dc.Properties["prefix"] = prefix;
                 CustomSetConfig(_Dc);
                 this.LogInformation(
-                    "The Dsp Prefix has changed to {0} the program will automaticly restart in 60 seconds", prefix);
+                    "The Dsp Prefix has changed to {Prefix} the program will automaticly restart in 60 seconds", prefix);
                 string notUsed = "";
                 new CTimer(
                     (object notused) =>
@@ -616,7 +616,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                     }
                 }
 
-                this.LogInformation("Discovered {0} components, requesting controls", components.Count);
+                this.LogInformation("Discovered {Count} components, requesting controls", components.Count);
                 BeginComponentControlDiscovery(components);
             });
         }
@@ -651,7 +651,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
 
             timeoutTimer = new CTimer(_ =>
             {
-                this.LogWarning("Q-SYS discovery timed out with {0} of {1} components still pending; writing partial results",
+                this.LogWarning("Q-SYS discovery timed out with {Pending} of {Total} components still pending; writing partial results",
                     queue.Count, components.Count);
                 finish();
             }, DiscoveryTimeoutMs);
@@ -720,7 +720,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                     writer.Write(json);
                 }
 
-                this.LogInformation("Q-SYS discovery complete: wrote {0} components to {1}", components.Count, path);
+                this.LogInformation("Q-SYS discovery complete: wrote {Count} components to {Path}", components.Count, path);
             }
             catch (Exception e)
             {
@@ -999,7 +999,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
 
             foreach (var dialer in Dialers)
             {
-                PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
+                PropertyInfo[] properties = dialer.Value.Tags.GetType().GetProperties();
                 foreach (var prop in properties)
                 {
                     var propValue = prop.GetValue(dialer.Value.Tags, null) as string;

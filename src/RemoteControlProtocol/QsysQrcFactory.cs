@@ -9,7 +9,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
     {
         public QsysQrcFactory()
         {
-            MinimumEssentialsFrameworkVersion = "2.39.0";
+            MinimumEssentialsFrameworkVersion = "3.0.0";
             TypeNames = new List<string> { "qscQsysQrc" };
         }
 

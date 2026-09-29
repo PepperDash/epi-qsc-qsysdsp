@@ -25,7 +25,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
             //if (joinMap == null)
             //    joinMap = new QsysCameraDeviceJoinMap();
 
-            camera.LogWarning("Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            camera.LogDebug("Linking to Trilist '{TrilistId}'", trilist.ID.ToString("X"));
 
             // from Plugin > to SiMPL
             camera.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.Online.JoinNumber]);

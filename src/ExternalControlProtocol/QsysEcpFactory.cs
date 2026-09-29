@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
@@ -9,7 +9,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
     {
         public QsysEcpFactory()
         {
-            MinimumEssentialsFrameworkVersion = "2.39.0";
+            MinimumEssentialsFrameworkVersion = "3.0.0";
             TypeNames = new List<string> { "qscDsp" };
         }
 

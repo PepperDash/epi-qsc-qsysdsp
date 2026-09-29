@@ -1,5 +1,5 @@
 using System.Linq;
-using Crestron.SimplSharp.Reflection;
+using System.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
@@ -27,7 +27,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
             }
             //if (joinMap == null)
             //    joinMap = new QsysCameraDeviceJoinMap();
-            DspDevice.LogWarning("Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            DspDevice.LogDebug("Linking to Trilist '{TrilistId}'", trilist.ID.ToString("X"));
 			ushort x = 0;
             ushort selectedPresetToRecall = 0;
             ushort selectedPresetToSave = 0;
@@ -62,12 +62,12 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
                 }
 
 				//var QscChannel = channel.Value as QSC.DSP.EPI.QsysLevelControl;
-			    DspDevice.LogVerbose("QscChannel {0} connect", x);
+			    DspDevice.LogVerbose("QscChannel {Index} connect", x);
                 
 				var genericChannel = channel.Value as IBasicVolumeWithFeedback;
 				if (channel.Value.Enabled)
                 {
-                    DspDevice.LogVerbose("Linking Level Control:{0} at index:{1}", channel.Key, x);
+                    DspDevice.LogVerbose("Linking Level Control:{Key} at index:{Index}", channel.Key, x);
 
 					// from SiMPL > to Plugin
                     trilist.StringInput[joinMap.ChannelName.JoinNumber + x].StringValue = channel.Value.LevelCustomName;
@@ -133,7 +133,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 				var dialer = line;
 
 				var dialerLineOffset = lineOffset;
-				DspDevice.LogInformation("AddingDialerBridge {0} {1} Offset", dialer.Key, dialerLineOffset);
+				DspDevice.LogInformation("AddingDialerBridge {Key} {Offset} Offset", dialer.Key, dialerLineOffset);
 				
 				// from SiMPL > to Plugin
                 trilist.SetSigTrueAction((joinMap.Keypad0.JoinNumber + dialerLineOffset), () => DspDevice.Dialers[dialer.Key].SendKeypad(QsysDialer.EKeypadKeys.Num0));
@@ -196,13 +196,13 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 
             if (selectedPreset == 0)
             {
-                dspDevice.LogWarning("Ignoring preset {0}; selected preset index is 0 and must be one-based", action);
+                dspDevice.LogDebug("Ignoring preset {Action}; selected preset index is 0 and must be one-based", action);
                 return false;
             }
 
             if (selectedPreset > dspDevice.PresetList.Count)
             {
-                dspDevice.LogWarning("Ignoring preset {0}; selected preset index {1} is outside the available range 1-{2}",
+                dspDevice.LogDebug("Ignoring preset {Action}; selected preset index {Index} is outside the available range 1-{Max}",
                     action, selectedPreset, dspDevice.PresetList.Count);
                 return false;
             }
@@ -211,6 +211,7 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys
             return true;
         }
 	}
+
 
     public class QsysDeviceJoinMapAdvanced : JoinMapBaseAdvanced
     {

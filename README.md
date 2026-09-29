@@ -17,6 +17,8 @@ This plugin supports two QSC Q-Sys control protocols, implemented as separate de
 - **External Control Protocol (ECP)** - `type: "qscdsp"` - ASCII line-based protocol over TCP port 1702 (default).
 - **Remote Control Protocol (QRC)** - `type: "qscQsysQrc"` - JSON-RPC 2.0 protocol over TCP port 1710 (default), supports both flat Named Controls and Component Controls.
 
+**Requires PepperDash Essentials v3.0.0 or later** (.NET 8). Both device types (`qscDsp` and `qscQsysQrc`) declare a minimum framework version of 3.0.0.
+
 [Q-SYS External Control Overview](https://help.qsys.com/q-sys_8.1/Content/External_Control/001_External_Control_Overview.htm?tocpath=External%20Control%7C_____0)
 
 [Q-SYS External Control Protocol (ECP)](https://help.qsys.com/q-sys_8.1/Content/External_Control/Q-SYS_External_Control/007_Q-SYS_External_Control_Protocol.htm)
