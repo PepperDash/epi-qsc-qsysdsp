@@ -1,5 +1,10 @@
 ![PepperDash Logo](/images/essentials-plugin-blue.png)
 
+![PepperDash Essentials](https://img.shields.io/badge/PepperDash%20Essentials-v3.0.0%2B-blue)
+![.NET](https://img.shields.io/badge/.NET-8-512BD4)
+![Crestron](https://img.shields.io/badge/Crestron-4--Series-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 # QSC Q-Sys DSP Essentials Plugin for 4-Series (c) 2026
 
 ## License
