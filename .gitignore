@@ -359,6 +359,7 @@ MigrationBackup/
 
 # VS Code settings folders
 .vscode/
+*.code-workspace
 *.projectinfo
 output
 
