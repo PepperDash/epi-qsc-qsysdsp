@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<ProjectType>ProgramLibrary</ProjectType>
 		<TargetFramework>net8</TargetFramework>
-		<RootNamespace>PepperDash.Essentials.Plugins</RootNamespace>
+		<RootNamespace>PepperDash.Essentials.Plugins.Qsc.Qsys</RootNamespace>
 		<AssemblyName>PepperDash.Essentials.Plugins.Qsc.QsysDsp</AssemblyName>
 		<Configurations>Debug;Release</Configurations>
 		<Deterministic>false</Deterministic>
@@ -21,9 +21,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Crestron.SimplSharp.SDK.ProgramLibrary" Version="2.21.128" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-		<PackageReference Include="PepperDashEssentials" Version="3.0.0-feat-routing-slot-online-sync.2">
+		<PackageReference Include="PepperDashEssentials" Version="3.0.0-rc.6">
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
 	</ItemGroup>

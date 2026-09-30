@@ -4,9 +4,9 @@ using PepperDash.Core;
 using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
-namespace PepperDash.Essentials.Plugins
+namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 {
-	public class QscDspLevelControl : QscDspControlPoint, IBasicVolumeWithFeedback, IKeyName
+	public class QsysLevelControl : QsysControlPoint, IBasicVolumeWithFeedback, IKeyName
 	{
 		bool _isMuted;
 		ushort _volumeLevel;
@@ -24,7 +24,7 @@ namespace PepperDash.Essentials.Plugins
 		CTimer _volumeUpRepeatTimer;
 		CTimer _volumeDownRepeatTimer;
         CTimer _volumeRampDelay;
-	    private readonly QscDsp _parent;
+	    private readonly IQsys _parent;
 
         bool _volumeRampTracker;
 
@@ -75,7 +75,7 @@ namespace PepperDash.Essentials.Plugins
 		public bool HasMute { get; private set; }
 		public bool HasLevel { get; private set; }
 
-        public string Name => Key;
+        public new string Name => Key;
 
         bool _muteIsSubscribed;
 		bool _levelIsSubscribed;
@@ -86,7 +86,7 @@ namespace PepperDash.Essentials.Plugins
         /// <param name="key">instance key</param>
         /// <param name="config">level control block configuration object</param>
         /// <param name="parent">dsp parent isntance</param>
-        public QscDspLevelControl(string key, QscDspLevelControlBlockConfig config, QscDsp parent)
+        public QsysLevelControl(string key, QsysLevelControlBlockConfig config, IQsys parent)
             : base(key, config.LevelInstanceTag, config.MuteInstanceTag, parent)
         {
             _parent = parent;
@@ -101,10 +101,10 @@ namespace PepperDash.Essentials.Plugins
                 CrestronInvoke.BeginInvoke(o =>
                 {
                     if (!String.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
-                        _parent.SendLine(String.Format("cg \"{0}\"", config.LevelInstanceTag));
+                        _parent.GetControl(config.LevelInstanceTag);
 
                     if (!String.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
-                        _parent.SendLine(String.Format("cg \"{0}\"", config.MuteInstanceTag));
+                        _parent.GetControl(config.MuteInstanceTag);
                 });
             };
 
@@ -116,7 +116,7 @@ namespace PepperDash.Essentials.Plugins
         /// </summary>
         /// <param name="key">instance key</param>
         /// <param name="config">level control block configuration object</param>
-        public void Initialize(QscDspLevelControlBlockConfig config)
+        public void Initialize(QsysLevelControlBlockConfig config)
         {            
             Enabled = true;
             DeviceManager.AddDevice(this);
@@ -126,9 +126,9 @@ namespace PepperDash.Essentials.Plugins
 
             this.IsSubscribed = false;
 
-            MuteFeedback = new BoolFeedback(() => _isMuted);
+            MuteFeedback = new BoolFeedback(_parent.Key + "-" + Key + "-MuteFeedback", () => _isMuted);
 
-            VolumeLevelFeedback = new IntFeedback(() => _volumeLevel);
+            VolumeLevelFeedback = new IntFeedback(_parent.Key + "-" + Key + "-VolumeLevelFeedback", () => _volumeLevel);
 
             _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
             _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);

@@ -6,14 +6,13 @@ using System.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using Serilog.Events;
 using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
 
-namespace PepperDash.Essentials.Plugins
+namespace PepperDash.Essentials.Plugins.Qsc.Qsys.ExternalControlProtocol
 {
     /// <summary>
     /// DSP Device
@@ -27,7 +26,7 @@ namespace PepperDash.Essentials.Plugins
     /// ! "publishToken":"name" "value":-77.0
     /// ! "myLevelName" -77
     /// </remarks>
-    public class QscDsp : ReconfigurableDevice, IDspPresets, IBridgeAdvanced, IOnline, ICommunicationMonitor
+    public class QsysEcpController : ReconfigurableDevice, IQsys, IDspPresets, IBridgeAdvanced, IOnline, ICommunicationMonitor
     {
         /// <summary>
         /// Communication object
@@ -44,15 +43,15 @@ namespace PepperDash.Essentials.Plugins
         /// </summary>
         public StatusMonitorBase CommunicationMonitor { get; private set; }
 
-        public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
-        public Dictionary<string, QscDspDialer> Dialers { get; set; }
-        public Dictionary<string, QscDspCamera> Cameras { get; set; }
-        public List<QscDspPresets> PresetList = new List<QscDspPresets>();
+        public Dictionary<string, QsysLevelControl> LevelControlPoints { get; private set; }
+        public Dictionary<string, QsysDialer> Dialers { get; set; }
+        public Dictionary<string, QsysCamera> Cameras { get; set; }
+        public List<QsysPresets> PresetList { get; } = new List<QsysPresets>();
 
         public Dictionary<string, IKeyName> Presets { get; set; }
 
-        public BoolFeedback IsPrimaryFeedback;
-        public BoolFeedback IsActiveFeedback;
+        public BoolFeedback IsPrimaryFeedback { get; private set; }
+        public BoolFeedback IsActiveFeedback { get; private set; }
 
         private DeviceConfig _Dc;
 
@@ -100,11 +99,11 @@ namespace PepperDash.Essentials.Plugins
         /// <param name="name">String</param>
         /// <param name="comm">IBasicCommunication</param>
         /// <param name="dc">DeviceConfig</param>
-        public QscDsp(string key, string name, IBasicCommunication comm, DeviceConfig dc)
+        public QsysEcpController(string key, string name, IBasicCommunication comm, DeviceConfig dc)
             : base(dc)
         {
             _Dc = dc;
-            var props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
+            var props = JsonConvert.DeserializeObject<QsysEcpPropertiesConfig>(dc.Properties.ToString());
             this.LogVerbose("Made it to device constructor");
 
             CommandQueue = new CrestronQueue(100);
@@ -132,12 +131,12 @@ namespace PepperDash.Essentials.Plugins
 
             // Failover feedback, IsPrimary - will indicate dsp is either standalone or primary Core of a redundant pair
             // IsActive - indicates this core is the active unit of a redundant pair.
-            IsPrimaryFeedback = new BoolFeedback(() => IsPrimary);
-            IsActiveFeedback = new BoolFeedback(() => IsActive);
+            IsPrimaryFeedback = new BoolFeedback(Key + "-IsPrimaryFeedback", () => IsPrimary);
+            IsActiveFeedback = new BoolFeedback(Key + "-IsActiveFeedback", () => IsActive);
 
-            LevelControlPoints = new Dictionary<string, QscDspLevelControl>();
-            Dialers = new Dictionary<string, QscDspDialer>();
-            Cameras = new Dictionary<string, QscDspCamera>();
+            LevelControlPoints = new Dictionary<string, QsysLevelControl>();
+            Dialers = new Dictionary<string, QsysDialer>();
+            Cameras = new Dictionary<string, QsysCamera>();
             Presets = new Dictionary<string, IKeyName>();
             CreateDspObjects();
 
@@ -186,7 +185,7 @@ namespace PepperDash.Essentials.Plugins
 
         public void CreateDspObjects()
         {
-            var props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(_Dc.Properties.ToString());
+            var props = JsonConvert.DeserializeObject<QsysEcpPropertiesConfig>(_Dc.Properties.ToString());
 
             _username = props.Control.TcpSshProperties.Username;
             _password = props.Control.TcpSshProperties.Password;
@@ -205,7 +204,7 @@ namespace PepperDash.Essentials.Plugins
 
             AutoTrackingKey = string.Format("{0}-{1}", Key, "Auto-Tracking");
 
-            LevelControlPoints.Add(AutoTrackingKey, new QscDspLevelControl(AutoTrackingKey, new QscDspLevelControlBlockConfig
+            LevelControlPoints.Add(AutoTrackingKey, new QsysLevelControl(AutoTrackingKey, new QsysLevelControlBlockConfig
             {
                 HasMute = true,
                 Label = AutoTrackingKey,
@@ -214,21 +213,21 @@ namespace PepperDash.Essentials.Plugins
 
             if (props.LevelControlBlocks != null)
             {
-                foreach (KeyValuePair<string, QscDspLevelControlBlockConfig> block in props.LevelControlBlocks)
+                foreach (KeyValuePair<string, QsysLevelControlBlockConfig> block in props.LevelControlBlocks)
                 {
                     string key = string.Format("{0}-{1}{2}", Key, prefix, block.Key);
                     var value = block.Value;
                     value.LevelInstanceTag = FormatTag(prefix, value.LevelInstanceTag);
                     value.MuteInstanceTag = FormatTag(prefix, value.MuteInstanceTag);
 
-                    this.LevelControlPoints.Add(key, new QscDspLevelControl(key, value, this));
+                    this.LevelControlPoints.Add(key, new QsysLevelControl(key, value, this));
                     this.LogVerbose("Added LevelControlPoint {Key} LevelTag: {LevelTag} MuteTag: {MuteTag}", key,
                         value.LevelInstanceTag, value.MuteInstanceTag);
                 }
             }
             if (props.Presets != null)
             {
-                foreach (KeyValuePair<string, QscDspPresets> preset in props.Presets)
+                foreach (KeyValuePair<string, QsysPresets> preset in props.Presets)
                 {
                     var value = preset.Value;
                     var qsysPreset = new QsysPreset(preset.Key)
@@ -247,7 +246,7 @@ namespace PepperDash.Essentials.Plugins
             }
             if (props.CameraControlBlocks != null)
             {
-                foreach (KeyValuePair<string, QscDspCameraConfig> camera in props.CameraControlBlocks)
+                foreach (KeyValuePair<string, QsysCameraConfig> camera in props.CameraControlBlocks)
                 {
                     var value = camera.Value;
                     var key = camera.Key;
@@ -266,7 +265,7 @@ namespace PepperDash.Essentials.Plugins
                         value.Presets[preset.Key].Bank = FormatTag(prefix, value.Presets[preset.Key].Bank);
                     }
 
-                    Cameras.Add(key, new QscDspCamera(this, key, key, value));
+                    Cameras.Add(key, new QsysCamera(this, key, key, value));
                     this.LogVerbose("Added Camera {Key}\n {Camera}", key, value);
                 }
             }
@@ -299,7 +298,7 @@ namespace PepperDash.Essentials.Plugins
                     value.KeypadClearTag = FormatTag(prefix, value.KeypadClearTag);
                     value.KeypadPoundTag = FormatTag(prefix, value.KeypadPoundTag);
                     value.KeypadStarTag = FormatTag(prefix, value.KeypadStarTag);
-                    this.Dialers.Add(key, new QscDspDialer(value, this));
+                    this.Dialers.Add(key, new QsysDialer(key, value, this));
                     this.LogVerbose("Added Dialer {Key}\n {Dialer}", key, value);
                 }
             }
@@ -334,8 +333,7 @@ namespace PepperDash.Essentials.Plugins
             }
             catch (Exception e)
             {
-                if (Debug.Level == 2)
-                    this.LogVerbose("Error SetIpAddress: '{Error}'", e);
+                this.LogVerbose(e, "Error SetIpAddress");
             }
         }
 
@@ -396,7 +394,7 @@ namespace PepperDash.Essentials.Plugins
                 {
                     this.LogDebug("Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
                     if (HeartbeatTracker == 5)
-                        Debug.LogMessage(LogEventLevel.Warning, "Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
+                        this.LogWarning("Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
                     SubscribeToAttributes();
                 }
             }
@@ -422,7 +420,7 @@ namespace PepperDash.Essentials.Plugins
             // Change group subscribe to feedback with no ack (updates every 1000 ms)
             SendLine("cgsna 1 1000");
 
-            foreach (KeyValuePair<string, QscDspLevelControl> level in LevelControlPoints)
+            foreach (KeyValuePair<string, QsysLevelControl> level in LevelControlPoints)
             {
                 level.Value.Subscribe();
             }
@@ -497,7 +495,7 @@ namespace PepperDash.Essentials.Plugins
                     string changedInstance = changeMessage[1].Replace("\"", "");
                     this.LogVerbose("cv parse Instance: {Instance}", changedInstance);
                     bool foundItFlag = false;
-                    foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
+                    foreach (KeyValuePair<string, QsysLevelControl> controlPoint in LevelControlPoints)
                     {
                         if (changedInstance == controlPoint.Value.LevelInstanceTag)
                         {
@@ -569,8 +567,7 @@ namespace PepperDash.Essentials.Plugins
             }
             catch (Exception e)
             {
-                if (Debug.Level == 2)
-                    this.LogVerbose("Port_LineRecieved Exception: '{Text}'\n{Error}", args.Text, e);
+                this.LogVerbose(e, "Port_LineRecieved Exception processing '{Text}'", args.Text);
             }
         }
 
@@ -590,6 +587,90 @@ namespace PepperDash.Essentials.Plugins
             //this.LogDebug("TX: '{0}'", s);
             Communication.SendText(s + "\x0a");
         }
+
+        #region IQsys Members
+
+        /// <summary>
+        /// Sets a named control to an absolute value
+        /// </summary>
+        public void SendControlValue(string tag, string value)
+        {
+            SendLine(string.Format("csv \"{0}\" {1}", tag, value));
+        }
+
+        /// <summary>
+        /// Sets a named control to a normalized 0-1 position
+        /// </summary>
+        public void SendControlPosition(string tag, string value)
+        {
+            SendLine(string.Format("csp \"{0}\" {1}", tag, value));
+        }
+
+        /// <summary>
+        /// Ramps a named control up or down
+        /// </summary>
+        public void SendControlRelative(string tag, bool increase)
+        {
+            SendLine(string.Format("css \"{0}\" {1}", tag, increase ? "++" : "--"));
+        }
+
+        /// <summary>
+        /// Sets a named control to a string value
+        /// </summary>
+        public void SendControlString(string tag, string value)
+        {
+            SendLine(string.Format("css \"{0}\" \"{1}\"", tag, value));
+        }
+
+        /// <summary>
+        /// Triggers a momentary named control
+        /// </summary>
+        public void TriggerControl(string tag)
+        {
+            SendLine(string.Format("ct \"{0}\"", tag));
+        }
+
+        /// <summary>
+        /// Requests the current value of a named control
+        /// </summary>
+        public void GetControl(string tag)
+        {
+            SendLine(string.Format("cg \"{0}\"", tag));
+        }
+
+        /// <summary>
+        /// Subscribes to change notifications for a named control
+        /// </summary>
+        public void SubscribeControl(string tag)
+        {
+            SendLine(string.Format("cga 1 \"{0}\"", tag));
+        }
+
+        /// <summary>
+        /// Recalls a snapshot bank/number (e.g. camera presets)
+        /// </summary>
+        public void RecallSnapshot(string bank, string number, string rampTime)
+        {
+            SendLine(string.Format("ssl {0} {1} {2}", bank, number, rampTime));
+        }
+
+        /// <summary>
+        /// Saves a snapshot bank/number (e.g. camera presets)
+        /// </summary>
+        public void SaveSnapshot(string bank, string number)
+        {
+            SendLine(string.Format("sss {0} {1}", bank, number));
+        }
+
+        /// <summary>
+        /// Not supported over ECP - component/control discovery requires the QRC protocol (qscQsysQrc)
+        /// </summary>
+        public void GetAllComponentsAndControls()
+        {
+            this.LogWarning("GetAllComponentsAndControls is not supported over the ECP protocol; use the QRC device type instead");
+        }
+
+        #endregion
 
         /// <summary>
         /// Adds a command from a child module to the queue
@@ -640,8 +721,8 @@ namespace PepperDash.Essentials.Plugins
         /// <summary>
         /// Adds a presst
         /// </summary>
-        /// <param name="s">QscDspPresets</param>
-        public void AddPreset(QscDspPresets s)
+        /// <param name="s">QsysPresets</param>
+        public void AddPreset(QsysPresets s)
         {
             PresetList.Add(s);
         }
@@ -732,7 +813,7 @@ namespace PepperDash.Essentials.Plugins
         {
             public string Command { get; set; }
             public string AttributeCode { get; set; }
-            public QscDspControlPoint ControlPoint { get; set; }
+            public QsysControlPoint ControlPoint { get; set; }
         }
 
 
@@ -756,17 +837,5 @@ namespace PepperDash.Essentials.Plugins
         }
 
         #endregion
-        
-        //added for compatibility with IDspPreset and Mobile Control/Room Plugin frameworks
-        public class QsysPreset : QscDspPresets, IKeyName
-        {
-            public string Key { get; private set; }
-            public string Name => base.Label;
-
-            public QsysPreset(string key) : base()
-            {
-                Key = key;
-            }
-        }
     }
 }
