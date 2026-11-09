@@ -1,8 +1,13 @@
-using PepperDash.Essentials.Devices.Common.DSP;
+using PepperDash.Essentials.Core;
 
 namespace PepperDash.Essentials.Plugins
 {
-	public abstract class QscDspControlPoint : DspControlPoint
+	/// <summary>
+	/// Base class for the Q-SYS control points (level controls and so on). It is an Essentials device, like the control
+	/// points of the other DSP plugins, so Essentials registers the default Mobile Control messengers for it (a level
+	/// control gets the volume messenger at /device/{key}) when the device activates.
+	/// </summary>
+	public abstract class QscDspControlPoint : EssentialsDevice
 	{
 		public string LevelInstanceTag { get; set; }
 		public string MuteInstanceTag { get; set; }
@@ -14,11 +19,12 @@ namespace PepperDash.Essentials.Plugins
         /// Constructor
         /// </summary>
         /// <param name="key">level key</param>
+        /// <param name="name">name shown for the control point (the config label)</param>
         /// <param name="levelInstanceTag">level named control/instance tag</param>
         /// <param name="muteInstanceTag">mute named control/instance tag</param>
         /// <param name="parent">parent DSP instance</param>
-        protected QscDspControlPoint(string key, string levelInstanceTag, string muteInstanceTag, QscDsp parent)
-            : base(key)
+        protected QscDspControlPoint(string key, string name, string levelInstanceTag, string muteInstanceTag, QscDsp parent)
+            : base(key, name)
         {            
             LevelInstanceTag = levelInstanceTag;
             MuteInstanceTag = muteInstanceTag;
@@ -28,7 +34,7 @@ namespace PepperDash.Essentials.Plugins
         /// <summary>
         /// Initializes the plugin
         /// </summary>
-        virtual public void Initialize()
+        new virtual public void Initialize()
 		{
 		}
 
