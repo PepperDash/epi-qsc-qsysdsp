@@ -157,7 +157,10 @@ namespace PepperDash.Essentials.Plugins
             CrestronConsole.AddNewConsoleCommand(SendLine, "send" + Key, "", ConsoleAccessLevelEnum.AccessOperator);
             CrestronConsole.AddNewConsoleCommand(s => Communication.Connect(), "con" + Key, "",
                 ConsoleAccessLevelEnum.AccessOperator);
-            return true;
+
+            // EssentialsDevice.CustomActivate registers the device's default Mobile Control messengers (DSP presets and so
+            // on); without calling it the DSP has no /device/{key} handlers.
+            return base.CustomActivate();
         }
 
         private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)

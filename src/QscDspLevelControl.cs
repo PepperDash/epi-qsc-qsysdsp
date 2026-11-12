@@ -17,7 +17,6 @@ namespace PepperDash.Essentials.Plugins
 
 		public IntFeedback VolumeLevelFeedback { get; private set; }
 
-		public bool Enabled { get; set; }
 		public bool UseAbsoluteValue { get; set; }
 
 		public ePdtLevelTypes Type;
@@ -75,8 +74,6 @@ namespace PepperDash.Essentials.Plugins
 		public bool HasMute { get; private set; }
 		public bool HasLevel { get; private set; }
 
-        public string Name => Key;
-
         bool _muteIsSubscribed;
 		bool _levelIsSubscribed;
 
@@ -87,7 +84,7 @@ namespace PepperDash.Essentials.Plugins
         /// <param name="config">level control block configuration object</param>
         /// <param name="parent">dsp parent isntance</param>
         public QscDspLevelControl(string key, QscDspLevelControlBlockConfig config, QscDsp parent)
-            : base(key, config.LevelInstanceTag, config.MuteInstanceTag, parent)
+            : base(key, string.IsNullOrEmpty(config.Label) ? key : config.Label, config.LevelInstanceTag, config.MuteInstanceTag, parent)
         {
             _parent = parent;
             if (config.Disabled)
