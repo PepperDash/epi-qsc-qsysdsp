@@ -181,7 +181,9 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
                 }
             }
 
-            return true;
+            // EssentialsDevice.CustomActivate registers the device's default Mobile Control messengers (DSP presets and so
+            // on); without calling it the DSP has no /device/{key} handlers.
+            return base.CustomActivate();
         }
 
         /// <summary>
