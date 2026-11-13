@@ -4,6 +4,7 @@
       "@semantic-release/commit-analyzer",
       {
         "releaseRules": [
+          { "breaking": true, "release": "minor" },
           { "scope": "force-patch", "release": "patch" },
           { "scope": "no-release", "release": false }
         ]
@@ -26,9 +27,9 @@
   "branches": [
     "main",
     {
-      "name": "replace-me-feature-branch",
-      "prerelease": "replace-me-prerelease",
-      "channel": "replace-me-prerelease"
+      "name": "qrc-protocol",
+      "prerelease": "qrc-protocol",
+      "channel": "qrc-protocol"
     }
   ]
 }

@@ -1,12 +1,17 @@
-using PepperDash.Essentials.Devices.Common.DSP;
+using PepperDash.Essentials.Core;
 
-namespace PepperDash.Essentials.Plugins
+namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 {
-	public abstract class QscDspControlPoint : DspControlPoint
+	/// <summary>
+	/// Base class for the Q-SYS control points (level controls and so on). It is an Essentials device, like the control
+	/// points of the other DSP plugins, so Essentials registers the default Mobile Control messengers for it (a level
+	/// control gets the volume messenger at /device/{key}) when the device activates.
+	/// </summary>
+	public abstract class QsysControlPoint : EssentialsDevice
 	{
 		public string LevelInstanceTag { get; set; }
 		public string MuteInstanceTag { get; set; }
-		public QscDsp Parent { get; private set; }
+		public IQsys Parent { get; private set; }
 
 		public bool IsSubscribed { get; protected set; }
 
@@ -14,11 +19,12 @@ namespace PepperDash.Essentials.Plugins
         /// Constructor
         /// </summary>
         /// <param name="key">level key</param>
+        /// <param name="name">name shown for the control point (the config label)</param>
         /// <param name="levelInstanceTag">level named control/instance tag</param>
         /// <param name="muteInstanceTag">mute named control/instance tag</param>
         /// <param name="parent">parent DSP instance</param>
-        protected QscDspControlPoint(string key, string levelInstanceTag, string muteInstanceTag, QscDsp parent)
-            : base(key)
+        protected QsysControlPoint(string key, string name, string levelInstanceTag, string muteInstanceTag, IQsys parent)
+            : base(key, name)
         {            
             LevelInstanceTag = levelInstanceTag;
             MuteInstanceTag = muteInstanceTag;
@@ -28,7 +34,7 @@ namespace PepperDash.Essentials.Plugins
         /// <summary>
         /// Initializes the plugin
         /// </summary>
-        virtual public void Initialize()
+        new virtual public void Initialize()
 		{
 		}
 
@@ -40,11 +46,24 @@ namespace PepperDash.Essentials.Plugins
 		/// <param name="value">value (use "" if not applicable)</param>
 		public virtual void SendFullCommand(string cmd, string instance, string value)
 		{
-
-            var cmdToSemd = string.Format("{0} \"{1}\" {2}", cmd, instance, value);
-
-			Parent.SendLine(cmdToSemd);
-
+            switch (cmd.Trim())
+            {
+                case "csv":
+                    Parent.SendControlValue(instance, value);
+                    break;
+                case "csp":
+                    Parent.SendControlPosition(instance, value);
+                    break;
+                case "css":
+                    if (value == "++" || value == "--")
+                        Parent.SendControlRelative(instance, value == "++");
+                    else
+                        Parent.SendControlString(instance, value);
+                    break;
+                case "ct":
+                    Parent.TriggerControl(instance);
+                    break;
+            }
 		}
 
 		/// <summary>
@@ -61,17 +80,9 @@ namespace PepperDash.Essentials.Plugins
 		/// Sends the subscription command of the instance tag for the provided change group
 		/// </summary>
 		/// <param name="instanceTag">named control/instance tag</param>
-		/// <param name="changeGroup">change group</param>
 		public virtual void SendSubscriptionCommand(string instanceTag)
 		{
-			// Subscription string format: InstanceTag subscribe attributeCode Index1 customName responseRate
-			// Ex: "RoomLevel subscribe level 1 MyRoomLevel 500"
-
-			string cmd;
-
-            cmd = string.Format("cga 1 \"{0}\"", instanceTag);
-
-			Parent.SendLine(cmd);
+			Parent.SubscribeControl(instanceTag);
 		}
 	}
 }

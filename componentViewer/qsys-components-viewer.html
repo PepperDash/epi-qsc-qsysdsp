@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Q-SYS Components Viewer</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #6b7280;
+    --border: #e2e2e2;
+    --row-alt: #f7f7f8;
+    --row-hover: #eef4ff;
+    --accent: #2563eb;
+    --accent-fg: #ffffff;
+    --input-bg: #ffffff;
+    --header-bg: #f3f4f6;
+    --tag-bg: #f1f5f9;
+    --copied: #16a34a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a;
+      --fg: #e5e7eb;
+      --muted: #9aa1ac;
+      --border: #2a2d33;
+      --row-alt: #1a1d22;
+      --row-hover: #1f2a3d;
+      --accent: #3b82f6;
+      --accent-fg: #0b0d10;
+      --input-bg: #1c1f24;
+      --header-bg: #1c1f24;
+      --tag-bg: #20242b;
+      --copied: #4ade80;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+  }
+  #app { display: flex; flex-direction: column; height: 100vh; }
+  header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    background: var(--header-bg);
+  }
+  header h1 {
+    font-size: 15px; margin: 0; font-weight: 600; white-space: nowrap;
+  }
+  #search {
+    flex: 1 1 260px;
+    min-width: 200px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--input-bg);
+    color: var(--fg);
+    font-size: 13px;
+  }
+  #search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .filter-group { display: flex; align-items: center; gap: 6px; }
+  select, .dd-btn {
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--input-bg);
+    color: var(--fg);
+    font-size: 13px;
+  }
+  #stats { color: var(--muted); white-space: nowrap; margin-left: auto; }
+  .link-btn {
+    font-size: 12px; color: var(--accent); cursor: pointer; background: none;
+    border: none; padding: 0; text-decoration: underline;
+  }
+  .dropdown { position: relative; }
+  .dd-btn { cursor: pointer; min-width: 140px; text-align: left; }
+  .dd-panel {
+    display: none;
+    position: absolute; top: 100%; left: 0; margin-top: 4px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    max-height: 320px; overflow-y: auto; min-width: 260px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.15);
+    z-index: 20; padding: 6px;
+  }
+  .dd-panel.open { display: block; }
+  .dd-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 3px 6px; border-radius: 4px; white-space: nowrap;
+  }
+  .dd-row:hover { background: var(--row-hover); }
+  .dd-row-label { cursor: pointer; flex: 1; }
+  .pin-btn {
+    flex: 0 0 auto;
+    border: none; background: none; cursor: pointer;
+    font-size: 13px; opacity: 0.35; padding: 0 2px; color: var(--fg);
+  }
+  .pin-btn:hover { opacity: 0.8; }
+  .pin-btn.pinned { opacity: 1; color: var(--accent); }
+  .dd-actions { display: flex; gap: 8px; padding: 4px 6px 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px;}
+  .dd-actions a { font-size: 12px; color: var(--accent); cursor: pointer; text-decoration: none; }
+  #table-wrap { flex: 1; overflow: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  thead th {
+    position: sticky; top: 0;
+    background: var(--header-bg);
+    text-align: left; padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; user-select: none;
+    white-space: nowrap;
+    font-weight: 600;
+    z-index: 5;
+  }
+  thead th:hover { color: var(--accent); }
+  thead th .arrow { opacity: 0.5; margin-left: 4px; font-size: 10px; }
+  tbody td {
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  tbody tr:hover { background: var(--row-hover); }
+  tr.group-row {
+    background: var(--header-bg);
+    cursor: pointer;
+    position: sticky;
+  }
+  tr.group-row td {
+    padding: 6px 10px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+  tr.group-row:hover { background: var(--row-hover); }
+  .group-toggle {
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .group-arrow {
+    display: inline-block; width: 10px; transition: transform .1s;
+    font-size: 10px; opacity: 0.7;
+  }
+  .group-arrow.open { transform: rotate(90deg); }
+  tr.control-row td:first-child { padding-left: 28px; }
+  tr.control-row:nth-child(even) { background: var(--row-alt); }
+  .tag-cell { display: flex; align-items: center; gap: 6px; }
+  .tag-code {
+    flex: 1;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--tag-bg);
+    padding: 2px 6px; border-radius: 4px;
+    font-size: 12px;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .copy-btn {
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--fg);
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .copy-btn:hover { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  .copy-btn.copied { background: var(--copied); color: #06210f; border-color: var(--copied); }
+  .friendly-input {
+    width: 100%;
+    padding: 3px 7px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--fg);
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .friendly-input:hover { border-color: var(--border); }
+  .friendly-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--input-bg);
+  }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--tag-bg);
+    color: var(--muted);
+  }
+  mark {
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
+    color: inherit;
+    border-radius: 2px;
+  }
+  #empty {
+    padding: 30px; text-align: center; color: var(--muted);
+  }
+  footer {
+    padding: 4px 14px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 11px;
+  }
+  #loadPrompt {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; height: 100%; padding: 40px; text-align: center; color: var(--muted);
+  }
+  #loadPrompt.hidden { display: none; }
+  #loadPrompt button {
+    padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--accent); color: var(--accent-fg); font-size: 13px; cursor: pointer;
+  }
+  #app.hidden { display: none; }
+</style>
+</head>
+<body>
+<div id="loadPrompt" class="hidden">
+  <div id="loadPromptMsg">Could not auto-load <code>qsys-components.json</code> from this folder (browsers block local file reads when a page is opened directly). Pick the file manually — it's read once into memory and never uploaded anywhere.</div>
+  <button id="loadFileBtn">Choose qsys-components.json…</button>
+  <input type="file" id="fileInput" accept=".json" style="display:none">
+</div>
+<div id="app" class="hidden">
+  <header>
+    <h1>Q-SYS Components</h1>
+    <input id="search" type="text" placeholder="Search component, control, or tag…" autocomplete="off">
+    <div class="filter-group dropdown" id="compTypeDropdown">
+      <button class="dd-btn" id="compTypeBtn">Component Type: All</button>
+      <div class="dd-panel" id="compTypePanel"></div>
+    </div>
+    <div class="filter-group dropdown" id="ctrlTypeDropdown">
+      <button class="dd-btn" id="ctrlTypeBtn">Control Type: All</button>
+      <div class="dd-panel" id="ctrlTypePanel"></div>
+    </div>
+    <div class="filter-group dropdown" id="ignoreDropdown">
+      <button class="dd-btn" id="ignoreBtn">Ignore keywords: none</button>
+      <div class="dd-panel" id="ignorePanel">
+        <div class="dd-actions" style="display:flex; gap:4px; padding:6px;">
+          <input type="text" id="ignoreInput" placeholder="e.g. -ems" style="flex:1; padding:4px 6px; border:1px solid var(--border); border-radius:4px; background:var(--input-bg); color:var(--fg); font-size:12px;">
+          <button id="ignoreAddBtn" class="link-btn" style="text-decoration:none; border:1px solid var(--border); border-radius:4px; padding:3px 8px;">Add</button>
+        </div>
+        <div id="ignoreList"></div>
+        <label style="display:flex; align-items:center; gap:6px; padding:6px; border-top:1px solid var(--border); margin-top:4px; cursor:pointer;">
+          <input type="checkbox" id="showIgnoredCb">
+          <span>Show ignored items anyway</span>
+        </label>
+      </div>
+    </div>
+    <button class="link-btn" id="expandAllBtn">Expand all</button>
+    <button class="link-btn" id="collapseAllBtn">Collapse all</button>
+    <button class="link-btn" id="exportBtn" title="Download friendly names as JSON">Export names</button>
+    <button class="link-btn" id="importBtn" title="Load friendly names from a JSON file (merges with existing)">Import names</button>
+    <input type="file" id="importInput" accept=".json" style="display:none">
+    <div id="stats"></div>
+  </header>
+  <div id="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-key="c">Component<span class="arrow"></span></th>
+          <th data-key="friendly">Friendly Name<span class="arrow"></span></th>
+          <th data-key="n">Control Name<span class="arrow"></span></th>
+          <th data-key="t">Control Type<span class="arrow"></span></th>
+          <th data-key="s">Value<span class="arrow"></span></th>
+          <th data-key="dir">Direction<span class="arrow"></span></th>
+          <th data-key="tag">Suggested Tag<span class="arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="empty" style="display:none">No matching controls.</div>
+  </div>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+(function () {
+  const JSON_FILENAME = 'qsys-components.json';
+
+  function flatten(components) {
+    const rows = [];
+    for (const comp of components) {
+      for (const ctrl of (comp.Controls || [])) {
+        rows.push({
+          c: comp.Name, ct: comp.Type,
+          n: ctrl.Name, t: ctrl.Type,
+          v: ctrl.Value, s: ctrl.String,
+          dir: ctrl.Direction,
+          tag: ctrl.SuggestedTag
+        });
+      }
+    }
+    return rows;
+  }
+
+  const loadPromptEl = document.getElementById('loadPrompt');
+  const appEl = document.getElementById('app');
+  const fileInput = document.getElementById('fileInput');
+  const loadFileBtn = document.getElementById('loadFileBtn');
+  const loadPromptMsg = document.getElementById('loadPromptMsg');
+
+  loadFileBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const raw = JSON.parse(reader.result);
+        startApp(raw);
+      } catch (e) {
+        loadPromptMsg.textContent = 'That file could not be parsed as JSON (' + e.message + '). Try again.';
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  fetch(JSON_FILENAME)
+    .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+    .then(raw => startApp(raw))
+    .catch(() => { loadPromptEl.classList.remove('hidden'); });
+
+  function startApp(rawComponents) {
+    loadPromptEl.classList.add('hidden');
+    appEl.classList.remove('hidden');
+    run(flatten(rawComponents));
+  }
+
+  function run(DATA) {
+  const tbody = document.getElementById('tbody');
+  const searchEl = document.getElementById('search');
+  const statsEl = document.getElementById('stats');
+  const emptyEl = document.getElementById('empty');
+  const footEl = document.getElementById('foot');
+
+  footEl.textContent = DATA.length.toLocaleString() + ' controls across ' +
+    new Set(DATA.map(r => r.c)).size + ' components — read-only view of qsys-components.json';
+
+  // ---- persistence (localStorage) ----
+  const LS_PREFIX = 'qsysViewer.';
+  function loadJSON(key, fallback) {
+    try {
+      const raw = localStorage.getItem(LS_PREFIX + key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function saveJSON(key, value) {
+    try { localStorage.setItem(LS_PREFIX + key, JSON.stringify(value)); } catch (e) {}
+  }
+
+  // ---- filter option sets ----
+  const compTypes = [...new Set(DATA.map(r => r.ct))].sort();
+  const ctrlTypes = [...new Set(DATA.map(r => r.t || '(none)'))].sort();
+
+  const savedActiveComp = loadJSON('activeCompTypes', null);
+  const activeCompTypes = new Set(savedActiveComp ? savedActiveComp.filter(v => compTypes.includes(v)) : compTypes);
+  const savedActiveCtrl = loadJSON('activeCtrlTypes', null);
+  const activeCtrlTypes = new Set(savedActiveCtrl ? savedActiveCtrl.filter(v => ctrlTypes.includes(v)) : ctrlTypes);
+
+  const pinnedCompTypes = new Set(loadJSON('pinnedCompTypes', []).filter(v => compTypes.includes(v)));
+  const pinnedCtrlTypes = new Set(loadJSON('pinnedCtrlTypes', []).filter(v => ctrlTypes.includes(v)));
+
+  // ---- friendly names (keyed by component name) ----
+  const friendlyNames = loadJSON('friendlyNames', {});
+  function saveFriendlyNames() { saveJSON('friendlyNames', friendlyNames); }
+
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importInput = document.getElementById('importInput');
+
+  exportBtn.addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(friendlyNames, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'qsys-friendly-names.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  importBtn.addEventListener('click', () => importInput.click());
+  importInput.addEventListener('change', () => {
+    const file = importInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const incoming = JSON.parse(reader.result);
+        Object.assign(friendlyNames, incoming);
+        saveFriendlyNames();
+        render();
+      } catch (e) {
+        alert('Could not parse that file as JSON: ' + e.message);
+      }
+    };
+    reader.readAsText(file);
+    importInput.value = '';
+  });
+
+  // ---- ignore keywords (hide components/controls whose name or tag contains any of these) ----
+  const ignoreKeywords = loadJSON('ignoreKeywords', []);
+  let showIgnored = loadJSON('showIgnored', false);
+
+  const ignoreBtn = document.getElementById('ignoreBtn');
+  const ignorePanel = document.getElementById('ignorePanel');
+  const ignoreInput = document.getElementById('ignoreInput');
+  const ignoreAddBtn = document.getElementById('ignoreAddBtn');
+  const ignoreListEl = document.getElementById('ignoreList');
+  const showIgnoredCb = document.getElementById('showIgnoredCb');
+
+  function updateIgnoreBtn() {
+    ignoreBtn.textContent = 'Ignore keywords: ' + (ignoreKeywords.length ? ignoreKeywords.length + (showIgnored ? ' (shown)' : '') : 'none');
+  }
+
+  function renderIgnoreList() {
+    ignoreListEl.innerHTML = '';
+    for (const kw of ignoreKeywords) {
+      const row = document.createElement('div');
+      row.className = 'dd-row';
+      const span = document.createElement('span');
+      span.className = 'dd-row-label';
+      span.textContent = kw;
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'pin-btn';
+      rm.title = 'Remove';
+      rm.textContent = '✕';
+      rm.addEventListener('click', () => {
+        const idx = ignoreKeywords.indexOf(kw);
+        if (idx !== -1) ignoreKeywords.splice(idx, 1);
+        saveJSON('ignoreKeywords', ignoreKeywords);
+        updateIgnoreBtn(); renderIgnoreList(); render();
+      });
+      row.append(span, rm);
+      ignoreListEl.appendChild(row);
+    }
+  }
+
+  function addIgnoreKeyword() {
+    const v = ignoreInput.value.trim();
+    if (!v || ignoreKeywords.includes(v)) return;
+    ignoreKeywords.push(v);
+    saveJSON('ignoreKeywords', ignoreKeywords);
+    ignoreInput.value = '';
+    updateIgnoreBtn(); renderIgnoreList(); render();
+  }
+  ignoreAddBtn.addEventListener('click', addIgnoreKeyword);
+  ignoreInput.addEventListener('keydown', e => { if (e.key === 'Enter') addIgnoreKeyword(); });
+
+  showIgnoredCb.checked = showIgnored;
+  showIgnoredCb.addEventListener('change', () => {
+    showIgnored = showIgnoredCb.checked;
+    saveJSON('showIgnored', showIgnored);
+    updateIgnoreBtn(); render();
+  });
+
+  ignoreBtn.onclick = (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.dd-panel.open').forEach(p => { if (p !== ignorePanel) p.classList.remove('open'); });
+    ignorePanel.classList.toggle('open');
+  };
+
+  function isIgnored(r) {
+    if (!ignoreKeywords.length) return false;
+    const hay = (r.c + ' ' + r.n + ' ' + r.tag).toLowerCase();
+    return ignoreKeywords.some(kw => hay.includes(kw.toLowerCase()));
+  }
+
+  updateIgnoreBtn();
+  renderIgnoreList();
+
+  function orderValues(values, pinnedSet) {
+    const pinned = values.filter(v => pinnedSet.has(v)).sort();
+    const rest = values.filter(v => !pinnedSet.has(v)).sort();
+    return [...pinned, ...rest];
+  }
+
+  function buildDropdown(panelId, btnId, values, activeSet, pinnedSet, label, activeKey, pinnedKey, refresh) {
+    const panel = document.getElementById(panelId);
+    const btn = document.getElementById(btnId);
+
+    function updateBtn() {
+      btn.textContent = label + ': ' + (activeSet.size === values.length ? 'All' : activeSet.size === 0 ? 'None' : activeSet.size + ' selected');
+    }
+
+    function renderRows() {
+      panel.innerHTML = '';
+
+      const actions = document.createElement('div');
+      actions.className = 'dd-actions';
+      const allA = document.createElement('a'); allA.textContent = 'All';
+      const noneA = document.createElement('a'); noneA.textContent = 'None';
+      allA.onclick = () => {
+        values.forEach(v => activeSet.add(v));
+        saveJSON(activeKey, [...activeSet]);
+        updateBtn(); renderRows(); refresh();
+      };
+      noneA.onclick = () => {
+        activeSet.clear();
+        saveJSON(activeKey, [...activeSet]);
+        updateBtn(); renderRows(); refresh();
+      };
+      actions.append(allA, noneA);
+      panel.appendChild(actions);
+
+      for (const v of orderValues(values, pinnedSet)) {
+        const row = document.createElement('div');
+        row.className = 'dd-row';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = activeSet.has(v);
+        cb.addEventListener('change', () => {
+          if (cb.checked) activeSet.add(v); else activeSet.delete(v);
+          saveJSON(activeKey, [...activeSet]);
+          updateBtn(); refresh();
+        });
+
+        const span = document.createElement('span');
+        span.className = 'dd-row-label';
+        span.textContent = v || '(none)';
+        span.addEventListener('click', () => cb.click());
+
+        const pinBtn = document.createElement('button');
+        pinBtn.type = 'button';
+        pinBtn.className = 'pin-btn' + (pinnedSet.has(v) ? ' pinned' : '');
+        pinBtn.title = pinnedSet.has(v) ? 'Unpin' : 'Pin to top';
+        pinBtn.textContent = pinnedSet.has(v) ? '★' : '☆';
+        pinBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (pinnedSet.has(v)) pinnedSet.delete(v); else pinnedSet.add(v);
+          saveJSON(pinnedKey, [...pinnedSet]);
+          renderRows();
+        });
+
+        row.append(cb, span, pinBtn);
+        panel.appendChild(row);
+      }
+    }
+
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.dd-panel.open').forEach(p => { if (p !== panel) p.classList.remove('open'); });
+      panel.classList.toggle('open');
+    };
+    updateBtn();
+    renderRows();
+  }
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dd-panel.open').forEach(p => p.classList.remove('open'));
+  });
+  document.getElementById('compTypePanel').addEventListener('click', e => e.stopPropagation());
+  document.getElementById('ctrlTypePanel').addEventListener('click', e => e.stopPropagation());
+  document.getElementById('ignorePanel').addEventListener('click', e => e.stopPropagation());
+
+  // ---- plain case-insensitive substring match ----
+  function matchesQuery(needle, haystack) {
+    return haystack.toLowerCase().includes(needle.toLowerCase());
+  }
+
+  function highlight(text, needle) {
+    if (!needle || !text) return escapeHtml(text || '');
+    const lower = text.toLowerCase();
+    const nlower = needle.toLowerCase();
+    const idx = lower.indexOf(nlower);
+    if (idx === -1) return escapeHtml(text);
+    return escapeHtml(text.slice(0, idx)) +
+      '<mark>' + escapeHtml(text.slice(idx, idx + needle.length)) + '</mark>' +
+      escapeHtml(text.slice(idx + needle.length));
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---- sort state ----
+  let sortKey = 'c', sortDir = 1;
+  document.querySelectorAll('thead th').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+      document.querySelectorAll('thead .arrow').forEach(a => a.textContent = '');
+      th.querySelector('.arrow').textContent = sortDir === 1 ? '▲' : '▼';
+      render();
+    });
+  });
+
+  // ---- expand/collapse state (per component name) ----
+  const expanded = new Set();
+  document.getElementById('expandAllBtn').addEventListener('click', () => {
+    groupsCache.forEach(g => expanded.add(g.c));
+    render();
+  });
+  document.getElementById('collapseAllBtn').addEventListener('click', () => {
+    expanded.clear();
+    render();
+  });
+
+  let debounceTimer = null;
+  searchEl.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(render, 120);
+  });
+
+  let groupsCache = [];
+
+  function getFiltered() {
+    const q = searchEl.value.trim();
+    let rows = DATA.filter(r => activeCompTypes.has(r.ct) && activeCtrlTypes.has(r.t || '(none)'));
+
+    if (!showIgnored) {
+      rows = rows.filter(r => !isIgnored(r));
+    }
+
+    if (q) {
+      rows = rows.filter(r => matchesQuery(q, r.c + ' ' + r.n + ' ' + r.tag + ' ' + (friendlyNames[r.c] || '')));
+    }
+    return { rows, q };
+  }
+
+  function buildGroups(rows) {
+    const map = new Map();
+    for (const r of rows) {
+      if (!map.has(r.c)) map.set(r.c, { c: r.c, ct: r.ct, rows: [] });
+      map.get(r.c).rows.push(r);
+    }
+    const groups = [...map.values()];
+
+    for (const g of groups) {
+      g.rows.sort((a, b) => {
+        let av = a[sortKey], bv = b[sortKey];
+        if (av == null) av = '';
+        if (bv == null) bv = '';
+        if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * sortDir;
+        return String(av).localeCompare(String(bv)) * sortDir;
+      });
+    }
+
+    if (sortKey === 'friendly') {
+      groups.sort((a, b) => (friendlyNames[a.c] || '').localeCompare(friendlyNames[b.c] || '') * sortDir);
+    } else if (sortKey === 'c') {
+      groups.sort((a, b) => a.c.localeCompare(b.c) * sortDir);
+    } else {
+      groups.sort((a, b) => a.c.localeCompare(b.c));
+    }
+    return groups;
+  }
+
+  function valueDisplay(r) {
+    if (r.s !== undefined && r.s !== null && r.s !== '') return r.s;
+    if (r.v !== undefined && r.v !== null) return String(r.v);
+    return '';
+  }
+
+  function makeControlRow(r, q) {
+    const tr = document.createElement('tr');
+    tr.className = 'control-row';
+    tr.innerHTML =
+      '<td></td>' +
+      '<td></td>' +
+      '<td title="' + escapeHtml(r.n) + '">' + highlight(r.n, q) + '</td>' +
+      '<td>' + escapeHtml(r.t || '') + '</td>' +
+      '<td title="' + escapeHtml(valueDisplay(r)) + '">' + escapeHtml(valueDisplay(r)) + '</td>' +
+      '<td>' + escapeHtml(r.dir || '') + '</td>' +
+      '<td></td>';
+
+    const tagTd = tr.lastElementChild;
+    const wrap = document.createElement('div');
+    wrap.className = 'tag-cell';
+    const code = document.createElement('span');
+    code.className = 'tag-code';
+    code.title = r.tag;
+    code.innerHTML = highlight(r.tag, q);
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText(r.tag).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1000);
+      });
+    });
+    wrap.append(btn, code);
+    tagTd.appendChild(wrap);
+    return tr;
+  }
+
+  function render() {
+    const { rows, q } = getFiltered();
+    const groups = buildGroups(rows);
+    groupsCache = groups;
+
+    const ignoredCount = ignoreKeywords.length ? DATA.filter(isIgnored).length : 0;
+    statsEl.textContent = rows.length.toLocaleString() + ' / ' + DATA.length.toLocaleString() +
+      ' controls in ' + groups.length.toLocaleString() + ' / ' + new Set(DATA.map(r => r.c)).size.toLocaleString() + ' components' +
+      (ignoredCount && !showIgnored ? ' (' + ignoredCount.toLocaleString() + ' hidden by ignore filter)' : '');
+    emptyEl.style.display = rows.length ? 'none' : 'block';
+
+    const MAX_ROWS = 2500;
+    const frag = document.createDocumentFragment();
+    let rendered = 0;
+    let truncated = false;
+
+    for (const g of groups) {
+      if (rendered >= MAX_ROWS) { truncated = true; break; }
+      const isOpen = q ? true : expanded.has(g.c);
+
+      const groupTr = document.createElement('tr');
+      groupTr.className = 'group-row';
+      groupTr.innerHTML =
+        '<td><span class="group-toggle"><span class="group-arrow' + (isOpen ? ' open' : '') + '">▶</span>' +
+          highlight(g.c, q) + ' <span class="badge">' + escapeHtml(g.ct) + '</span></span></td>' +
+        '<td></td>' +
+        '<td colspan="5">' + g.rows.length + ' control' + (g.rows.length === 1 ? '' : 's') + '</td>';
+
+      const nameCell = groupTr.firstElementChild;
+      nameCell.style.cursor = 'pointer';
+      nameCell.addEventListener('click', () => {
+        if (expanded.has(g.c)) expanded.delete(g.c); else expanded.add(g.c);
+        render();
+      });
+
+      const friendlyCell = nameCell.nextElementSibling;
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'friendly-input';
+      nameInput.placeholder = 'add a name…';
+      nameInput.value = friendlyNames[g.c] || '';
+      nameInput.addEventListener('click', e => e.stopPropagation());
+      nameInput.addEventListener('input', () => {
+        const v = nameInput.value.trim();
+        if (v) friendlyNames[g.c] = v; else delete friendlyNames[g.c];
+        saveFriendlyNames();
+      });
+      friendlyCell.appendChild(nameInput);
+
+      frag.appendChild(groupTr);
+      rendered++;
+
+      if (isOpen) {
+        for (const r of g.rows) {
+          if (rendered >= MAX_ROWS) { truncated = true; break; }
+          frag.appendChild(makeControlRow(r, q));
+          rendered++;
+        }
+      }
+    }
+
+    tbody.innerHTML = '';
+    tbody.appendChild(frag);
+
+    if (truncated) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 7;
+      td.style.textAlign = 'center';
+      td.style.color = 'var(--muted)';
+      td.style.padding = '10px';
+      td.textContent = 'Showing first ' + MAX_ROWS.toLocaleString() + ' rows — refine your search, filters, or collapse groups to see more.';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+  }
+
+  buildDropdown('compTypePanel', 'compTypeBtn', compTypes, activeCompTypes, pinnedCompTypes, 'Component Type', 'activeCompTypes', 'pinnedCompTypes', render);
+  buildDropdown('ctrlTypePanel', 'ctrlTypeBtn', ctrlTypes, activeCtrlTypes, pinnedCtrlTypes, 'Control Type', 'activeCtrlTypes', 'pinnedCtrlTypes', render);
+
+  render();
+  } // end run()
+})();
+</script>
+</body>
+</html>

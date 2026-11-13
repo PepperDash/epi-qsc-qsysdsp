@@ -3,19 +3,18 @@ using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Core.Logging;
-using Serilog.Events;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
-namespace PepperDash.Essentials.Plugins
+namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 {
 	/// <summary>
 	/// QSC DSP Camera class
 	/// </summary>
-    public class QscDspCamera : Device, IBridgeAdvanced, IOnline
+    public class QsysCamera : Device, IBridgeAdvanced, IOnline
 	{
-		QscDsp _Dsp;
-		public QscDspCameraConfig Config { get; private set; }
+		IQsys _Dsp;
+		public QsysCameraConfig Config { get; private set; }
 		string LastCmd;
 		private bool _Online;
 		public bool Online
@@ -34,16 +33,16 @@ namespace PepperDash.Essentials.Plugins
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="dsp">QscDsp</param>
+		/// <param name="dsp">Qsys</param>
 		/// <param name="key">string</param>
 		/// <param name="name">string</param>
-		/// <param name="dc">QscDspCameraConfig</param>
-		public QscDspCamera(QscDsp dsp, string key, string name, QscDspCameraConfig dc)
+		/// <param name="dc">QsysCameraConfig</param>
+		public QsysCamera(IQsys dsp, string key, string name, QsysCameraConfig dc)
 			: base(key, name)
 		{
 			_Dsp = dsp;
 			Config = dc;
-            IsOnline = new BoolFeedback(() => Online);
+            IsOnline = new BoolFeedback(dsp.Key + "-" + key + "-IsOnline", () => Online);
 			DeviceManager.AddDevice(this);
 
 		}
@@ -60,8 +59,7 @@ namespace PepperDash.Essentials.Plugins
 			{
 				case eCameraPtzControls.Stop:
 					{
-                        var cmdToSend = string.Format("csv \"{0}\" 0", LastCmd);
-						_Dsp.SendLine(cmdToSend);
+						_Dsp.SendControlValue(LastCmd, "0");
 						break;
 					}
 				case eCameraPtzControls.PanLeft: tag = Config.PanLeftTag; break;
@@ -75,9 +73,8 @@ namespace PepperDash.Essentials.Plugins
 			}
 			if (tag != null)
 			{
-                var cmdToSend = string.Format("csv \"{0}\" 1", tag);
 				LastCmd = tag;
-				_Dsp.SendLine(cmdToSend);
+				_Dsp.SendControlValue(tag, "1");
 
 			}
 		}
@@ -87,8 +84,7 @@ namespace PepperDash.Essentials.Plugins
 		/// </summary>
 		public void PrivacyOn()
 		{
-            var cmdToSend = string.Format("csv \"{0}\" 1", Config.Privacy);
-			_Dsp.SendLine(cmdToSend);
+			_Dsp.SendControlValue(Config.Privacy, "1");
 		}
 
 		/// <summary>
@@ -96,8 +92,7 @@ namespace PepperDash.Essentials.Plugins
 		/// </summary>
 		public void PrivacyOff()
 		{
-            var cmdToSend = string.Format("csv \"{0}\" 0", Config.Privacy);
-			_Dsp.SendLine(cmdToSend);
+			_Dsp.SendControlValue(Config.Privacy, "0");
 		}
 
 		/// <summary>
@@ -110,8 +105,7 @@ namespace PepperDash.Essentials.Plugins
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
-				var cmdToSend = string.Format("ssl {0} {1} 0", preset.Bank, preset.Number);
-				_Dsp.SendLine(cmdToSend);
+				_Dsp.RecallSnapshot(preset.Bank, preset.Number.ToString(), "0");
 			}
 		}
 
@@ -124,8 +118,7 @@ namespace PepperDash.Essentials.Plugins
 			if (Config.Presets.ElementAt(presetNumber).Value != null)
 			{
 				var preset = Config.Presets.ElementAt(presetNumber).Value;
-				var cmdToSend = string.Format("sss {0} {1}", preset.Bank, preset.Number);
-				_Dsp.SendLine(cmdToSend);
+				_Dsp.SaveSnapshot(preset.Bank, preset.Number.ToString());
 			}
 		}
 
@@ -156,13 +149,12 @@ namespace PepperDash.Essentials.Plugins
 				// Do subscriptions and blah blah
 				if (Config.OnlineStatus != null)
 				{
-                    var cmd = string.Format("cga 1 \"{0}\"", Config.OnlineStatus);
-					_Dsp.SendLine(cmd);
+					_Dsp.SubscribeControl(Config.OnlineStatus);
 				}
 			}
 			catch (Exception e)
 			{
-				Debug.LogMessage(LogEventLevel.Debug, e, "QscDspCamera Subscription Error");
+				this.LogVerbose(e, "QsysCamera Subscription Error");
 			}
 		}
 

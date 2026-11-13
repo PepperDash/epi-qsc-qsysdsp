@@ -1,6 +1,6 @@
 using PepperDash.Essentials.Core;
 
-namespace PepperDash.Essentials.Plugins
+namespace PepperDash.Essentials.Plugins.Qsc.Qsys
 {
 	/// <summary>
 	/// DSP Basic Level Interface
@@ -8,7 +8,7 @@ namespace PepperDash.Essentials.Plugins
 	/// Biamp: InstanceTags
 	/// Polycom: 
 	/// </summary>
-	public interface IQscDspBasicLevel : IBasicVolumeWithFeedback
+	public interface IQsysBasicLevel : IBasicVolumeWithFeedback
 	{
 		string LevelInstanceTag { get; set; }
 		string MuteInstanceTag { get; set; }

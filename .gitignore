@@ -357,9 +357,18 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-# VS Code settings folders
-.vscode/
+# VS Code settings folders (track shared tasks/extensions only)
+.vscode/*
+!.vscode/tasks.json
+!.vscode/extensions.json
+*.code-workspace
 *.projectinfo
 output
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
 
 *.cplz
