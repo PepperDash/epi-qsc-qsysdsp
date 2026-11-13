@@ -215,8 +215,20 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
             if (!e.Client.IsConnected)
                 return;
 
-            Logon();
-            SubscribeToAttributes();
+            // With credentials configured, Logon is asynchronous and Q-SYS rejects change-group/control requests
+            // received before a successful Logon response, so subscribe from the Logon success callback instead.
+            if (!HasCredentials)
+            {
+                SubscribeToAttributes();
+                return;
+            }
+
+            Logon(SubscribeToAttributes);
+        }
+
+        private bool HasCredentials
+        {
+            get { return !(string.IsNullOrEmpty(_username) && string.IsNullOrEmpty(_password)); }
         }
 
         private string FormatTag(string prefix, string tag)
@@ -417,12 +429,19 @@ namespace PepperDash.Essentials.Plugins.Qsc.Qsys.RemoteControlProtocol
             SendRequest("NoOp", new JObject());
         }
 
-        private void Logon()
+        private void Logon(Action onSuccess)
         {
-            if (string.IsNullOrEmpty(_username) && string.IsNullOrEmpty(_password))
-                return;
+            SendRequest("Logon", JToken.FromObject(new { User = _username, Password = _password }), result =>
+            {
+                // The callback receives null when the Core answered with an error
+                if (result == null)
+                {
+                    this.LogWarning("QRC Logon failed - check the configured username/password; not subscribing");
+                    return;
+                }
 
-            SendRequest("Logon", JToken.FromObject(new { User = _username, Password = _password }));
+                onSuccess();
+            });
         }
 
         /// <summary>
